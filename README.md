@@ -1,5 +1,8 @@
-# carta-backend-ICD-rxjs
-A couple of integration tests run by the protobuf interface and websocket via RxJS (modification from carta-frontend/src/services/BackendService.ts) method offer a white-box testing on CARTA backend.
+# ICD-rxjs
+A couple of integration tests run by the protobuf interface and websocket via RxJS (modification from carta-frontend/src/services/BackendService.ts) method offer a white-box testing on **CARTA backend**.
+
+## Documentation
+All the tests' designed documentations are in the [google drive](https://drive.google.com/drive/folders/1SxE1qw_6UlleKBkoXZRmpv4-LYWwU97Y?usp=sharing), access permission may required.
 
 ## Build process
 The build process relies heavily on `npm` and `nodejs`, so make sure they are installed and accesible.
