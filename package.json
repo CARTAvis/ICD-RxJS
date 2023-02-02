@@ -1,0 +1,31 @@
+{
+  "name": "carta-backend-icd-rxjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "react-scripts": "^3.4.4",
+    "ws": "^7.4.2"
+},
+  "devDependencies": {
+    "@types/jest": "^23.3.14",
+    "@types/node": "^10.17.51",
+    "protobufjs": "6.9.0",
+    "typescript": "^3.9.7",
+    "mobx": "^6.1.7",
+    "rxjs": "^7.2.0"
+},
+  "scripts": {
+    "test": "react-scripts test --env=node --maxWorkers=1 --verbose --no-cache --forceExit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acdo2002/carta-backend-ICD-rxjs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/acdo2002/carta-backend-ICD-rxjs/issues"
+  },
+  "homepage": "https://github.com/acdo2002/carta-backend-ICD-rxjs#readme"
+}
