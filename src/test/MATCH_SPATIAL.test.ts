@@ -4,7 +4,7 @@ import { MessageController } from "./MessageController";
 import config from "./config.json";
 
 let testServerUrl = config.serverURL0;
-let testSubdirectory = config.path.moment;
+let testSubdirectory = config.path.QA;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 let cursorTimeout = config.timeout.cursor;

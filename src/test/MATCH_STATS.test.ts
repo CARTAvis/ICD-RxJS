@@ -5,7 +5,7 @@ import config from "./config.json";
 import { take } from 'rxjs/operators';
 
 let testServerUrl = config.serverURL0;
-let testSubdirectory = config.path.moment;
+let testSubdirectory = config.path.QA;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 let regionTimeout = config.timeout.region;
