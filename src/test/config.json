@@ -6,7 +6,7 @@
         "directory": ".",
         "QA": "set_QA",
         "casa_varients": "set_casaImageVarients",
-        "region": "set_QA/set_QA_regionTest",
+        "region": "set_QA/regionTest",
         "performance": "set_QA_performance",
         "catalogArtificial": "set_QA/carta_artificial_catalog",
         "catalogLarge": "set_cosmos",
