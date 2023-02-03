@@ -311,7 +311,7 @@ let MacOSNumberResponse: any;
 let chipVersion: any;
 let ubuntuNumber: any;
 let isUbunutu2204orRedHat9: boolean;
-let MacChipM1: boolean;
+let MacChipM1: boolean = false;
 let basepath: string;
 describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) with fits file.", () => {
     const msgController = MessageController.Instance;
