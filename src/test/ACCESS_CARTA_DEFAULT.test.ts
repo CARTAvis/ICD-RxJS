@@ -9,9 +9,9 @@ let connectTimeout = config.timeout.connection;
 describe(`ACCESS_CARTA_DEFAULT tests: Testing connections to the backend`, () => {
     describe(`create a Websocket connection and receive REGISTER_VIEWER_ACK`, () => {
         let RegisterViewerAckResponse: CARTA.RegisterViewerAck;
+        const msgController = MessageController.Instance;
 
         test(`Receive REGISTER_VIEWER_ACK`, async () => {
-            const msgController = MessageController.Instance;
             RegisterViewerAckResponse = await msgController.connect(testServerUrl);
         }); 
 
@@ -39,7 +39,9 @@ describe(`ACCESS_CARTA_DEFAULT tests: Testing connections to the backend`, () =>
         test("REGISTER_VIEWER_ACK.user_layouts = None", () => {
             expect(RegisterViewerAckResponse.userLayouts).toMatchObject({});
         });
-    })
 
-    afterAll(() => msgController.closeConnection());
+        afterAll(async () => {
+            await msgController.closeConnection();
+        })
+    })
 });
