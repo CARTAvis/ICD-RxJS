@@ -31,6 +31,18 @@ describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connectio
         });
     });
 
+    test(`assert every REGISTER_VIEWER_ACK.message is not empty`, () => {
+        RegisterViewerAckResponse.forEach((item, index, array) => {
+            expect(item.message).toBeDefined();
+        });
+    })
+
+    test(`assert every REGISTER_VIEWER_ACK.platformStrings is not empty`, () => {
+        RegisterViewerAckResponse.forEach((item, index, array) => {
+            expect(item.platformStrings).toBeDefined();
+        });
+    })
+
     test(`assert every REGISTER_VIEWER_ACK.session_id is unique.`, () => {
         RegisterViewerAckResponse.forEach((item, index, array) => {
             expect(array.filter(f => f.sessionId === item.sessionId).length).toEqual(1);
@@ -40,6 +52,18 @@ describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connectio
     test(`assert every REGISTER_VIEWER_ACK.session_type is "CARTA.SessionType.NEW".`, () => {
         RegisterViewerAckResponse.forEach((item, index, array) => {
             expect(item.sessionType).toEqual(CARTA.SessionType.NEW);
+        });
+    });
+
+    test("assert every REGISTER_VIEWER_ACK.user_preferences = None", () => {
+        RegisterViewerAckResponse.forEach((item, index, array) => {
+            expect(item.userPreferences).toMatchObject({});
+        });
+    });
+
+    test("assert every REGISTER_VIEWER_ACK.user_layouts = None", () => {
+        RegisterViewerAckResponse.forEach((item, index, array) => {
+            expect(item.userLayouts).toMatchObject({});
         });
     });
 
