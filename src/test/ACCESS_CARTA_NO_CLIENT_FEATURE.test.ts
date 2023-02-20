@@ -11,7 +11,8 @@ interface AssertItem {
 }
 let assertItem: AssertItem = {
     register: {
-        sessionId: 9999,
+        sessionId: 0,
+        clientFeatureFlags: 0,
     },
 }
 
@@ -64,7 +65,6 @@ export class BackendService {
     }
 
     private static readonly IcdVersion = 28;
-    private static readonly DefaultFeatureFlags = CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
 
@@ -102,7 +102,7 @@ export class BackendService {
     }
 
     @action("connect")
-    async connect(url: string, sessionid: number): Promise<CARTA.IRegisterViewerAck> {
+    async connect(url: string, sessionid: number, clientfeatureflags: number): Promise<CARTA.IRegisterViewerAck> {
         if (this.connection) {
             this.connection.onclose = null;
             this.connection.close();
@@ -148,7 +148,7 @@ export class BackendService {
                 this.connectionDropped = true;
             }
             this.connectionStatus = ConnectionStatus.ACTIVE;
-            const message = CARTA.RegisterViewer.create({sessionId: sessionid, clientFeatureFlags: BackendService.DefaultFeatureFlags});
+            const message = CARTA.RegisterViewer.create({sessionId: sessionid, clientFeatureFlags: clientfeatureflags});
             // observer map is cleared, so that old subscriptions don't get incorrectly fired
 
             if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
@@ -243,23 +243,24 @@ export class BackendService {
 
 }
 
-describe(`ACCESS_CARTA_KNOWN_SESSION tests: Testing connections to the backend with an known session id`,()=>{
+describe(`ACCESS_CARTA_NO_CLIENT_FEATURE tests: Testing backend connection without any client feature`,()=>{
     let client = new BackendService;
     let RegisterViewerAckTemp : CARTA.IRegisterViewerAck;
-    test(`send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and receive "REGISTER_VIEWER_ACK" `, async()=>{
-        RegisterViewerAckTemp = await client.connect(testServerUrl, assertItem.register.sessionId);
+    test(`send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and client_feature_flags="${assertItem.register.clientFeatureFlags}, then receive "REGISTER_VIEWER_ACK" `, async()=>{
+        RegisterViewerAckTemp = await client.connect(testServerUrl, assertItem.register.sessionId, assertItem.register.clientFeatureFlags);
     }, connectTimeout)
 
     test("REGISTER_VIEWER_ACK.success = True", () => {
         expect(RegisterViewerAckTemp.success).toBe(true);
     });
 
-    test(`REGISTER_VIEWER_ACK.session_id is ${assertItem.register.sessionId}`, () => {
-        expect(RegisterViewerAckTemp.sessionId).toEqual(assertItem.register.sessionId);
+    test("REGISTER_VIEWER_ACK.session_id is non-empty string", () => {
+        expect(RegisterViewerAckTemp.sessionId).toBeDefined();
+        console.log(`Registered session ID is ${RegisterViewerAckTemp.sessionId} @${new Date()}`);
     });
 
-    test(`REGISTER_VIEWER_ACK.session_type = "CARTA.SessionType.RESUMED"`, () => {
-        expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.RESUMED);
+    test(`REGISTER_VIEWER_ACK.session_type = "CARTA.SessionType.NEW"`, () => {
+        expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.NEW);
     });
 
     test("REGISTER_VIEWER_ACK.user_preferences = None", () => {
@@ -268,14 +269,6 @@ describe(`ACCESS_CARTA_KNOWN_SESSION tests: Testing connections to the backend w
 
     test("REGISTER_VIEWER_ACK.user_layouts = None", () => {
         expect(RegisterViewerAckTemp.userLayouts).toMatchObject({});
-    });
-
-    test("REGISTER_VIEWER_ACK.message is a non-empty string", () => {
-        expect(RegisterViewerAckTemp.message).toBeDefined();
-        expect(RegisterViewerAckTemp.message).not.toEqual("");
-        if ( RegisterViewerAckTemp.message !== "" ) {
-            console.warn(`"REGISTER_VIEWER_ACK.message" returns: "${RegisterViewerAckTemp.message}" @${new Date()}`);
-        }
     });
 
     afterAll(async () => {
