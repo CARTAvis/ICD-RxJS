@@ -67,8 +67,6 @@ export class BackendService {
     public serverUrl: string;
 
     private connection: WebSocket;
-    private lastPingTime: number;
-    private lastPongTime: number;
     private deferredMap: Map<number, Deferred<IBackendResponse>>;
     private eventCounter: number;
 
