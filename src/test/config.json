@@ -1,5 +1,6 @@
 {
     "serverURL0": "ws://127.0.0.1:3002",	
+    "icdVersion": 28,
     "path": {
         "root": ".",
         "base": "$BASE",

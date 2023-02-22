@@ -8,7 +8,7 @@ let connectTimeout = config.timeout.connection;
 
 describe(`ACCESS_CARTA_DEFAULT tests: Testing connections to the backend`, () => {
     describe(`create a Websocket connection and receive REGISTER_VIEWER_ACK`, () => {
-        let RegisterViewerAckResponse: CARTA.RegisterViewerAck;
+        let RegisterViewerAckResponse: CARTA.IRegisterViewerAck;
         const msgController = MessageController.Instance;
 
         test(`Receive REGISTER_VIEWER_ACK`, async () => {

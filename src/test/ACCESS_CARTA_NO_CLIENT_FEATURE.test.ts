@@ -3,6 +3,7 @@ import {CARTA} from "carta-protobuf";
 import config from "./config.json";
 
 const WebSocket = require("ws");
+const icdVersion = config.icdVersion;
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;
 
@@ -64,7 +65,7 @@ export class BackendService {
         return BackendService.staticInstance;
     }
 
-    private static readonly IcdVersion = 28;
+    private static readonly IcdVersion = icdVersion;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
 

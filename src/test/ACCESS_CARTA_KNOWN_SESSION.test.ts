@@ -5,6 +5,7 @@ import config from "./config.json";
 const WebSocket = require("ws");
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;
+const icdVersion = config.icdVersion;
 
 interface AssertItem {
     register: CARTA.IRegisterViewer;
@@ -63,7 +64,7 @@ export class BackendService {
         return BackendService.staticInstance;
     }
 
-    private static readonly IcdVersion = 28;
+    private static readonly IcdVersion = icdVersion;
     private static readonly DefaultFeatureFlags = CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
