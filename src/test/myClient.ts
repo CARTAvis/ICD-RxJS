@@ -120,14 +120,22 @@ function Stream(cartaType: any, InputNum?: number) {
                 break;
             case CARTA.CatalogFilterResponse:
                 let catalogStream : any [] = [];
-                let resCatalogStream = msgController.catalogStream.pipe(take(InputNum));
-                resCatalogStream.subscribe(data => {
-                    catalogStream.push(data);
-                    _count++;
-                    if (_count === InputNum) {
-                        resolve(catalogStream);
+                let resCatalogStream = msgController.catalogStream.subscribe({
+                    next: (data) => {
+                        catalogStream.push(data);
+                        if (data.progress === 1) {
+                            resolve(catalogStream)
+                        }
                     }
                 })
+                // let resCatalogStream = msgController.catalogStream.pipe(take(InputNum));
+                // resCatalogStream.subscribe(data => {
+                //     catalogStream.push(data);
+                //     _count++;
+                //     if (_count === InputNum) {
+                //         resolve(catalogStream);
+                //     }
+                // })
                 break;
         }
     })

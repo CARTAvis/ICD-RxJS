@@ -248,7 +248,7 @@ describe("Test for general CATALOG related messages:", () => {
         });
 
         test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
-            let CatalogFileInfoAck = await msgController.getCatalogFileInfo(assertItem.catalogFileInfoReq.directory, assertItem.catalogFileInfoReq.name)
+            let CatalogFileInfoAck = await msgController.getCatalogFileInfo(assertItem.catalogFileInfoReq.directory, assertItem.catalogFileInfoReq.name);
             expect(CatalogFileInfoAck.success).toEqual(assertItem.catalogFileInfoResponse.success);
             expect(CatalogFileInfoAck.fileInfo.name).toEqual(assertItem.catalogFileInfoResponse.fileInfo.name);
             expect(CatalogFileInfoAck.fileInfo.type).toEqual(assertItem.catalogFileInfoResponse.fileInfo.type);
@@ -269,7 +269,7 @@ describe("Test for general CATALOG related messages:", () => {
 
         test(`(Step 6) Request CatalogFilter: Sorting & check CatalogFilterResponse | `, async () => {
             await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[0]);
-            let CatalogFilterResponse = await Stream(CARTA.CatalogFilterResponse, 1);
+            let CatalogFilterResponse = await Stream(CARTA.CatalogFilterResponse);
             expect(Object.keys(CatalogFilterResponse[0].columns).length).toEqual(assertItem.catalogFilterResponse[0].lengthOfColumns);
             expect(CatalogFilterResponse[0].fileid).toEqual(assertItem.catalogFilterResponse[0].fileId);
             expect(CatalogFilterResponse[0].subsetDataSize).toEqual(assertItem.catalogFilterResponse[0].subsetDataSize);
@@ -281,7 +281,7 @@ describe("Test for general CATALOG related messages:", () => {
         
         test(`(Step 7) Request CatalogFilter: Filter(number) & check CatalogFilterResponse | `, async () => {
             await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[1]);
-            let CatalogFilterResponse2 = await Stream(CARTA.CatalogFilterResponse, 1);
+            let CatalogFilterResponse2 = await Stream(CARTA.CatalogFilterResponse);
             expect(Object.keys(CatalogFilterResponse2[0].columns).length).toEqual(assertItem.catalogFilterResponse[1].lengthOfColumns);
             expect(CatalogFilterResponse2[0].fileid).toEqual(assertItem.catalogFilterResponse[1].fileId);
             expect(CatalogFilterResponse2[0].subsetDataSize).toEqual(assertItem.catalogFilterResponse[1].subsetDataSize);
@@ -293,7 +293,7 @@ describe("Test for general CATALOG related messages:", () => {
 
         test(`(Step 8) Request CatalogFilter: Filter(string) & check CatalogFilterResponse | `, async () => {
             await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[2]);
-            let CatalogFilterResponse3 = await Stream(CARTA.CatalogFilterResponse, 1);
+            let CatalogFilterResponse3 = await Stream(CARTA.CatalogFilterResponse);
             expect(Object.keys(CatalogFilterResponse3[0].columns).length).toEqual(assertItem.catalogFilterResponse[2].lengthOfColumns);
             expect(CatalogFilterResponse3[0].fileid).toEqual(assertItem.catalogFilterResponse[2].fileId);
             expect(CatalogFilterResponse3[0].subsetDataSize).toEqual(assertItem.catalogFilterResponse[2].subsetDataSize);
@@ -305,7 +305,7 @@ describe("Test for general CATALOG related messages:", () => {
 
         test(`(Step 9) Request CatalogFilter: Sorting when Filter(string+number) is applied & check CatalogFilterResponse | `, async () => {
             await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[3]);
-            let CatalogFilterResponse4 = await Stream(CARTA.CatalogFilterResponse, 1);
+            let CatalogFilterResponse4 = await Stream(CARTA.CatalogFilterResponse);
             expect(Object.keys(CatalogFilterResponse4[0].columns).length).toEqual(assertItem.catalogFilterResponse[3].lengthOfColumns);
             expect(CatalogFilterResponse4[0].fileid).toEqual(assertItem.catalogFilterResponse[3].fileId);
             expect(CatalogFilterResponse4[0].subsetDataSize).toEqual(assertItem.catalogFilterResponse[3].subsetDataSize);
