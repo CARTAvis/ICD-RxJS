@@ -235,7 +235,8 @@ assertItem.catalogFileInfoReq.map((data, index) => {
             expect(CatalogFileInfoAck.fileInfo.name).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.name);
             if (CatalogFileInfoAck.fileInfo.type) {
                 expect(CatalogFileInfoAck.fileInfo.type).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.type);
-            };            expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.fileSize);
+            };           
+            expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.fileSize);
             expect(CatalogFileInfoAck.headers.length).toEqual(assertItem.catalogFileInfoResponse[index].lengthOfHeaders);
         });
 
