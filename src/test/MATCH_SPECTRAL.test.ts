@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { ProtobufProcessing } from "./Processed";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -22,7 +23,7 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    precisionDigits: 4,
+    precisionDigits: 8,
     openFile: [
         {
             directory: testSubdirectory,
@@ -245,7 +246,13 @@ describe("MATCH_SPECTRAL: Test region spectral profile with spatially and spectr
             });
     
             test(`Assert the first profile equal to the last profile`, () => {
-                expect(SpectralProfileData.find(data => data.fileId == assertItem.openFile[0].fileId).profiles).toEqual(SpectralProfileData.find(data => data.fileId == assertItem.openFile[3].fileId).profiles);
+                let p0 = SpectralProfileData.find(data => data.fileId == assertItem.openFile[0].fileId).profiles;
+                let v0 = ProtobufProcessing.ProcessSpectralProfile(p0[0],1);
+                let p3 = SpectralProfileData.find(data => data.fileId == assertItem.openFile[3].fileId).profiles;
+                let v3 = ProtobufProcessing.ProcessSpectralProfile(p3[0],1);
+                for (let index = 0; index < v3.values.length; index++) {
+                    expect(v3.values[index]).toEqual(v0.values[index]);
+                }
             });
         });
 
