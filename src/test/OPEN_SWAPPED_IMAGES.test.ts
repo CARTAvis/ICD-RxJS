@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { take } from 'rxjs/operators';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
@@ -77,3 +78,40 @@ let assertItem: AssertItem = {
         },    
     ],
 };
+
+let basepath: string;
+describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axes sequences", () => {
+    const msgController = MessageController.Instance;
+    describe(`Register a session`, () => {
+        beforeAll(async ()=> {
+            await msgController.connect(testServerUrl);
+        }, connectTimeout);
+
+        checkConnection();
+        test(`Get basepath`, async () => {
+            let fileListResponse = await msgController.getFileList("$BASE",0);
+            basepath = fileListResponse.directory;
+            for (let i=0; i<assertItem.fileOpen.length; i++) {
+                assertItem.fileOpen[i].directory = basepath + "/" + assertItem.filelist.directory;
+            }
+        });
+
+        describe(`Case 1: Open the image with axes sequence of RA-Freq-Dec-Stokes and test basic change image channel and set cursor info`,()=>{
+            test(`(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK should arrive within ${openFileTimeout} ms`,async () => {
+                msgController.closeFile(-1);
+                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
+                expect(OpenFileResponse.success).toEqual(true);
+                // We ignore REGION_HISTOGRAM_DATA
+            }, openFileTimeout);
+
+            test(`(Step 2)"${assertItem.fileOpen[0].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
+                msgController.addRequiredTiles(assertItem.addTilesReq[0]);
+                let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[0].tiles.length + 2);
+                expect(RasterTileData.length).toEqual(assertItem.addTilesReq[0].tiles.length + 2);
+                expect(RasterTileData.slice(-1)[0].endSync).toEqual(true)
+            });
+        });
+
+        afterAll(() => msgController.closeConnection());
+    });
+});

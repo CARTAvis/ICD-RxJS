@@ -910,15 +910,8 @@ export class MessageController {
         this.rasterSyncStream.next(rasterTileSync);
     }
 
-    private onStreamedRegionHistogramData(_eventId: number, regionHistogramData: CARTA.RegionHistogramData) {
-        if (regionHistogramData.histograms.bins.length === 1 && regionHistogramData.histograms.bins[0] == 0) {
-            this.returnNaNRegionHistogramData();
-        }
+    public onStreamedRegionHistogramData(_eventId: number, regionHistogramData: CARTA.RegionHistogramData) {
         this.histogramStream.next(regionHistogramData);
-    }
-
-    public returnNaNRegionHistogramData() {
-        return true;
     }
 
     private onStreamedErrorData(_eventId: number, errorData: CARTA.ErrorData) {
