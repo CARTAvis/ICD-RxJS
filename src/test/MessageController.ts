@@ -910,7 +910,7 @@ export class MessageController {
         this.rasterSyncStream.next(rasterTileSync);
     }
 
-    public onStreamedRegionHistogramData(_eventId: number, regionHistogramData: CARTA.RegionHistogramData) {
+    private onStreamedRegionHistogramData(_eventId: number, regionHistogramData: CARTA.RegionHistogramData) {
         this.histogramStream.next(regionHistogramData);
     }
 
