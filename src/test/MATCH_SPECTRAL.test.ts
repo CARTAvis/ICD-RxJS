@@ -230,13 +230,22 @@ describe("MATCH_SPECTRAL: Test region spectral profile with spatially and spectr
         });
 
         describe(`Test acquire all spectral profiles after enlarge region`, () => {
-            let SpectralProfileData: CARTA.SpectralProfileData[] = [];
+            let SpectralProfileData: any[] = [];
             test(`Should rotate region 1`, async () => {
                 await msgController.setRegion(assertItem.setRegion[1].fileId, assertItem.setRegion[1].regionId, assertItem.setRegion[1].regionInfo);
                 for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
-                    let SpectralProfileDataResponse = await Stream(CARTA.SpectralProfileData);
-                    SpectralProfileData.push(SpectralProfileDataResponse[0]);                    
-                }
+                    let SpectralProfileDataStreamPromise = new Promise((resolve) => {
+                        msgController.spectralProfileStream.subscribe({
+                            next: (data) => {
+                                if (data.progress === 1) {
+                                    resolve(data)
+                                }
+                            }
+                        })
+                    })
+                    let SpectralProfileDataResponse = await SpectralProfileDataStreamPromise;
+                    SpectralProfileData.push(SpectralProfileDataResponse);             
+                };
             }, profileTimeout * 3);
     
             test(`Assert all region_id`, () => {
