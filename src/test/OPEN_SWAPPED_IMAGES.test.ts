@@ -116,6 +116,18 @@ let assertItem: AssertItem = {
                 width: 5
             },
         },
+        {
+            success: true,
+            fileInfo: {name: "supermosaic.10-cutted-stokes-glon-vard-glat.image"},
+            fileInfoExtended: {
+                axesNumbers: {depth: 4, spatialX: 2, spatialY: 4, spectral: 3, stokes: 1},
+                depth: 403,
+                dimensions: 4,
+                height: 51,
+                stokes: 1,
+                width: 483
+            },
+        },
     ],
     addTilesReq: [
         {
@@ -142,6 +154,12 @@ let assertItem: AssertItem = {
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [50339840, 50335744, 50343936, 50331648, 50348032],
         },
+        {
+            fileId: 0,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [16777216, 16777217],
+        },
     ],  
     setSpatialRequirements: [
         {
@@ -153,6 +171,11 @@ let assertItem: AssertItem = {
             fileId: 1,
             regionId: 0,
             spatialProfiles: [{coordinate:"Ix", mip:1, width: undefined}, {coordinate:"Iy", mip:1, width: undefined}],
+        }, 
+        {
+            fileId: 0,
+            regionId: 0,
+            spatialProfiles: [{coordinate:"x", mip:1, width: undefined}, {coordinate:"y", mip:1, width: undefined}],
         }, 
     ],
     setCursor: [
@@ -171,6 +194,10 @@ let assertItem: AssertItem = {
         {
             fileId: 0,
             point: { x: 4, y: 521 },
+        },
+        {
+            fileId: 0,
+            point: { x: 477, y: 12 },
         },
     ],
     setImageChannel:
@@ -196,7 +223,18 @@ let assertItem: AssertItem = {
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
             },
-        },    
+        }, 
+        {
+            fileId: 0,
+            channel: 112,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: [16777216, 16777217],
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 11,
+            },
+        },   
     ],
     spatialProfileData: [
         {
@@ -223,11 +261,22 @@ let assertItem: AssertItem = {
             x: 4,
             y: 521,
         },
+        {
+            fileId: 0,
+            channel: 112,
+            value: 20.193593978881836,
+            x: 477,
+            y: 12,
+        },
     ],
     rawIndex1: [5, 10, 15],
     rawIndexValue1: [154, 132, 61],
     rawIndex2: [100,500,1010,2020,3030,4040],
     rawIndexValue2: [0, 14, 24, 67, 113, 0],
+    rawIndex3: [500,1000, 1500],
+    rawIndexValue3: [128, 192, 128],
+    rawIndex4: [50,100,150,200],
+    rawIndexValue4: [161, 135, 160, 136],
 };
 
 let basepath: string;
@@ -480,7 +529,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[0]);
                 let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData,1);
-                
+
                 expect(SpatialProfileDataResponse[0].channel).toEqual(assertItem.spatialProfileData[3].channel);
                 expect(SpatialProfileDataResponse[0].value).toEqual(assertItem.spatialProfileData[3].value);
                 expect(SpatialProfileDataResponse[0].x).toEqual(assertItem.spatialProfileData[3].x);
@@ -505,6 +554,114 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 });
                 expect(SpatialProfileDataResponse[0].profiles[1].end).toEqual(1049);
                 expect(SpatialProfileDataResponse[0].profiles[1].coordinate).toEqual('Iy');
+                expect(SpatialProfileDataResponse[0].profiles[1].mip).toEqual(1);
+            });
+        });
+
+        describe(`Case 4: Open the image with axes sequence of Stokes-glon-vard-glat and test basic change image channel and set cursor info.`,()=>{
+            test(`(Step 1)"Open the first image: ${assertItem.fileOpen[4].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
+                let RegionHistogramDataResponse: any = []
+                msgController.histogramStream.pipe(take(1)).subscribe(data => {
+                    RegionHistogramDataResponse.push(data);
+                })
+                msgController.closeFile(-1);
+                msgController.closeFile(0);
+                msgController.closeFile(1);
+                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[4]);
+
+                expect(OpenFileResponse.success).toEqual(true);
+                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFileAckResponse[4].fileInfo.name);
+                expect(OpenFileResponse.fileInfoExtended.axesNumbers.depth).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.axesNumbers.depth);
+                expect(OpenFileResponse.fileInfoExtended.axesNumbers.spatialX).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.axesNumbers.spatialX);
+                expect(OpenFileResponse.fileInfoExtended.axesNumbers.spatialY).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.axesNumbers.spatialY);
+                expect(OpenFileResponse.fileInfoExtended.axesNumbers.spectral).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.axesNumbers.spectral);
+                expect(OpenFileResponse.fileInfoExtended.axesNumbers.stokes).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.axesNumbers.stokes);
+                expect(OpenFileResponse.fileInfoExtended.depth).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.depth);
+                expect(OpenFileResponse.fileInfoExtended.dimensions).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.dimensions);
+                expect(OpenFileResponse.fileInfoExtended.height).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.height);
+                expect(OpenFileResponse.fileInfoExtended.stokes).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.stokes);
+                expect(OpenFileResponse.fileInfoExtended.width).toEqual(assertItem.openFileAckResponse[4].fileInfoExtended.width);
+
+                // Check REGION_HISTOGRAM_DATA 
+                expect(RegionHistogramDataResponse[0].histograms.numBins).toEqual(156);
+                expect(Number(RegionHistogramDataResponse[0].histograms.mean)).toEqual(48.078030775560556);
+            });
+
+            test(`(Step 2)"${assertItem.fileOpen[4].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
+                msgController.addRequiredTiles(assertItem.addTilesReq[4]);
+                let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[4].tiles.length + 2);
+                expect(RasterTileData.length).toEqual(assertItem.addTilesReq[4].tiles.length + 2);
+                expect(RasterTileData.slice(-1)[0].endSync).toEqual(true);
+                msgController.setSpatialRequirements(assertItem.setSpatialRequirements[2]);
+            });
+
+            test(`(Step 3)"${assertItem.fileOpen[0].file}" SET_IMAGE_CHANNELS and check the 7 stream, all channels of 500`, async () => {
+                let RasterTileArray: any = [];
+                let RasterSyncArray: any = [];
+                let RegionHistogramResponse: any = []
+                msgController.rasterSyncStream.pipe(take(1)).subscribe(data => {
+                    RasterSyncArray.push(data)
+                });
+                msgController.histogramStream.pipe(take(1)).subscribe(data => {
+                    RegionHistogramResponse.push(data);
+                })
+                msgController.setChannels(assertItem.setImageChannel[2]);
+
+                let RasterTileDataPromise = new Promise((resolve)=>{
+                    msgController.rasterTileStream.subscribe({
+                        next: (data) => {
+                            RasterTileArray.push(data)
+                            if (RasterTileArray.length === assertItem.setImageChannel[2].requiredTiles.tiles.length) {
+                                resolve(RasterTileArray)
+                            }
+                        }
+                    })
+                });
+                msgController.rasterSyncStream.pipe(take(1)).subscribe(data => {
+                    RasterSyncArray.push(data)
+                });
+                let rasterTileDataResponse = await RasterTileDataPromise;
+
+                expect(RegionHistogramResponse[0].channel).toEqual(assertItem.setImageChannel[2].channel);
+                for (let i=0; i< RasterSyncArray.length; i++) {
+                    expect(RasterSyncArray[i].channel).toEqual(assertItem.setImageChannel[2].channel)
+                }
+                for (let i=0; i< RasterTileArray.length; i++) {
+                    expect(RasterTileArray[i].channel).toEqual(assertItem.setImageChannel[2].channel)
+                }
+            });
+
+            test(`(Step 4) Set Cursor and check return SPATIAL_PROFILE_DATA (stream)`, async () => {
+                msgController.setCursor(assertItem.setCursor[4].fileId, assertItem.setCursor[4].point.x, assertItem.setCursor[4].point.y);
+                let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
+                
+                msgController.setSpatialRequirements(assertItem.setSpatialRequirements[2]);
+                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData,1);
+
+                expect(SpatialProfileDataResponse[0].channel).toEqual(assertItem.spatialProfileData[4].channel);
+                expect(SpatialProfileDataResponse[0].value).toEqual(assertItem.spatialProfileData[4].value);
+                expect(SpatialProfileDataResponse[0].x).toEqual(assertItem.spatialProfileData[4].x);
+                expect(SpatialProfileDataResponse[0].y).toEqual(assertItem.spatialProfileData[4].y);
+
+                expect(SpatialProfileDataResponse2[0].channel).toEqual(assertItem.spatialProfileData[4].channel);
+                expect(SpatialProfileDataResponse2[0].value).toEqual(assertItem.spatialProfileData[4].value);
+                expect(SpatialProfileDataResponse2[0].x).toEqual(assertItem.spatialProfileData[4].x);
+                expect(SpatialProfileDataResponse2[0].y).toEqual(assertItem.spatialProfileData[4].y);
+
+                expect(SpatialProfileDataResponse[0].profiles[0]).toEqual(SpatialProfileDataResponse2[0].profiles[0]);
+                assertItem.rawIndex3.map((i,index)=>{
+                    expect(SpatialProfileDataResponse[0].profiles[0].rawValuesFp32[Number(i)]).toEqual(assertItem.rawIndexValue3[index]);
+                });
+                expect(SpatialProfileDataResponse[0].profiles[0].end).toEqual(483);
+                expect(SpatialProfileDataResponse[0].profiles[0].coordinate).toEqual('x');
+                expect(SpatialProfileDataResponse[0].profiles[0].mip).toEqual(1);
+
+                expect(SpatialProfileDataResponse[0].profiles[1]).toEqual(SpatialProfileDataResponse2[0].profiles[1]);
+                assertItem.rawIndex4.map((i,index)=>{
+                    expect(SpatialProfileDataResponse[0].profiles[1].rawValuesFp32[Number(i)]).toEqual(assertItem.rawIndexValue4[index]);
+                });
+                expect(SpatialProfileDataResponse[0].profiles[1].end).toEqual(51);
+                expect(SpatialProfileDataResponse[0].profiles[1].coordinate).toEqual('y');
                 expect(SpatialProfileDataResponse[0].profiles[1].mip).toEqual(1);
             });
         });
