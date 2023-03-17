@@ -395,7 +395,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(OpenFileResponse.fileInfoExtended.height).toEqual(assertItem.openFileAckResponse[1].fileInfoExtended.height);
                 expect(OpenFileResponse.fileInfoExtended.stokes).toEqual(assertItem.openFileAckResponse[1].fileInfoExtended.stokes);
                 expect(OpenFileResponse.fileInfoExtended.width).toEqual(assertItem.openFileAckResponse[1].fileInfoExtended.width);
-            });
+            }, openFileTimeout);
 
             test(`(Step 2) The first image adds tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[1]);
@@ -477,7 +477,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 // REGION_HISTOGRAM_DATA because the bins is empty [0]
                 expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
                 expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
-            });
+            }, openFileTimeout);
 
             test(`(Step 2)"${assertItem.fileOpen[3].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[3]);
@@ -585,7 +585,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 // Check REGION_HISTOGRAM_DATA 
                 expect(RegionHistogramDataResponse[0].histograms.numBins).toEqual(156);
                 expect(Number(RegionHistogramDataResponse[0].histograms.mean)).toEqual(48.078030775560556);
-            });
+            }, openFileTimeout);
 
             test(`(Step 2)"${assertItem.fileOpen[4].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[4]);
