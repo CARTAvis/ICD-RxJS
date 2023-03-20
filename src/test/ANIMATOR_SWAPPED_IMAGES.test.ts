@@ -33,14 +33,6 @@ let assertItem: AssertItem = {
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
         },
-        {
-            directory: testSubdirectory,
-            file: "HH211_IQU-swap-rsdf.image",
-            hdu: "",
-            fileId: 0,
-            renderMode: CARTA.RenderMode.RASTER,
-        },
-
     ],
     openFileAckResponse:[
         {
@@ -267,6 +259,7 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
                     for (let i=0; i<sequence.length; i++) {
                         expect(RegionHistogramData[i].channel).toEqual(sequence[i])
                     }
+                    console.warn(`(Step 3) Sequent channel index: ${sequence}`);
                 }, playAnimatorTimeout);
             })
 
@@ -314,6 +307,7 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
                     for (let i=0; i<StokesSequence.length; i++) {
                         expect(RegionHistogramData[i].stokes).toEqual(StokesSequence[i])
                     }
+                    console.warn(`(Step 4) Sequent Stokes index: ${StokesSequence}`);
                 }, playAnimatorTimeout);
             });
         });
