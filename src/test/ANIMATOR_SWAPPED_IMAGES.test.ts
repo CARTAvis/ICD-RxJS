@@ -47,18 +47,6 @@ let assertItem: AssertItem = {
                 width: 1049
             },
         },
-        {
-            success: true,
-            fileInfo: {name: "HH211_IQU-swap-rsdf.image"},
-            fileInfoExtended: {
-                axesNumbers: {depth: 4, spatialX: 1, spatialY: 3, spectral: 4, stokes: 2},
-                depth: 5,
-                dimensions: 4,
-                height: 1049,
-                stokes: 3,
-                width: 1049
-            },
-        },
     ],
     addTilesReq: [
         {
