@@ -3,12 +3,13 @@ import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
 import { take } from 'rxjs/operators';
+import * as Long from "long";
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout: number = config.timeout.openFile;
-
+let playAnimatorTimeout = config.timeout.playAnimator;
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -16,6 +17,10 @@ interface AssertItem {
     openFileAckResponse: CARTA.IOpenFileAck[];
     addTilesReq: CARTA.IAddRequiredTiles[];
     setSpatialRequirements: CARTA.ISetSpatialRequirements[];
+    startAnimation: CARTA.IStartAnimation[];
+    animationFlowControl: CARTA.IAnimationFlowControl[];
+    stopAnimation: CARTA.IStopAnimation[];
+    setImageChannel: CARTA.ISetImageChannels[];
 };
 
 let assertItem: AssertItem = {
@@ -70,6 +75,18 @@ let assertItem: AssertItem = {
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [50339842, 50339841, 50335746, 50335745, 50343938, 50339843, 50343937, 50335747, 50339840, 50331650,  50335744,  50331649, 50343939, 50343936, 50331651, 50331648, 50348034, 50339844,50348033, 50335748, 50348035, 50343940, 50348032, 50331652, 50348036],
         },
+        {
+            fileId: 0,
+            compressionQuality: 9,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [50331648, 50335744,50339840, 50343936, 50348032, 50331649, 50335745, 50339841, 50343937, 50348033, 50331650, 50335746, 50339842, 50343938, 50348034, 50331651, 50335747, 50339843, 50343939, 50348035, 50331652, 50335748, 50339844, 50343940, 50348036],
+        },
+        {
+            fileId: 0,
+            compressionQuality: 9,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [50331648, 50335744,50339840, 50343936, 50348032, 50331649, 50335745, 50339841, 50343937, 50348033, 50331650, 50335746, 50339842, 50343938, 50348034, 50331651, 50335747, 50339843, 50343939, 50348035, 50331652, 50335748, 50339844, 50343940, 50348036],
+        },
     ],  
     setSpatialRequirements: [
         {
@@ -78,6 +95,88 @@ let assertItem: AssertItem = {
             spatialProfiles: [{coordinate:"Ix", mip:1, width: undefined}, {coordinate:"Iy", mip:1, width: undefined}],
         }, 
     ],
+    startAnimation: [
+        {
+            fileId: 0,
+            startFrame: { channel: 0, stokes: 0 },
+            firstFrame: { channel: 0, stokes: 0 },
+            lastFrame: { channel: 4, stokes: 0 },
+            deltaFrame: { channel: 1, stokes: 0 },
+            frameRate: 5,
+            looping: true,
+            reverse: false,
+            stokesIndices: [0, 1, 2, 14, 16, 17],
+            requiredTiles: {
+                fileId: 0,
+                tiles: [50331648, 50335744,50339840, 50343936, 50348032, 50331649, 50335745, 50339841, 50343937, 50348033, 50331650, 50335746, 50339842, 50343938, 50348034, 50331651, 50335747, 50339843, 50343939, 50348035, 50331652, 50335748, 50339844, 50343940, 50348036],
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 9,
+            },
+        },
+        {
+            fileId: 0,
+            startFrame: { channel: 0, stokes: 0 },
+            firstFrame: { channel: 0, stokes: 0 },
+            lastFrame: { channel: 0, stokes: 5 },
+            deltaFrame: { channel: 0, stokes: 1 },
+            frameRate: 5,
+            looping: true,
+            reverse: false,
+            stokesIndices: [0, 1, 2, 14, 16, 17],
+            requiredTiles: {
+                fileId: 0,
+                tiles: [50331648, 50335744,50339840, 50343936, 50348032, 50331649, 50335745, 50339841, 50343937, 50348033, 50331650, 50335746, 50339842, 50343938, 50348034, 50331651, 50335747, 50339843, 50343939, 50348035, 50331652, 50335748, 50339844, 50343940, 50348036],
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 9,
+            },
+        },
+    ],
+    animationFlowControl:[
+        {
+            fileId: 0,
+            animationId: 0,
+        },
+        {
+            fileId: 0,
+            animationId: 0,
+        },
+    ],
+    stopAnimation: 
+    [
+        {
+            fileId: 0,
+            endFrame: { channel: 2, stokes: 0 },
+        },
+        {
+            fileId: 0,
+            endFrame: { channel: 0, stokes: 14 },
+        },
+    ],
+    setImageChannel:
+    [
+        {
+            fileId: 0,
+            channel: 2,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: [50339842, 50339841, 50335746, 50335745, 50343938, 50339843, 50343937, 50335747, 50339840, 50331650, 50335744, 50331649, 50343939, 50343936, 50331651, 50331648, 50348034, 50339844, 50348033, 50335748, 50348035, 50343940, 50348032, 50331652, 50348036],
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 9,
+            },
+        },
+        {
+            fileId: 0,
+            channel: 0,
+            stokes: 14,
+            requiredTiles: {
+                fileId: 0,
+                tiles: [50339842, 50339841, 50335746, 50335745, 50343938, 50339843, 50343937, 50335747, 50339840, 50331650, 50335744, 50331649, 50343939, 50343936, 50331651, 50331648, 50348034, 50339844, 50348033, 50335748, 50348035, 50343940, 50348032, 50331652, 50348036],
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 9,
+            },
+        },
+    ]
 };
 
 let basepath: string;
@@ -122,6 +221,100 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
                 expect(RasterTileData.length).toEqual(assertItem.addTilesReq[0].tiles.length + 2);
                 expect(RasterTileData.slice(-1)[0].endSync).toEqual(true);
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[0]);
+            });
+
+            describe(`(Step 3)Play some channels forwardly`, () => {
+                let sequence: number[] = [];
+                let RegionHistogramData: CARTA.RegionHistogramData[] = [];
+                test(`running animation (channels) flow and stop`, async () => {
+                    let StartAnimationResponse: CARTA.IStartAnimationAck;
+                    StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[0]);
+                    expect(StartAnimationResponse.success).toEqual(true);
+                    expect(StartAnimationResponse.animationId).toEqual(1);
+                    msgController.addRequiredTiles(assertItem.addTilesReq[1]);
+
+                    for (let i=0; i < 6; i++){
+                        msgController.histogramStream.pipe(take(1)).subscribe({
+                            next: (data) => {
+                                RegionHistogramData.push(data);
+                            },
+                        })
+    
+                        let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[1].tiles.length+2);
+                        sequence.push(RasterTileData[0].channel);
+                        expect(RasterTileData[0].animationId).toEqual(1);
+    
+                        msgController.sendAnimationFlowControl({
+                            ...assertItem.animationFlowControl[0],
+                            receivedFrame: {
+                                channel: RasterTileData[0].channel,
+                                stokes: 0
+                            },
+                            timestamp: Long.fromNumber(Date.now()),
+                        });
+                    }
+
+                    msgController.stopAnimation(assertItem.stopAnimation[0]);
+                    //Set Channel 2 as the stop channel
+                    msgController.setChannels(assertItem.setImageChannel[0]);
+                    msgController.histogramStream.pipe(take(1)).subscribe({
+                        next: (data) => {
+                            RegionHistogramData.push(data);
+                        },
+                    })
+                    let lastRasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[1].tiles.length+2);
+                    sequence.push(lastRasterTileData[1].channel);
+                    for (let i=0; i<sequence.length; i++) {
+                        expect(RegionHistogramData[i].channel).toEqual(sequence[i])
+                    }
+                }, playAnimatorTimeout);
+            })
+
+            describe(`(Step 4)Play some stokes forwardly`, () => {
+                let StokesSequence: number[] = [];
+                let RegionHistogramData: CARTA.RegionHistogramData[] = [];
+                test(`running animation (stokes) flow and stop`, async () => {
+                    let StartAnimationResponse: CARTA.IStartAnimationAck;
+                    StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[1]);
+                    expect(StartAnimationResponse.success).toEqual(true);
+                    expect(StartAnimationResponse.animationId).toEqual(2);
+                    msgController.addRequiredTiles(assertItem.addTilesReq[2]);
+
+                    for (let i=0; i < 9; i++){
+                        msgController.histogramStream.pipe(take(1)).subscribe({
+                            next: (data) => {
+                                RegionHistogramData.push(data);
+                            },
+                        })
+    
+                        let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[2].tiles.length+2);
+                        StokesSequence.push(RasterTileData[0].stokes);
+                        expect(RasterTileData[0].animationId).toEqual(2);
+    
+                        msgController.sendAnimationFlowControl({
+                            ...assertItem.animationFlowControl[0],
+                            receivedFrame: {
+                                stokes: RasterTileData[0].stokes,
+                                channel: 0
+                            },
+                            timestamp: Long.fromNumber(Date.now()),
+                        });
+                    }
+
+                    msgController.stopAnimation(assertItem.stopAnimation[1]);
+                    //Set Stokes 14 as the stop channel
+                    msgController.setChannels(assertItem.setImageChannel[1]);
+                    msgController.histogramStream.pipe(take(1)).subscribe({
+                        next: (data) => {
+                            RegionHistogramData.push(data);
+                        },
+                    })
+                    let lastRasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[1].tiles.length+2);
+                    StokesSequence.push(lastRasterTileData[1].stokes);
+                    for (let i=0; i<StokesSequence.length; i++) {
+                        expect(RegionHistogramData[i].stokes).toEqual(StokesSequence[i])
+                    }
+                }, playAnimatorTimeout);
             });
         });
 
