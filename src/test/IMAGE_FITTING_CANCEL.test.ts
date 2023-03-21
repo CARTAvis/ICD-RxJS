@@ -53,10 +53,12 @@ let assertItem: AssertItem = {
             fileId: 0,
             createModelImage: false,
             createResidualImage: false,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
-            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}]
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 1,
+            offset: 0,
         },
     ],
     fittingResponse: [
