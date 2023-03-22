@@ -51,21 +51,30 @@ let assertItem: AssertItem = {
     },
     fittingRequest: [
         {
+            createModelImage: false,
+            createResidualImage: false,
             fileId: 0,
-            fixedParams: [false, false, false, false, false, false, false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
             initialValues: [
                 {amp: 1, center: {x: 164, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}, 
                 {amp: 1, center: {x: 220, y: 270}, fwhm: {x: 30, y: 100}, pa: 45}, 
-            ]
+            ],
+            solver: 1,
+            offset: 0,
+            regionId: -1,
         },
         {
+            createModelImage: false,
+            createResidualImage: false,
             fileId: 0,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
-            initialValues: [{amp: 10, center: {x: 1000, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}]
+            initialValues: [{amp: 10, center: {x: 1000, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}],
+            solver: 1,
+            offset: 0,
         }
     ],
     fittingResponse: [
