@@ -75,6 +75,7 @@ let assertItem: AssertItem = {
             initialValues: [{amp: 10, center: {x: 1000, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}],
             solver: 1,
             offset: 0,
+            regionId: -1,
         }
     ],
     fittingResponse: [
