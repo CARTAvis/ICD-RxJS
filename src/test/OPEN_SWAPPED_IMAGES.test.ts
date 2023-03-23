@@ -373,13 +373,14 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(SpatialProfileDataResponse[0].value).toEqual(assertItem.spatialProfileData[0].value);
                 expect(SpatialProfileDataResponse[0].x).toEqual(assertItem.spatialProfileData[0].x);
                 expect(SpatialProfileDataResponse[0].y).toEqual(assertItem.spatialProfileData[0].y);
+
+                msgController.closeFile(0);
             });
         });
 
         describe(`Case 2: Open two images, one is normal, another one the swapped axis is RA-Stokes-Dec-Freq, the result of set_cursor should be consistent to the normal one. Currently we ignore Stokes.`,()=>{
             test(`(Step 1)"Open the first image: ${assertItem.fileOpen[1].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
                 msgController.closeFile(-1);
-                msgController.closeFile(0);
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[1]);
                 let RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
 
@@ -447,18 +448,19 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
 
                 expect(SpatialProfileDataResponse1[0].profiles[0]).toEqual(SpatialProfileDataResponse2[0].profiles[0]);
                 expect(SpatialProfileDataResponse1[0].profiles[1]).toEqual(SpatialProfileDataResponse2[0].profiles[1]);
+
+                msgController.closeFile(0);
+                msgController.closeFile(1);
             });
         });
 
         describe(`Case 3: Open the image with axes sequence of Freq-Dec-Stokes-RA and test basic change image channel and set cursor info.`,()=>{
             test(`(Step 1)"Open the first image: ${assertItem.fileOpen[3].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
-                msgController.closeFile(-1);
-                msgController.closeFile(0);
-                msgController.closeFile(1);
                 let iniRegionHistogramData: any = []
                 msgController.histogramStream.pipe(take(1)).subscribe(data => {
                     iniRegionHistogramData.push(data);
                 })
+                msgController.closeFile(-1);
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[3]);
 
                 expect(OpenFileResponse.success).toEqual(true);
@@ -555,6 +557,9 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(SpatialProfileDataResponse[0].profiles[1].end).toEqual(1049);
                 expect(SpatialProfileDataResponse[0].profiles[1].coordinate).toEqual('Iy');
                 expect(SpatialProfileDataResponse[0].profiles[1].mip).toEqual(1);
+
+                msgController.closeFile(0);
+                msgController.closeFile(1);
             });
         });
 
@@ -565,8 +570,6 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                     RegionHistogramDataResponse.push(data);
                 })
                 msgController.closeFile(-1);
-                msgController.closeFile(0);
-                msgController.closeFile(1);
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[4]);
 
                 expect(OpenFileResponse.success).toEqual(true);
@@ -663,6 +666,8 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(SpatialProfileDataResponse[0].profiles[1].end).toEqual(51);
                 expect(SpatialProfileDataResponse[0].profiles[1].coordinate).toEqual('y');
                 expect(SpatialProfileDataResponse[0].profiles[1].mip).toEqual(1);
+
+                msgController.closeFile(0);
             });
         });
 
