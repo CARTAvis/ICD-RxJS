@@ -456,11 +456,11 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
 
         describe(`Case 3: Open the image with axes sequence of Freq-Dec-Stokes-RA and test basic change image channel and set cursor info.`,()=>{
             test(`(Step 1)"Open the first image: ${assertItem.fileOpen[3].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
+                msgController.closeFile(-1);
                 let iniRegionHistogramData: any = []
                 msgController.histogramStream.pipe(take(1)).subscribe(data => {
                     iniRegionHistogramData.push(data);
                 })
-                msgController.closeFile(-1);
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[3]);
 
                 expect(OpenFileResponse.success).toEqual(true);
