@@ -20,6 +20,7 @@ interface AssertItem {
     fittingResponse: CARTA.IFittingResponse[];
     regionHistogramResponses: CARTA.IRegionHistogramData[];
     precisionDigits: number;
+    setRegion: CARTA.ISetRegion;
 };
 
 let assertItem: AssertItem = {
@@ -59,6 +60,30 @@ let assertItem: AssertItem = {
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16781312, 16777217, 16781313],
+        },
+        {
+            fileId: -999,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [16777216],
+        },
+        {
+            fileId: -998,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [16777216, 16781312, 16777217, 16781313],
+        },
+        {
+            fileId: -999,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [16777216],
+        },
+        {
+            fileId: -998,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [16777216, 16777217],
         }
     ],    
     setCursor: {
@@ -70,29 +95,30 @@ let assertItem: AssertItem = {
             fileId: 0,
             createModelImage: false,
             createResidualImage: false,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
-            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}]
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
         },
         {
             fileId: 0,
             createModelImage: false,
             createResidualImage: false,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: {
                 controlPoints: [{x:319.5, y:399.5}, {x: 216.70644391408112, y: 199.99999999999997}],
                 regionType: 3,
                 rotation: 0,
             },
             regionId: 0, 
-            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}]
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 1
         },
         {
             fileId: 0,
             createModelImage: true,
             createResidualImage: false,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
             initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}]
@@ -101,11 +127,61 @@ let assertItem: AssertItem = {
             fileId: 0,
             createModelImage: true,
             createResidualImage: true,
-            fixedParams: [false, false, false, false, false, false],
+            fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
             regionId: -1, 
             initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}]
-        }
+        },
+        {
+            fileId: 0,
+            createModelImage: false,
+            createResidualImage: false,
+            fixedParams: [false, false, false, false, false, false, true],
+            fovInfo: {
+                controlPoints: [{x:319.5, y:399.5}, {x: 216.70644391408112, y: 199.99999999999997}],
+                regionType: 3,
+                rotation: 0,
+            },
+            regionId: 0, 
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 0
+        },
+        {
+            fileId: 0,
+            createModelImage: false,
+            createResidualImage: false,
+            fixedParams: [false, false, false, false, false, false, true],
+            fovInfo: {
+                controlPoints: [{x:319.5, y:399.5}, {x: 216.70644391408112, y: 199.99999999999997}],
+                regionType: 3,
+                rotation: 0,
+            },
+            regionId: 0, 
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 3
+        },
+        {
+            fileId: 0,
+            createModelImage: true,
+            createResidualImage: true,
+            fixedParams: [false, false, false, false, false, false, true],
+            fovInfo: null,
+            regionId: 1, 
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 1,
+            offset: 0,
+        },
+        {
+            fileId: 0,
+            createModelImage: true,
+            createResidualImage: true,
+            fixedParams: [false, false, false, false, false, false, false],
+            fovInfo: null,
+            regionId: 1, 
+            initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
+            solver: 1,
+            offset: 0.5,
+        },
     ],
     fittingResponse: [
         {
@@ -147,7 +223,29 @@ let assertItem: AssertItem = {
             ],
             success: true,
             log: 'Gaussian fitting with 1 component'
-        }
+        },
+        {
+            resultValues: [
+                {
+                    center: {x: 319.4995814506346, y: 399.4997816490029}, 
+                    amp: 9.999559472737332,
+                    fwhm: {x: 170.63727122575295, y: 41.48182201673784},
+                    pa: 142.16266600131718
+                }
+            ],
+            resultErrors: [
+                {
+                    center: {x: 0.0004006969240219716, y: 0.0005001794973076322},
+                    amp: 0.00003971187313364324,
+                    fwhm: {x: 0.0008773295469374465, y: 0.00021417449809861666},
+                    pa: 0.0002065550656553585,
+                }
+            ],
+            success: true,
+            log: 'Gaussian fitting with 1 component',
+            offsetError: 0.0000037823739350728914,
+            offsetValue: 0.000005972878146420511,
+        },
     ],
     precisionDigits: 2,
     regionHistogramResponses: [
@@ -161,7 +259,16 @@ let assertItem: AssertItem = {
             progress: 1,
             regionId: -1,
         }
-    ]
+    ],
+    setRegion: {
+        fileId: 0,
+        regionId: 1,
+        regionInfo: {
+            regionType: CARTA.RegionType.RECTANGLE,
+            controlPoints: [{ x: 324, y: 398 }, { x: 270, y: 270 }],
+            rotation: 0,
+        }
+    }
 };
 
 let basepath: string;
@@ -235,7 +342,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 },imageFittingTimeout)
             })
 
-            describe(`(Case 2) Image fitting with FoV:`, ()=>{
+            describe(`(Case 2 - 1) Image fitting with FoV (solver = Cholesky):`, ()=>{
                 test(`Send Image fitting request and match the result`, async()=>{
                     let imageFittingProgressArray2 = [];
                     let imageFittingProgressReponse2 : any;
@@ -253,7 +360,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     let response = await msgController.requestFitting(assertItem.fittingRequest[1]);
                     imageFittingProgressReponse2 = await imageFittingProgressPromise2;
                     for (let i = 0; i < imageFittingProgressReponse2.length; i++) {
-                        console.log('[Case 2] Image Fitting progress :', imageFittingProgressReponse2[i].progress);
+                        console.log('[Case 2 - 1] Image Fitting progress :', imageFittingProgressReponse2[i].progress);
                     }
                     
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.x, assertItem.precisionDigits);
@@ -273,7 +380,83 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 },imageFittingTimeout)
             });
 
-            describe(`(Case 3) Image fitting with FoV and creating model image:`, ()=>{
+            describe(`(Case 2 - 2) Image fitting with FoV (solver = QR):`, ()=>{
+                test(`Send Image fitting request and match the result`, async()=>{
+                    let imageFittingProgressArray2 = [];
+                    let imageFittingProgressReponse2 : any;
+                    let imageFittingProgressPromise2 = new Promise((resolve)=>{
+                        msgController.fittingProgressStream.subscribe({
+                            next: (data) => {
+                                imageFittingProgressArray2.push(data)
+                                if (Math.round(data.progress) > 0.99) {
+                                    resolve(imageFittingProgressArray2)
+                                }
+                            }
+                        })
+                    });
+
+                    let response = await msgController.requestFitting(assertItem.fittingRequest[4]);
+                    imageFittingProgressReponse2 = await imageFittingProgressPromise2;
+                    for (let i = 0; i < imageFittingProgressReponse2.length; i++) {
+                        console.log('[Case 2 - 2] Image Fitting progress :', imageFittingProgressReponse2[i].progress);
+                    }
+                    
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponse[1].success);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.log).toContain(assertItem.fittingResponse[1].log);
+                },imageFittingTimeout)
+            });
+
+            describe(`(Case 2 - 3) Image fitting with FoV (solver = SVD):`, ()=>{
+                test(`Send Image fitting request and match the result`, async()=>{
+                    let imageFittingProgressArray2 = [];
+                    let imageFittingProgressReponse2 : any;
+                    let imageFittingProgressPromise2 = new Promise((resolve)=>{
+                        msgController.fittingProgressStream.subscribe({
+                            next: (data) => {
+                                imageFittingProgressArray2.push(data)
+                                if (Math.round(data.progress) > 0.99) {
+                                    resolve(imageFittingProgressArray2)
+                                }
+                            }
+                        })
+                    });
+
+                    let response = await msgController.requestFitting(assertItem.fittingRequest[5]);
+                    imageFittingProgressReponse2 = await imageFittingProgressPromise2;
+                    for (let i = 0; i < imageFittingProgressReponse2.length; i++) {
+                        console.log('[Case 2 - 3] Image Fitting progress :', imageFittingProgressReponse2[i].progress);
+                    }
+                    
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponse[1].success);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.log).toContain(assertItem.fittingResponse[1].log);
+                },imageFittingTimeout)
+            });
+
+            describe(`(Case 3) Image fitting without FoV and creating model image:`, ()=>{
                 test(`Send Image fitting request and match the result`, async()=>{
                     let imageFittingProgressArray3 = [];
                     let imageFittingProgressReponse3 : any;
@@ -328,7 +511,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 });
             });
 
-            describe(`(Case 4) Image fitting with FoV and creating model image and residual image:`, ()=>{
+            describe(`(Case 4) Image fitting without FoV and creating model image and residual image:`, ()=>{
                 test(`Send Image fitting request and match the result`, async()=>{
                     let imageFittingProgressArray4 = [];
                     let imageFittingProgressReponse4 : any;
@@ -419,8 +602,193 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(_countFileID998).toEqual(assertItem.addTilesReq[3].tiles.length);
                 });
             })
-        });
 
+            describe(`(Case 5) Image fitting with setting region and creating model image and residual image:`, ()=>{
+                test(`Set a region:`, async () => {
+                    let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion.fileId, assertItem.setRegion.regionId, assertItem.setRegion.regionInfo);
+                    expect(setRegionAckResponse.regionId).toEqual(1);
+                    expect(setRegionAckResponse.success).toEqual(true);
+                });
+                test(`Send Image fitting request and match the result`, async()=>{
+                    let imageFittingProgressArray4 = [];
+                    let imageFittingProgressReponse4 : any;
+                    let RegionHistogramDataResponse2: CARTA.RegionHistogramData[] = [];
+                    let imageFittingProgressPromise4 = new Promise((resolve)=>{
+                        msgController.fittingProgressStream.subscribe({
+                            next: (data) => {
+                                imageFittingProgressArray4.push(data)
+                                if (Math.round(data.progress) > 0.99) {
+                                    msgController.histogramStream.pipe(take(2)).subscribe(data2 => {
+                                        RegionHistogramDataResponse2.push(data2)
+                                    })
+                                    resolve(imageFittingProgressArray4)
+                                }
+                            }
+                        })
+                    });
+
+                    let response = await msgController.requestFitting(assertItem.fittingRequest[6]);
+
+                    imageFittingProgressReponse4 = await imageFittingProgressPromise4;
+                    for (let i = 0; i < imageFittingProgressReponse4.length; i++) {
+                        console.log('[Case 5] Image Fitting progress :', imageFittingProgressReponse4[i].progress);
+                    }
+                    
+                    let RegionHistogramDatafileID = [];
+                    RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponse[0].success);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.log).toContain(assertItem.fittingResponse[0].log);
+                },imageFittingTimeout);
+
+                test(`Request the tiles for the model image`, async () => {
+                    msgController.addRequiredTiles(assertItem.addTilesReq[4]);
+                    msgController.addRequiredTiles(assertItem.addTilesReq[5]);
+
+                    let RasterTileArray = [];
+                    let RasterTileSyncArray = [];
+                    let RasterTileDataPromise = new Promise((resolve) => {
+                        msgController.rasterTileStream.pipe(take(assertItem.addTilesReq[4].tiles.length + assertItem.addTilesReq[5].tiles.length)).subscribe({
+                            next: (data) => {
+                                RasterTileArray.push(data)
+                            },
+                            complete: () => {
+                                resolve(RasterTileArray)
+                            }
+                        })
+                    })
+
+                    let RasterTileSyncPromise = new Promise((resolve) => {
+                        msgController.rasterTileStream.pipe(take(4)).subscribe({
+                            next: (data) => {
+                                RasterTileSyncArray.push(data)
+                            },
+                            complete: () => {
+                                resolve(RasterTileSyncArray)
+                            }
+                        })
+                    })
+
+                    let RasterTileDataResponse: any = await RasterTileDataPromise;
+                    let RasterTileSyncResponse = await RasterTileSyncPromise;
+                    let _countFileID999 = 0;
+                    let _countFileID998 = 0;
+
+                    RasterTileDataResponse.forEach(element => {
+                        if (element.fileId == assertItem.addTilesReq[4].fileId) {
+                            _countFileID999++
+                        } else if (element.fileId == assertItem.addTilesReq[5].fileId) {
+                            _countFileID998++
+                        }
+                    });
+                    expect(_countFileID999).toEqual(assertItem.addTilesReq[4].tiles.length);
+                    expect(_countFileID998).toEqual(assertItem.addTilesReq[5].tiles.length);
+                });
+            });
+
+            describe(`(Case 6) Image fitting with setting region, sky offset and creating model image and residual image:`, ()=>{
+                test(`Send Image fitting request and match the result`, async()=>{
+                    let imageFittingProgressArray4 = [];
+                    let imageFittingProgressReponse4 : any;
+                    let RegionHistogramDataResponse2: CARTA.RegionHistogramData[] = [];
+                    let imageFittingProgressPromise4 = new Promise((resolve)=>{
+                        msgController.fittingProgressStream.subscribe({
+                            next: (data) => {
+                                imageFittingProgressArray4.push(data)
+                                if (Math.round(data.progress) > 0.99) {
+                                    msgController.histogramStream.pipe(take(2)).subscribe(data2 => {
+                                        RegionHistogramDataResponse2.push(data2)
+                                    })
+                                    resolve(imageFittingProgressArray4)
+                                }
+                            }
+                        })
+                    });
+
+                    let response = await msgController.requestFitting(assertItem.fittingRequest[7]);
+
+                    imageFittingProgressReponse4 = await imageFittingProgressPromise4;
+                    for (let i = 0; i < imageFittingProgressReponse4.length; i++) {
+                        console.log('[Case 6] Image Fitting progress :', imageFittingProgressReponse4[i].progress);
+                    }
+                    
+                    let RegionHistogramDatafileID = [];
+                    RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponse[2].success);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.log).toContain(assertItem.fittingResponse[2].log);
+                    expect(response.offsetValue).toBeCloseTo(assertItem.fittingResponse[2].offsetValue, assertItem.precisionDigits);
+                    expect(response.offsetError).toBeCloseTo(assertItem.fittingResponse[2].offsetError, assertItem.precisionDigits);
+                },imageFittingTimeout);
+
+                test(`Request the tiles for the model image`, async () => {
+                    msgController.rasterTileStream.pipe(take(4)).subscribe({
+                        next: (data) => {
+                            RasterTileSyncArray.push(data)
+                        }
+                    })
+
+                    msgController.addRequiredTiles(assertItem.addTilesReq[6]);
+                    msgController.addRequiredTiles(assertItem.addTilesReq[7]);
+
+                    let RasterTileArray = [];
+                    let RasterTileSyncArray = [];
+                    let RasterTileDataPromise = new Promise((resolve) => {
+                        msgController.rasterTileStream.pipe(take(assertItem.addTilesReq[6].tiles.length + assertItem.addTilesReq[7].tiles.length)).subscribe({
+                            next: (data) => {
+                                RasterTileArray.push(data)
+                            },
+                            complete: () => {
+                                resolve(RasterTileArray)
+                            }
+                        })
+                    })
+
+                    let RasterTileDataResponse: any = await RasterTileDataPromise;
+                    let _countFileID999 = 0;
+                    let _countFileID998 = 0;
+
+                    RasterTileDataResponse.forEach(element => {
+                        if (element.fileId == assertItem.addTilesReq[6].fileId) {
+                            _countFileID999++
+                        } else if (element.fileId == assertItem.addTilesReq[7].fileId) {
+                            _countFileID998++
+                        }
+                    });
+                    expect(_countFileID999).toEqual(assertItem.addTilesReq[6].tiles.length);
+                    expect(_countFileID998).toEqual(assertItem.addTilesReq[7].tiles.length);
+                });
+            });
+
+        });
         test(`close file`, async () => {
             msgController.closeFile(-1);
         }, connectTimeout);
