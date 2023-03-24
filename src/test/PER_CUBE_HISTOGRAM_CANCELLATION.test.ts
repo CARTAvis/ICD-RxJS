@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { take } from 'rxjs/operators';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -113,30 +114,33 @@ describe("PER_CUBE_HISTOGRAM_CANCELLATION: Testing calculations of the per-cube 
             expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end + 1 Tile returned
         }, readFileTimeout);
 
-        let ReceiveProgress: number;
-        let RegionHistogramData: CARTA.RegionHistogramData;
-        let RegionHistogramDataTemp1 = []
         describe(`Set histogram requirements:`, () => {
-            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within 10000 ms:`, async () => {
+            let ReceiveProgress: number;
+            let RegionHistogramData: any;
+            let RegionHistogramDataTemp1 = []
+            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within 10000 ms and check REGION_HISTOGRAM_DATA.progress > 0 and REGION_HISTOGRAM_DATA.region_id = ${assertItem.regionHistogramData.regionId}:`, async () => {
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
-                RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
-                ReceiveProgress = RegionHistogramData[0].progress;
+                let HistogramDataPromise = new Promise((resolve)=>{
+                    msgController.histogramStream.pipe(take(1)).subscribe(data => {
+                        resolve(data)
+                    });
+                });
+                let RegionHistogramData = await HistogramDataPromise;
+                ReceiveProgress = RegionHistogramData.progress
+                expect(RegionHistogramData.progress).toBeGreaterThan(0);
+                expect(RegionHistogramData.regionId).toEqual(assertItem.regionHistogramData.regionId);
+                console.log('Step1 progress:', ReceiveProgress)
+                
             }, 10000);
 
-            test(`(Step2) REGION_HISTOGRAM_DATA.progress > 0 and REGION_HISTOGRAM_DATA.region_id = ${assertItem.regionHistogramData.regionId}`, () => {
-                expect(RegionHistogramData[0].progress).toBeGreaterThan(0);
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.regionHistogramData.regionId);
-                console.log('Step2 progress:', ReceiveProgress)
-            });
-
-            test(`(Step3) The second REGION_HISTOGRAM_DATA should arrive and REGION_HISTOGRAM_DATA.progress > previous one `, async () => {
+            test(`(Step2) The second REGION_HISTOGRAM_DATA should arrive and REGION_HISTOGRAM_DATA.progress > previous one `, async () => {
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
                 RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
                 ReceiveProgress = RegionHistogramData[0].progress;
                 console.log('' + assertItem.openFile.file + ' Region Histogram progress :', ReceiveProgress);
             }, readFileTimeout);
 
-            test("(Step4) Assert no more REGION_HISTOGRAM_DATA returns", async () => {
+            test("(Step3) Assert no more REGION_HISTOGRAM_DATA returns", async () => {
                 /// After 5 seconds, the request of the per-cube histogram is cancelled.
                 await new Promise<void>(end => setTimeout(() => end(), cancelTimeout));
                 msgController.setHistogramRequirements(assertItem.cancelHistogramRequirements);
@@ -145,7 +149,7 @@ describe("PER_CUBE_HISTOGRAM_CANCELLATION: Testing calculations of the per-cube 
                 console.log(errorMessage);
             }, readFileTimeout + messageReturnTimeout + cancelTimeout);
 
-            test("(Step5) Assert a renew REGION_HISTOGRAM_DATA as the progress = 1.0", async () => {
+            test("(Step4) Assert a renew REGION_HISTOGRAM_DATA as the progress = 1.0", async () => {
                 /// Then request to get the per-cube histogram again in 2 seconds.
                 await new Promise<void>(end => setTimeout(() => end(), 2000));
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
