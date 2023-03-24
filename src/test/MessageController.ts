@@ -988,13 +988,13 @@ export class MessageController {
             if (incoming) {
                 if (eventId === 0) {
                     this.messageReceiving(true);
-                    console.log(`<== ${eventName} [Stream]`);
+                    // console.log(`<== ${eventName} [Stream]`);
                 } else {
                     this.messageReceiving(true);
-                    console.log(`<== ${eventName} [${eventId}]`);
+                    // console.log(`<== ${eventName} [${eventId}]`);
                 }
             } else {
-                console.log(`${eventName} [${eventId}] ==>`);
+                // console.log(`${eventName} [${eventId}] ==>`);
             }
             // console.log(message);
             // console.log("\n");
