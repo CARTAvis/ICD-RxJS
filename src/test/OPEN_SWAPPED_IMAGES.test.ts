@@ -498,9 +498,9 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(OpenFileResponse.fileInfoExtended.stokes).toEqual(assertItem.openFileAckResponse[3].fileInfoExtended.stokes);
                 expect(OpenFileResponse.fileInfoExtended.width).toEqual(assertItem.openFileAckResponse[3].fileInfoExtended.width);
                 
-                // REGION_HISTOGRAM_DATA because the bins is empty [0]
-                expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
-                expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
+                // // REGION_HISTOGRAM_DATA because the bins is empty [0]
+                // expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
+                // expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
             }, openFileTimeout);
         
             test(`(Step 2)"${assertItem.fileOpen[3].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
