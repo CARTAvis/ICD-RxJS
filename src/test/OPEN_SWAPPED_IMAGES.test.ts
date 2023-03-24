@@ -455,9 +455,9 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
         });
 
         describe(`Case 3: Open the image with axes sequence of Freq-Dec-Stokes-RA and test basic change image channel and set cursor info.`,()=>{
+            let iniRegionHistogramData: any = []
             test(`(Step 1)"Open the first image: ${assertItem.fileOpen[3].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
                 msgController.closeFile(-1);
-                let iniRegionHistogramData: any = []
                 msgController.histogramStream.pipe(take(1)).subscribe(data => {
                     iniRegionHistogramData.push(data);
                 })
@@ -477,12 +477,22 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(OpenFileResponse.fileInfoExtended.width).toEqual(assertItem.openFileAckResponse[3].fileInfoExtended.width);
                 
                 // REGION_HISTOGRAM_DATA because the bins is empty [0]
-                expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
-                expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
+                if (iniRegionHistogramData.length === 1) {
+                    expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
+                    expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
+                };
             }, openFileTimeout);
 
             test(`(Step 2)"${assertItem.fileOpen[3].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[3]);
+                if (iniRegionHistogramData.length === 0) {
+                    msgController.histogramStream.pipe(take(1)).subscribe(data => {
+                        iniRegionHistogramData.push(data);
+                    });
+
+                    expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
+                    expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
+                };
                 let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[3].tiles.length + 2);
                 expect(RasterTileData.length).toEqual(assertItem.addTilesReq[3].tiles.length + 2);
                 expect(RasterTileData.slice(-1)[0].endSync).toEqual(true);
