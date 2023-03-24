@@ -94,8 +94,15 @@ let assertItem: AssertItem = {
                 regionType: CARTA.RegionType.LINE,
             },
             '8': {
+                controlPoints: [{ x: 320, y: 400 }, {x: 370, y: 450}],
+                regionType: CARTA.RegionType.ANNVECTOR,
+            },
+            '9': {
+                controlPoints: [{ x: 320, y: 400 }, {}],
+                regionType: CARTA.RegionType.ANNTEXT,
+            },
+            '10': {
                 controlPoints: [{ x: 320, y: 300 }],
-                regionType: CARTA.RegionType.POINT,
             },
         },
         regionStyles: {
@@ -107,6 +114,8 @@ let assertItem: AssertItem = {
             '6': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
             '7': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
             '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+            '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
+            '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
         },
     },
     exportRegion:
@@ -118,14 +127,16 @@ let assertItem: AssertItem = {
                 fileId: 0,
                 type: CARTA.FileType.CRTF,
                 regionStyles: {
-                    '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
                 },
             },
             {
@@ -135,14 +146,16 @@ let assertItem: AssertItem = {
                 fileId: 0,
                 type: CARTA.FileType.CRTF,
                 regionStyles: {
-                    '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
+                    '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {}},
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: {} },
                 }
             },
         ],
@@ -178,18 +191,18 @@ let assertItem: AssertItem = {
         [
             {
                 success: true,
-                lengthOfRegions: 8,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 7,
-                    id: 16,
+                    index: 10,
+                    id: 20,
                 },
             },
             {
                 success: true,
-                lengthOfRegions: 8,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 7,
-                    id: 24,
+                    index: 10,
+                    id: 30,
                 },
             },
         ],
@@ -245,9 +258,12 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                 Object.keys(assertItem.importRegionAck.regions).map((region, index) => {
                     test(`IMPORT_REGION_ACK.region[${index}] = "Id:${region}, Type:${CARTA.RegionType[assertItem.importRegionAck.regions[region].regionType]}"`, () => {
                         expect(importRegionAckProperties[index]).toEqual(String(region));
-                        expect(importRegionAck.regions[importRegionAckProperties[index]].regionType).toEqual(assertItem.importRegionAck.regions[region].regionType);
-                        if (assertItem.importRegionAck.regions[region].rotation)
+                        if (assertItem.importRegionAck.regions[region].regionType) {
+                            expect(importRegionAck.regions[importRegionAckProperties[index]].regionType).toEqual(assertItem.importRegionAck.regions[region].regionType);
+                        }
+                        if (assertItem.importRegionAck.regions[region].rotation) {
                             expect(importRegionAck.regions[importRegionAckProperties[index]].rotation).toEqual(assertItem.importRegionAck.regions[region].rotation);
+                        }
                         expect(importRegionAck.regions[importRegionAckProperties[index]].controlPoints).toEqual(assertItem.importRegionAck.regions[region].controlPoints);
                     });
                 });
@@ -265,6 +281,8 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                         regionStyle.set(6, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(7, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(8, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
                         assertItem.exportRegion[idxRegion].directory = basepath + "/" + assertItem.exportRegion[idxRegion].directory
                         exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
@@ -286,8 +304,8 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                     let importRegionAckProperties: any;
                     test(`IMPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
                         assertItem.importRegion2[idxRegion].directory = basepath + "/" + assertItem.importRegion2[idxRegion].directory;
-                        importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId )
-                        
+                        importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId);
+
                         importRegionAckProperties = Object.keys(importRegionAck.regions);
                         if (importRegionAck.message != '') {
                             console.warn(importRegionAck.message);
