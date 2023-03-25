@@ -281,7 +281,7 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                         regionStyle.set(6, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(7, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(8, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-                        regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} });
                         regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
                         assertItem.exportRegion[idxRegion].directory = basepath + "/" + assertItem.exportRegion[idxRegion].directory
