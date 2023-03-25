@@ -51,8 +51,8 @@ let assertItem: AssertItem = {
         ],
     importRegionAck:
         [
-            { message: "Region import failed: Not a valid DS9 region file" },
-            { message: "Region import failed: Not a valid DS9 region file" },
+            { message: "Invalid DS9 region syntax:" },
+            { message: "Invalid DS9 region syntax:" },
         ],
 };
 
