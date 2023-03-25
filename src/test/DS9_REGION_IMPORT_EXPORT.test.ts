@@ -135,6 +135,9 @@ let assertItem: AssertItem = {
                     '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
                 },
             },
             {
@@ -150,6 +153,9 @@ let assertItem: AssertItem = {
                     '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
                 }
             },
         ],
@@ -185,18 +191,18 @@ let assertItem: AssertItem = {
         [
             {
                 success: true,
-                lengthOfRegions: 7,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 6,
-                    id: 14,
+                    index: 10,
+                    id: 20,
                 },
             },
             {
                 success: true,
-                lengthOfRegions: 7,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 6,
-                    id: 21,
+                    index: 10,
+                    id: 30,
                 },
             },
         ],
@@ -261,60 +267,62 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                 });
             });
 
-            // assertItem.exportRegionAck.map((exRegion, idxRegion) => {
-            //     describe(`Export "${assertItem.exportRegion[idxRegion].file}" to ${saveSubdirectory}`, () => {
-            //         let exportRegionAck: any;
-            //         test(`EXPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
-            //             let regionStyle = new Map<number, CARTA.IRegionStyle>().set(1, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(2, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(3, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(4, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(5, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(6, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(7, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
-            //             regionStyle.set(8, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+            assertItem.exportRegionAck.map((exRegion, idxRegion) => {
+                describe(`Export "${assertItem.exportRegion[idxRegion].file}" to ${saveSubdirectory}`, () => {
+                    let exportRegionAck: any;
+                    test(`EXPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
+                        let regionStyle = new Map<number, CARTA.IRegionStyle>().set(1, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(2, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(3, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(4, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(5, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(6, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(7, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(8, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} });
+                        regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
-            //             assertItem.exportRegion[idxRegion].directory = basepath + "/" + saveSubdirectory; 
-            //             exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
-            //         }, exportTimeout);
+                        assertItem.exportRegion[idxRegion].directory = basepath + "/" + saveSubdirectory; 
+                        exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
+                    }, exportTimeout);
     
-            //         test(`EXPORT_REGION_ACK.success = ${exRegion.success}`, () => {
-            //             expect(exportRegionAck.success).toBe(exRegion.success);
-            //         });
+                    test(`EXPORT_REGION_ACK.success = ${exRegion.success}`, () => {
+                        expect(exportRegionAck.success).toBe(exRegion.success);
+                    });
     
-            //         test(`EXPORT_REGION_ACK.contents = ${JSON.stringify(exRegion.contents)}`, () => {
-            //             expect(exportRegionAck.contents).toEqual(exRegion.contents);
-            //         });
-            //     });
-            // });
+                    test(`EXPORT_REGION_ACK.contents = ${JSON.stringify(exRegion.contents)}`, () => {
+                        expect(exportRegionAck.contents).toEqual(exRegion.contents);
+                    });
+                });
+            });
 
-            // assertItem.importRegionAck2.map((Region, idxRegion) => {
-            //     describe(`Import "${assertItem.importRegion2[idxRegion].file}" from ${saveSubdirectory}`, () => {
-            //         let importRegionAck: any;
-            //         let importRegionAckProperties: any;
-            //         test(`IMPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
-            //             assertItem.importRegion2[idxRegion].directory = basepath + "/" + saveSubdirectory; 
-            //             importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId )
+            assertItem.importRegionAck2.map((Region, idxRegion) => {
+                describe(`Import "${assertItem.importRegion2[idxRegion].file}" from ${saveSubdirectory}`, () => {
+                    let importRegionAck: any;
+                    let importRegionAckProperties: any;
+                    test(`IMPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
+                        assertItem.importRegion2[idxRegion].directory = basepath + "/" + saveSubdirectory; 
+                        importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId )
                         
-            //             importRegionAckProperties = Object.keys(importRegionAck.regions);
-            //             if (importRegionAck.message != '') {
-            //                 console.warn(importRegionAck.message);
-            //             }
-            //         }, importTimeout);
+                        importRegionAckProperties = Object.keys(importRegionAck.regions);
+                        if (importRegionAck.message != '') {
+                            console.warn(importRegionAck.message);
+                        }
+                    }, importTimeout);
     
-            //         test(`IMPORT_REGION_ACK.success = ${Region.success}`, () => {
-            //             expect(importRegionAck.success).toBe(Region.success);
-            //         });
+                    test(`IMPORT_REGION_ACK.success = ${Region.success}`, () => {
+                        expect(importRegionAck.success).toBe(Region.success);
+                    });
     
-            //         test(`Length of IMPORT_REGION_ACK.regions = ${Region.lengthOfRegions}`, () => {
-            //             expect(importRegionAckProperties.length).toEqual(Region.lengthOfRegions);
-            //         });
+                    test(`Length of IMPORT_REGION_ACK.regions = ${Region.lengthOfRegions}`, () => {
+                        expect(importRegionAckProperties.length).toEqual(Region.lengthOfRegions);
+                    });
     
-            //         test(`IMPORT_REGION_ACK.regions[${Region.assertRegionId.index}].region_id = ${Region.assertRegionId.id}`, () => {
-            //             expect(importRegionAckProperties[importRegionAckProperties.length - 1]).toEqual(String(Region.assertRegionId.id));
-            //         });
-            //     });
-            // });
+                    test(`IMPORT_REGION_ACK.regions[${Region.assertRegionId.index}].region_id = ${Region.assertRegionId.id}`, () => {
+                        expect(importRegionAckProperties[importRegionAckProperties.length - 1]).toEqual(String(Region.assertRegionId.id));
+                    });
+                });
+            });
         })
 
         afterAll(() => msgController.closeConnection());
