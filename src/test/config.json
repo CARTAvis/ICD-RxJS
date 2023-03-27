@@ -11,6 +11,7 @@
         "catalogArtificial": "set_QA/carta_artificial_catalog",
         "catalogLarge": "set_cosmos",
         "save": "set_QA/tmp",
+        "save_local": "/tmp",
         "concat_stokes": "set_StokesCube",
         "large_files": "set_lotsFiles2",
         "compressed_fits": "set_compressed_fits"
