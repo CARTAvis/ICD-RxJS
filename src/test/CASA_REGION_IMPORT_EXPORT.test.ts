@@ -6,7 +6,7 @@ import config from "./config.json";
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
 let regionSubdirectory = config.path.region;
-let saveSubdirectory = config.path.save;
+let saveSubdirectory = config.path.save_local;
 let connectTimeout = config.timeout.connection;
 let importTimeout = config.timeout.import;
 let exportTimeout = config.timeout.export;
@@ -284,7 +284,7 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                         regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} });
                         regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
-                        assertItem.exportRegion[idxRegion].directory = basepath + "/" + assertItem.exportRegion[idxRegion].directory
+                        assertItem.exportRegion[idxRegion].directory = assertItem.exportRegion[idxRegion].directory
                         exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
                     }, exportTimeout);
     
@@ -303,7 +303,7 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                     let importRegionAck: any;
                     let importRegionAckProperties: any;
                     test(`IMPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
-                        assertItem.importRegion2[idxRegion].directory = basepath + "/" + assertItem.importRegion2[idxRegion].directory;
+                        assertItem.importRegion2[idxRegion].directory = assertItem.importRegion2[idxRegion].directory;
                         importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId);
 
                         importRegionAckProperties = Object.keys(importRegionAck.regions);
