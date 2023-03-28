@@ -2,11 +2,13 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { execSync } from "child_process";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
 let regionSubdirectory = config.path.region;
-let saveSubdirectory = config.path.save_local;
+let saveSubdirectory = config.path.save;
+let saveSubdirectoryRedHat9 = config.path.save_rhel9;
 let connectTimeout = config.timeout.connection;
 let importTimeout = config.timeout.import;
 let exportTimeout = config.timeout.export;
@@ -121,7 +123,6 @@ let assertItem: AssertItem = {
     exportRegion:
         [
             {
-                directory: saveSubdirectory,
                 coordType: CARTA.CoordinateType.WORLD,
                 file: "M17_SWex_testRegions_pix_export_to_world.crtf",
                 fileId: 0,
@@ -140,7 +141,6 @@ let assertItem: AssertItem = {
                 },
             },
             {
-                directory: saveSubdirectory,
                 coordType: CARTA.CoordinateType.PIXEL,
                 file: "M17_SWex_testRegions_pix_export_to_pix.crtf",
                 fileId: 0,
@@ -208,12 +208,21 @@ let assertItem: AssertItem = {
         ],
 };
 
+let platformOS: String;
+let isRedHat9: boolean;
 let basepath: string;
 describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format", () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async ()=> {
-            await msgController.connect(testServerUrl);
+            let registerViewerAck = await msgController.connect(testServerUrl);
+            platformOS = registerViewerAck.platformStrings.platform;
+            if (platformOS === "Linux"){
+                let Response = String(execSync('lsb_release -a',{encoding: 'utf-8'}));
+                isRedHat9 = Response.includes("Red Hat Enterprise Linux 9.0");
+            } else {
+                isRedHat9 = false
+            }
         }, connectTimeout);
 
         checkConnection();
@@ -284,7 +293,11 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                         regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} });
                         regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
-                        assertItem.exportRegion[idxRegion].directory = assertItem.exportRegion[idxRegion].directory
+                        if (isRedHat9 === false) {
+                            assertItem.exportRegion[idxRegion].directory = basepath + "/" + saveSubdirectory; 
+                        } else if (isRedHat9 === true) {
+                            assertItem.exportRegion[idxRegion].directory = basepath + "/" + saveSubdirectoryRedHat9; 
+                        }
                         exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
                     }, exportTimeout);
     
@@ -303,7 +316,11 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                     let importRegionAck: any;
                     let importRegionAckProperties: any;
                     test(`IMPORT_REGION_ACK should return within ${importTimeout}ms`, async () => {
-                        assertItem.importRegion2[idxRegion].directory = assertItem.importRegion2[idxRegion].directory;
+                        if (isRedHat9 === false) {
+                            assertItem.importRegion2[idxRegion].directory = basepath + "/" + saveSubdirectory;
+                        } else if (isRedHat9 === true) {
+                            assertItem.importRegion2[idxRegion].directory = basepath + "/" + saveSubdirectoryRedHat9;
+                        }
                         importRegionAck = await msgController.importRegion(assertItem.importRegion2[idxRegion].directory, assertItem.importRegion2[idxRegion].file, assertItem.importRegion2[idxRegion].type, assertItem.importRegion2[idxRegion].groupId);
 
                         importRegionAckProperties = Object.keys(importRegionAck.regions);
