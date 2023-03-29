@@ -274,12 +274,18 @@ describe("MATCH_STATS: Testing region stats with spatially and spectrally matche
             for (const [fileIdx, file] of assertItem.openFile.entries()) {
                 test(`Should receive 4 RegionStatsData for file_id: ${file.fileId}`, async () => {
                     for (const [statsIdx, statsReq] of assertItem.setStatsRequirements[fileIdx].entries()) {
-                        await msgController.setStatsRequirements({
-                            fileId: file.fileId,
+                        let setFileId: number;
+                        if (file.fileId === 100) {
+                            setFileId = 101;
+                        } else if (file.fileId === 101) {
+                            setFileId = 100;
+                        };
+                        msgController.setStatsRequirements({
+                            fileId: setFileId,
                             regionId: statsReq.regionId,
-                            stats: [],
+                            statsConfigs: [],
                         })
-                        await msgController.setStatsRequirements(statsReq);
+                        msgController.setStatsRequirements(statsReq);
                         RegionStatsData.push(await Stream(CARTA.RegionStatsData,1));
                     }
                 }, profileTimeout);
