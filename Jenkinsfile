@@ -235,12 +235,11 @@ pipeline {
                             dir ('carta-backend') {
                                 sh "git checkout ${env.CARTA-BACKEND-BRANCH}"
                                 sh "git submodule update --init --recursive"
-                                dir ('carta-backend') {
-                                    dir ('build') {
-                                        sh "rm -rf *"
-                                        sh "cmake .. -DDevSuppressExternalWarnings=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
-                                        sh "make -j 8"
-                                        stash includes: "carta_backend", name: "macos13-backend"
+                                dir ('build') {
+                                    sh "rm -rf *"
+                                    sh "cmake .. -DDevSuppressExternalWarnings=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
+                                    sh "make -j 8"
+                                    stash includes: "carta_backend", name: "macos13-backend"
                                 }
                             }
                         }
@@ -251,7 +250,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage('6 RHEL7') {
                     agent {
                         label "rhel7-agent"
