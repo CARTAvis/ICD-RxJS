@@ -128,9 +128,9 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "uname -a"
                             sh "lsb_release -a"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
-                                sh "git checkout ${env.CARTA-BACKEND-BRANCH}"
+                                sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_CXX_FLAGS='--coverage' -DCMAKE_C_FLAGS='--coverage' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
@@ -154,9 +154,9 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "uname -a" 
                             sh "lsb_release -a"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
-                                sh "git checkout ${env.CARTA-BACKEND-BRANCH}"
+                                sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_CXX_FLAGS='--coverage' -DCMAKE_C_FLAGS='--coverage' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
@@ -179,7 +179,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "export PATH=/usr/local/bin:$PATH"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
@@ -205,7 +205,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "export PATH=/usr/local/bin:$PATH"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
@@ -231,7 +231,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "export PATH=/usr/local/bin:$PATH"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
@@ -258,7 +258,7 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "uname -a"
                             sh "cat /etc/redhat-release"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
@@ -284,7 +284,7 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "uname -a"
                             sh "cat /etc/redhat-release"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
@@ -310,7 +310,7 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh "uname -a"
                             sh "cat /etc/redhat-release"
-                            sh "git clone https://github.com/CARTAvis/carta-backend.git"
+                            sh "git clone --depth 1 https://github.com/CARTAvis/carta-backend.git"
                             dir ('carta-backend') {
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
