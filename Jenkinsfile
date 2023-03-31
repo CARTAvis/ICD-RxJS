@@ -669,362 +669,335 @@ def prepare_macos13_ICD() {
 
 def file_browser() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "CI=true npm test src/test/ACCESS_WEBSOCKET.test.ts # test 1 of 5"
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/GET_FILELIST_ROOTPATH_CONCURRENT.test.ts # test 2 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/FILEINFO_FITS_MULTIHDU.test.ts # test 3 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/FILEINFO_EXCEPTIONS.test.ts # test 4 of 5"
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/OPEN_SWAPPED_IMAGES.test.ts # test 5 of 5"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "CI=true npm test src/test/ACCESS_WEBSOCKET.test.ts # test 1 of 5"
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/GET_FILELIST_ROOTPATH_CONCURRENT.test.ts # test 2 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/FILEINFO_FITS_MULTIHDU.test.ts # test 3 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/FILEINFO_EXCEPTIONS.test.ts # test 4 of 5"
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/OPEN_SWAPPED_IMAGES.test.ts # test 5 of 5"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def animator() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/ANIMATOR_DATA_STREAM.test.ts # test 1 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/ANIMATOR_NAVIGATION.test.ts # test 2 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "#CI=true npm test src/test/ANIMATOR_CONTOUR_MATCH.test.ts # test 3 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/ANIMATOR_CONTOUR.test.ts # test 4 of 6"
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/ANIMATOR_PLAYBACK.test.ts # test 5 of 6"
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/ANIMATOR_SWAPPED_IMAGES.test.ts # test 6 of 6"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/ANIMATOR_DATA_STREAM.test.ts # test 1 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/ANIMATOR_NAVIGATION.test.ts # test 2 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "#CI=true npm test src/test/ANIMATOR_CONTOUR_MATCH.test.ts # test 3 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/ANIMATOR_CONTOUR.test.ts # test 4 of 6"
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/ANIMATOR_PLAYBACK.test.ts # test 5 of 6"
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/ANIMATOR_SWAPPED_IMAGES.test.ts # test 6 of 6"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def region_statistics() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/REGION_STATISTICS_RECTANGLE.test.ts # test 1 of 3"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/REGION_STATISTICS_ELLIPSE.test.ts # test 2 of 3"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/REGION_STATISTICS_POLYGON.test.ts # test 3 of 3"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/REGION_STATISTICS_RECTANGLE.test.ts # test 1 of 3"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/REGION_STATISTICS_ELLIPSE.test.ts # test 2 of 3"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/REGION_STATISTICS_POLYGON.test.ts # test 3 of 3"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def region_manipulation() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/CASA_REGION_INFO.test.ts # test 1 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CASA_REGION_IMPORT_INTERNAL.test.ts # test 2 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CASA_REGION_IMPORT_EXPORT.test.ts # test 3 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CASA_REGION_IMPORT_EXCEPTION.test.ts # test 4 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CASA_REGION_EXPORT.test.ts # test 5 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/DS9_REGION_EXPORT.test.ts # test 6 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/DS9_REGION_IMPORT_EXCEPTION.test.ts # test 7 of 8"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/DS9_REGION_IMPORT_EXPORT.test.ts # test 8 of 8"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/CASA_REGION_INFO.test.ts # test 1 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CASA_REGION_IMPORT_INTERNAL.test.ts # test 2 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CASA_REGION_IMPORT_EXPORT.test.ts # test 3 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CASA_REGION_IMPORT_EXCEPTION.test.ts # test 4 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CASA_REGION_EXPORT.test.ts # test 5 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/DS9_REGION_EXPORT.test.ts # test 6 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/DS9_REGION_IMPORT_EXCEPTION.test.ts # test 7 of 8"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/DS9_REGION_IMPORT_EXPORT.test.ts # test 8 of 8"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def cube_histogram() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM.test.ts # test 1 of 3"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_HDF5.test.ts # test 2 of 3"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_CANCELLATION.test.ts # test 3 of 3"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM.test.ts # test 1 of 3"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_HDF5.test.ts # test 2 of 3"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_CANCELLATION.test.ts # test 3 of 3"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def pv_generator() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_CANCEL.test.ts # test 1 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_CASA.test.ts # test 2 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_FITS.test.ts  # test 3 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_HDF5_COMPARED_FITS.test.ts  # test 4 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_MATCH_SPATIAL.test.ts  # test 5 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_NaN.test.ts  # test 6 of 7"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/PV_GENERATOR_WIDE.test.ts  # test 7 of 7"                
-                sh "sleep 3 && pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_CANCEL.test.ts # test 1 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_CASA.test.ts # test 2 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_FITS.test.ts  # test 3 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_HDF5_COMPARED_FITS.test.ts  # test 4 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_MATCH_SPATIAL.test.ts  # test 5 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_NaN.test.ts  # test 6 of 7"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/PV_GENERATOR_WIDE.test.ts  # test 7 of 7"                
+            sh "sleep 3 && pgrep carta_backend"
         }
     }
 }
 
 def raster_tiles() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/CHECK_RASTER_TILE_DATA.test.ts # test 1 of 2"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/TILE_DATA_REQUEST.test.ts # test 2 of 2"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/CHECK_RASTER_TILE_DATA.test.ts # test 1 of 2"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/TILE_DATA_REQUEST.test.ts # test 2 of 2"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def catalog() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/CATALOG_GENERAL.test.ts # test 1 of 1"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/CATALOG_GENERAL.test.ts # test 1 of 1"
         }
     }
 }
 
 def moment() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_CASA.test.ts # test 1 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_EXCEPTION.test.ts # test 2 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_SAVE.test.ts # test 3 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_CANCEL.test.ts # test 4 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_FITS.test.ts # test 5 of 6"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MOMENTS_GENERATOR_HDF5.test.ts # test 6 of 6"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_CASA.test.ts # test 1 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_EXCEPTION.test.ts # test 2 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_SAVE.test.ts # test 3 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_CANCEL.test.ts # test 4 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_FITS.test.ts # test 5 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MOMENTS_GENERATOR_HDF5.test.ts # test 6 of 6"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def resume() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/RESUME_CATALOG.test.ts # test 1 of 4"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/RESUME_CONTOUR.test.ts # test 2 of 4"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/RESUME_IMAGE.test.ts # test 3 of 4"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/RESUME_REGION.test.ts # test 4 of 4"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/RESUME_CATALOG.test.ts # test 1 of 4"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/RESUME_CONTOUR.test.ts # test 2 of 4"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/RESUME_IMAGE.test.ts # test 3 of 4"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/RESUME_REGION.test.ts # test 4 of 4"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def match() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                     ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/MATCH_SPATIAL.test.ts # test 1 of 3"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/MATCH_STATS.test.ts # test 2 of 3"
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/MATCH_SPECTRAL.test.ts # test 3 of 3"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                 ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/MATCH_SPATIAL.test.ts # test 1 of 3"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/MATCH_STATS.test.ts # test 2 of 3"
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/MATCH_SPECTRAL.test.ts # test 3 of 3"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def close_file() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                    ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/CLOSE_FILE_SINGLE.test.ts # test 1 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CLOSE_FILE_ANIMATION.test.ts # test 2 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CLOSE_FILE_ERROR.test.ts # test 3 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CLOSE_FILE_SPECTRAL_PROFILE.test.ts # test 4 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/CLOSE_FILE_TILE.test.ts # test 5 of 5"
-                sh "pgrep carta_backend"
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/CLOSE_FILE_SINGLE.test.ts # test 1 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CLOSE_FILE_ANIMATION.test.ts # test 2 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CLOSE_FILE_ERROR.test.ts # test 3 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CLOSE_FILE_SPECTRAL_PROFILE.test.ts # test 4 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/CLOSE_FILE_TILE.test.ts # test 5 of 5"
+            sh "pgrep carta_backend"
         }
     }
 }
 
 def image_fitting() {
     script {
-        dir ('ICD-RxJS') {
-            sh "npm install && ./protobuf/build_proto.sh"
-            ret = false
-            retry(3) {
-                if (ret) {
-                    sleep(time:30,unit:"SECONDS")
-                    sh "cat /root/.carta/log/carta.log"
-                    echo "Trying again"
-                } else {
-                     ret = true
-                }
-                sh "pgrep carta_backend"
-                sh "CI=true npm test src/test/IMAGE_FITTING_CASA.test.ts # test 1 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/IMAGE_FITTING_FITS.test.ts # test 2 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/IMAGE_FITTING_HDF5.test.ts # test 3 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/IMAGE_FITTING_CANCEL.test.ts # test 4 of 5"
-                sh "sleep 3 && pgrep carta_backend"
-                sh "CI=true npm test src/test/IMAGE_FITTING_BAD.test.ts # test 5 of 5"
-                sh "pgrep carta_backend"
-
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                 ret = true
             }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/IMAGE_FITTING_CASA.test.ts # test 1 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/IMAGE_FITTING_FITS.test.ts # test 2 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/IMAGE_FITTING_HDF5.test.ts # test 3 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/IMAGE_FITTING_CANCEL.test.ts # test 4 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/IMAGE_FITTING_BAD.test.ts # test 5 of 5"
+            sh "pgrep carta_backend"
         }
     }
 }
