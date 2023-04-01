@@ -163,7 +163,10 @@ pipeline {
                                     sh "make -j 16"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "jammy-backend"
+                            sh "ls -sort"
+                            sh "pwd"
+                            stash includes: "carta-backend/build/carta_backend", name: "jammy-backend"
+                            stash includes: "carta-backend/debug", name: "debug-folder"
                         }
                     }
                     post {
@@ -189,7 +192,7 @@ pipeline {
                                     sh "make -j 8"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos11-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "macos11-backend"
                         }
                     }
                     post {
@@ -215,7 +218,7 @@ pipeline {
                                     sh "make -j 8"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos12-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "macos12-backend"
                         }
                     }
                     post {
@@ -241,7 +244,7 @@ pipeline {
                                     sh "make -j 8"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos13-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "macos13-backend"
                         }
                     }
                     post {
@@ -267,7 +270,7 @@ pipeline {
                                     sh "source /opt/rh/devtoolset-8/enable && make -j 16"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel7-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "rhel7-backend"
                         }
                     }
                     post {
@@ -293,7 +296,7 @@ pipeline {
                                     sh "make -j 16"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel8-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "rhel8-backend"
                         }
                     }
                     post {
@@ -319,7 +322,7 @@ pipeline {
                                     sh "make -j 16"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel9-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "rhel9-backend"
                         }
                     }
                     post {
@@ -346,6 +349,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: "ICD test session and file_browser failure") {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -362,6 +366,7 @@ pipeline {
                         steps {
                              warnError(catchInterruptions: true, message: 'ICD test animator failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -378,6 +383,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test region_statistics failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -394,6 +400,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test region_manipulation failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -410,6 +417,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test cube_histogram failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -426,6 +434,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test pv_generator failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -442,6 +451,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test raster_tiles failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -458,6 +468,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test catalog failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -474,6 +485,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test moment failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -490,6 +502,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test resume failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -506,6 +519,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test match failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
@@ -522,6 +536,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test close_file failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
