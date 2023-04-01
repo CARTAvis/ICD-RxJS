@@ -137,7 +137,8 @@ pipeline {
                                     sh "make -j 16"
                                 }
                             }
-                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "focal-backend"
+                            stash includes: "carta-backend/build/carta_backend", name: "focal-backend"
+                            stash includes: "carta-backend/debug/**", name: "debug-folder"
                         }
                     }
                     post {
@@ -166,7 +167,6 @@ pipeline {
                             sh "ls -sort"
                             sh "pwd"
                             stash includes: "carta-backend/build/carta_backend", name: "jammy-backend"
-                            stash includes: "carta-backend/debug", name: "debug-folder"
                         }
                     }
                     post {
