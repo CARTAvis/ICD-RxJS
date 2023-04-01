@@ -135,9 +135,9 @@ pipeline {
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_CXX_FLAGS='--coverage' -DCMAKE_C_FLAGS='--coverage' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 16"
-                                    stash includes: "carta_backend", name: "focal-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "focal-backend"
                         }
                     }
                     post {
@@ -161,9 +161,9 @@ pipeline {
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_CXX_FLAGS='--coverage' -DCMAKE_C_FLAGS='--coverage' -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 16"
-                                    stash includes: "carta_backend", name: "jammy-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "jammy-backend"
                         }
                     }
                     post {
@@ -187,9 +187,9 @@ pipeline {
                                     sh "rm -rf *"
                                     sh "cmake .. -DDevSuppressExternalWarnings=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 8"
-                                    stash includes: "carta_backend", name: "macos11-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos11-backend"
                         }
                     }
                     post {
@@ -213,9 +213,9 @@ pipeline {
                                     sh "rm -rf *"
                                     sh "cmake .. -DDevSuppressExternalWarnings=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 8"
-                                    stash includes: "carta_backend", name: "macos12-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos12-backend"
                         }
                     }
                     post {
@@ -239,9 +239,9 @@ pipeline {
                                     sh "rm -rf *"
                                     sh "cmake .. -DDevSuppressExternalWarnings=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 8"
-                                    stash includes: "carta_backend", name: "macos13-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "macos13-backend"
                         }
                     }
                     post {
@@ -265,9 +265,9 @@ pipeline {
                                 dir ('build') {
                                     sh "source /opt/rh/devtoolset-8/enable && cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "source /opt/rh/devtoolset-8/enable && make -j 16"
-                                    stash includes: "carta_backend", name: "rhel7-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel7-backend"
                         }
                     }
                     post {
@@ -291,9 +291,9 @@ pipeline {
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 16"
-                                    stash includes: "carta_backend", name: "rhel8-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel8-backend"
                         }
                     }
                     post {
@@ -317,9 +317,9 @@ pipeline {
                                 dir ('build') {
                                     sh "cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' "
                                     sh "make -j 16"
-                                    stash includes: "carta_backend", name: "rhel9-backend"
                                 }
                             }
+                            stash includes: "carta-backend/build/carta_backend carta-backend/debug", name: "rhel9-backend"
                         }
                     }
                     post {
@@ -538,6 +538,7 @@ pipeline {
                         steps {
                             warnError(catchInterruptions: true, message: 'ICD test image_fitting failure') {
                                 unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
                                 sh "rm -f /root/.carta/log/carta.log"
                                 dir ('carta-backend/build') {
                                     sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
