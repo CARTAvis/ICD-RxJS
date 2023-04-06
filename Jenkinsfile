@@ -569,7 +569,7 @@ pipeline {
     }
     post {
         success {
-            slackSend color: 'good', message: "ICD-RxJS branch test suite - Success - ${BRANCH_NAME} <${env.RUN_DISPLAY_URL}|${COMMIT_ID_SHORT}>";
+            slackSend color: 'good', message: "ICD-RxJS test suite - Success - carta-backend ${BACKENDBRANCH} - ICD-RxJS ${BRANCH_NAME} <${env.RUN_DISPLAY_URL}|${COMMIT_ID_SHORT}>";
             withCredentials([string(credentialsId: 'acdc-jenkins-token', variable: 'TOKEN')]) {
             sh("""curl -X POST -H "Accept: application/vnd.github+json" \
             -H "Authorization: token $TOKEN" https://api.github.com/repos/CARTAvis/carta-backend/statuses/${COMMIT_ID_LONG} \
@@ -578,7 +578,7 @@ pipeline {
 
         }
         unstable {
-            slackSend color: 'warning', message: "ICD-RxJS branch test suite - Unstable - ${BRANCH_NAME} <${env.RUN_DISPLAY_URL}|${COMMIT_ID_SHORT}>";
+            slackSend color: 'warning', message: "ICD-RxJS branch test suite - Unstable - carta-backend ${BACKENDBRANCH} - ICD-RxJS ${BRANCH_NAME} <${env.RUN_DISPLAY_URL}|${COMMIT_ID_SHORT}>";
             withCredentials([string(credentialsId: 'acdc-jenkins-token', variable: 'TOKEN')]) {
             sh("""curl -X POST -H "Accept: application/vnd.github+json" \
             -H "Authorization: token $TOKEN" https://api.github.com/repos/CARTAvis/carta-backend/statuses/${COMMIT_ID_LONG} \
