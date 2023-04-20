@@ -8,6 +8,7 @@ let testSubdirectory = config.path.QA;
 let regionSubdirectory = config.path.region;
 let saveSubdirectory = config.path.save;
 let connectTimeout = config.timeout.connection;
+let openFileTimeout = config.timeout.openFile;
 let importTimeout = config.timeout.import;
 let exportTimeout = config.timeout.export;
 
@@ -16,11 +17,12 @@ interface AssertItem {
     setCursor: CARTA.ISetCursor;
     addTilesRequire: CARTA.IAddRequiredTiles;
     precisionDigits: number;
-    importRegion: CARTA.IImportRegion;
-    importRegionAck: CARTA.IImportRegionAck;
-    exportRegion: CARTA.IExportRegion[];
-    exportRegionAck: CARTA.IExportRegionAck[];
-    importRegion2: CARTA.IImportRegion[];
+    setRegion: CARTA.ISetRegion[];
+    // importRegion: CARTA.IImportRegion;
+    // importRegionAck: CARTA.IImportRegionAck;
+    // exportRegion: CARTA.IExportRegion[];
+    // exportRegionAck: CARTA.IExportRegionAck[];
+    // importRegion2: CARTA.IImportRegion[];
 };
 let assertItem: AssertItem = {
     openFile:
@@ -43,6 +45,103 @@ let assertItem: AssertItem = {
         compressionType: CARTA.CompressionType.ZFP,
     },
     precisionDigits: 4,
+    setRegion: [
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNPOINT,
+                controlPoints: [{ x: 163, y: 565 }],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNLINE,
+                controlPoints: [{x: 270, y: 618}, {x: 219, y: 560}],
+                rotation: 318.95805304638026,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNRECTANGLE,
+                controlPoints: [{x: 309, y: 587}, {x: 36, y: 44}],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNELLIPSE,
+                controlPoints: [{x: 388, y: 587}, {x: 33.7, y: 11.9}],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNPOLYGON,
+                controlPoints: [{x: 175.5794044665014, y: 511.6588089330025}, 
+                    {x: 125.95161290322585, y: 464.01612903225805}, 
+                    {x: 169.62406947890827, y: 446.1501240694789}, 
+                    {x: 225.2071960297768, y: 464.01612903225805}, 
+                    {x: 175.5794044665014, y: 471.95657568238215}
+                    ],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNPOLYLINE,
+                controlPoints: [{x: 265, y: 458}, {x: 299, y: 520}, {x: 324, y: 446}],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNVECTOR,
+                controlPoints: [{x: 340, y: 533}, {x: 416, y: 474}],
+                rotation: 52.177245850855,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNTEXT,
+                controlPoints: [{x: 260.93920595533507, y: 346.894540942928}, {x: 408.2232666015625, y: 39.702233250620345}],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNCOMPASS,
+                controlPoints: [{x: 157.71339950372214, y: 132.50248138957818}, {x: 100, y: 100}],
+                rotation: 0,
+            }
+        },
+        {
+            fileId: 0,
+            regionId: -1,
+            regionInfo: {
+                regionType: CARTA.RegionType.ANNRULER,
+                controlPoints: [{x: 362, y: 219}, {x: 485, y: 285}],
+                rotation: 0,
+            }
+        },
+    ]
     // importRegion:
     // {
     //     contents: [],
@@ -195,6 +294,29 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
             let fileListResponse = await msgController.getFileList("$BASE",0);
             basepath = fileListResponse.directory;
             assertItem.openFile.directory = basepath + "/" + assertItem.openFile.directory;
+        });
+
+        describe(`Go to "${testSubdirectory}" folder and open image "${assertItem.openFile.file}"`, () => {
+            test(`Preparation: Open image`,async () => {
+                msgController.closeFile(-1);
+                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(OpenFileResponse.success).toEqual(true);
+                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
+
+                msgController.addRequiredTiles(assertItem.addTilesRequire);
+                let RasterTileDataResponse = await Stream(CARTA.RasterTileData,3);
+                msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
+                let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
+            }, openFileTimeout);
+
+            test(`(Case 1) Set 10 annotation regions and receive the responses, then check the response:`, async () => {
+                for (let index = 0; index < assertItem.setRegion.length; index++) {
+                    let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[index].fileId, assertItem.setRegion[index].regionId, assertItem.setRegion[index].regionInfo);
+                    expect(setRegionAckResponse.success).toEqual(true);
+                    expect(setRegionAckResponse.regionId).toEqual(index + 1);
+                };
+            });
         });
     });
 });
