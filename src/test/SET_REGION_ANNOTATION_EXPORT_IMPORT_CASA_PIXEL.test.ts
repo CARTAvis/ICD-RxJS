@@ -18,10 +18,10 @@ interface AssertItem {
     addTilesRequire: CARTA.IAddRequiredTiles;
     precisionDigits: number;
     setRegion: CARTA.ISetRegion[];
+    exportRegion: CARTA.IExportRegion;
+    exportRegionAck: CARTA.IExportRegionAck;
     // importRegion: CARTA.IImportRegion;
     // importRegionAck: CARTA.IImportRegionAck;
-    // exportRegion: CARTA.IExportRegion[];
-    // exportRegionAck: CARTA.IExportRegionAck[];
     // importRegion2: CARTA.IImportRegion[];
 };
 let assertItem: AssertItem = {
@@ -141,7 +141,18 @@ let assertItem: AssertItem = {
                 rotation: 0,
             }
         },
-    ]
+    ],
+    exportRegion: {
+        coordType: CARTA.CoordinateType.WORLD,
+        file: "set_region_annotation_test_pixel.crtf",
+        fileId: 0,
+        type: CARTA.FileType.CRTF,
+        regionStyles: {},
+    },
+    exportRegionAck: {
+        contents: [],
+        success: true
+    }
     // importRegion:
     // {
     //     contents: [],
@@ -210,56 +221,6 @@ let assertItem: AssertItem = {
     //         '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
     //     },
     // },
-    // exportRegion:
-    //     [
-    //         {
-    //             coordType: CARTA.CoordinateType.WORLD,
-    //             file: "M17_SWex_testRegions_pix_export_to_world.reg",
-    //             fileId: 0,
-    //             type: CARTA.FileType.DS9_REG,
-    //             regionStyles: {
-    //                 '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
-    //                 '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
-    //                 '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
-    //             },
-    //         },
-    //         {
-    //             coordType: CARTA.CoordinateType.PIXEL,
-    //             file: "M17_SWex_testRegions_pix_export_to_pix.reg",
-    //             fileId: 0,
-    //             type: CARTA.FileType.DS9_REG,
-    //             regionStyles: {
-    //                 '1': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '2': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '3': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '4': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
-    //                 '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
-    //                 '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
-    //                 '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
-    //             }
-    //         },
-    //     ],
-    // exportRegionAck:
-    //     [
-    //         {
-    //             success: true,
-    //             contents: [],
-    //         },
-    //         {
-    //             success: true,
-    //             contents: [],
-    //         },
-    //     ],
     // importRegion2:
     //     [
     //         {
@@ -316,6 +277,31 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
                     expect(setRegionAckResponse.success).toEqual(true);
                     expect(setRegionAckResponse.regionId).toEqual(index + 1);
                 };
+            });
+
+            test(`(Case 2) Export all annotation RegionTypes as crtf pixel (CASA region) format`, async () => {
+                //Request the Export Region ICD message
+                let exportRegionAck: any;
+                let regionStyle = new Map<number, CARTA.IRegionStyle>().set(1, { name: '”', color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(2, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(3, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(4, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(5, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(6, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(7, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {} });
+                regionStyle.set(8, { name: "", color: '#FFBA01', lineWidth: 1, dashList: [], annotationStyle: {font: "Helvetica", fontSize: 20, fontStyle: "Normal", textLabel0: "Double click to edit text", textPosition: 0}});
+                regionStyle.set(9, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {coordinateSystem: "PIXEL", font: "Helvetica", fontSize: 20, fontStyle: "Normal", isEastArrow: true, isNorthArrow: true, textLabel0: "N", textLabel1: "E"}});
+                regionStyle.set(10, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {fontSize: 13, fontStyle: 'Normal', font: 'Helvetica', coordinateSystem: 'PIXEL'} });
+
+                //Receive the Export Region ICD message Response
+                assertItem.exportRegion.directory = basepath + "/" + saveSubdirectory; 
+                exportRegionAck = await msgController.exportRegion(assertItem.exportRegion.directory, assertItem.exportRegion.file, assertItem.exportRegion.type, assertItem.exportRegion.coordType, assertItem.exportRegion.fileId, regionStyle);
+                expect(exportRegionAck.contents).toEqual(assertItem.exportRegionAck.contents);
+                expect(exportRegionAck.success).toEqual(assertItem.exportRegionAck.success);
+            }, exportTimeout);
+
+            test(`(Case 3) Import the exported region file`, async () => {
+
             });
         });
     });
