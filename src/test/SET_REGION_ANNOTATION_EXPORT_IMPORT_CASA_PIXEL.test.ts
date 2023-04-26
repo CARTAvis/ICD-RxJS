@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { execSync } from "child_process";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -330,6 +331,11 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
                         expect(importRegionAckAnnotationArray).toContainEqual(assertItem.importRegionAck.regionStyles[importRegionAckIndex[index]].annotationStyle);
                     });
                 }
+            }, importTimeout);
+
+            test(`Delete the exported region file`, () => {
+                let deleteExportRegionFileCommand = assertItem.exportRegion.directory + "/" + assertItem.exportRegion.file;
+                execSync(`rm /${deleteExportRegionFileCommand}`,{encoding: 'utf-8'})
             });
         });
 
