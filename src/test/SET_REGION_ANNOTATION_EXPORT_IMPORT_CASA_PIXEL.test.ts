@@ -335,7 +335,7 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
 
             test(`Delete the exported region file`, () => {
                 let deleteExportRegionFileCommand = assertItem.exportRegion.directory + "/" + assertItem.exportRegion.file;
-                execSync(`rm /${deleteExportRegionFileCommand}`,{encoding: 'utf-8'})
+                execSync(`rm /${deleteExportRegionFileCommand}`,{encoding: 'utf-8'});
             });
         });
 
