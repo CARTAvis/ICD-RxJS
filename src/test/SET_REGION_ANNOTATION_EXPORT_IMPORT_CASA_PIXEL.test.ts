@@ -2,7 +2,6 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
-import { execSync } from "child_process";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
