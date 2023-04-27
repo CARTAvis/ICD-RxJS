@@ -6,7 +6,7 @@ import { execSync } from "child_process";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
-let saveSubdirectory = config.path.save;
+let saveSubdirectory = config.path.save_unique;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 let importTimeout = config.timeout.import;
@@ -281,7 +281,7 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
                 regionStyle.set(10, { name: "", color: '#FFBA01', lineWidth: 2, dashList: [], annotationStyle: {fontSize: 13, fontStyle: 'Normal', font: 'Helvetica', coordinateSystem: 'PIXEL'} });
 
                 //Receive the Export Region ICD message Response
-                assertItem.exportRegion.directory = basepath + "/" + saveSubdirectory; 
+                assertItem.exportRegion.directory = saveSubdirectory; 
                 exportRegionAck = await msgController.exportRegion(assertItem.exportRegion.directory, assertItem.exportRegion.file, assertItem.exportRegion.type, assertItem.exportRegion.coordType, assertItem.exportRegion.fileId, regionStyle);
                 expect(exportRegionAck.contents).toEqual(assertItem.exportRegionAck.contents);
                 expect(exportRegionAck.success).toEqual(assertItem.exportRegionAck.success);
@@ -290,7 +290,7 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
             test(`(Case 3) Import the exported region file`, async () => {
                 //Request and Receive import the expored region file ICD message
                 let importRegionAck: any;
-                assertItem.importRegion.directory = basepath + "/" + saveSubdirectory; 
+                assertItem.importRegion.directory = saveSubdirectory; 
                 importRegionAck = await msgController.importRegion(assertItem.importRegion.directory, assertItem.importRegion.file, assertItem.importRegion.type, assertItem.importRegion.groupId);
                 
                 //Check the Responsed import region ICD message
