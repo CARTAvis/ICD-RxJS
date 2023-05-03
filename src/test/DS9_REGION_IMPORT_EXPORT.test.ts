@@ -65,33 +65,45 @@ let assertItem: AssertItem = {
         success: true,
         regions: {
             '1': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 40, y: 100 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 40, y: 100 }],
                 regionType: CARTA.RegionType.RECTANGLE,
             },
             '2': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 100, y: 40 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 100, y: 40 }],
                 regionType: CARTA.RegionType.RECTANGLE,
             },
             '3': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 200, y: 40 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 200, y: 40 }],
                 rotation: 45,
                 regionType: CARTA.RegionType.RECTANGLE,
             },
             '4': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 319, y: 599 }, { x: 399, y: 399 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 320, y: 600 }, { x: 400, y: 400 }],
                 regionType: CARTA.RegionType.POLYGON,
             },
             '5': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 200, y: 200 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 200, y: 200 }],
                 regionType: CARTA.RegionType.ELLIPSE,
             },
             '6': {
-                controlPoints: [{ x: 319, y: 399 }, { x: 100, y: 20 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 100, y: 20 }],
                 regionType: CARTA.RegionType.ELLIPSE,
                 rotation: 45,
             },
             '7': {
-                controlPoints: [{ x: 319, y: 299 }],
+                controlPoints: [{ x: 320, y: 400 }, { x: 320, y: 300}],
+                regionType: CARTA.RegionType.LINE,
+            },
+            '8': {
+                controlPoints: [{ x: 320, y: 400 }, {x: 369.99951171875, y: 449.99951171875}],
+                regionType: CARTA.RegionType.ANNVECTOR,
+            },
+            '9': {
+                controlPoints: [{ x: 320, y: 400 }, {}],
+                regionType: CARTA.RegionType.ANNTEXT,
+            },
+            '10': {
+                controlPoints: [{ x: 320, y: 300 }],
                 regionType: CARTA.RegionType.POINT,
             },
         },
@@ -103,6 +115,9 @@ let assertItem: AssertItem = {
             '5': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
             '6': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
             '7': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+            '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+            '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+            '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
         },
     },
     exportRegion:
@@ -120,6 +135,9 @@ let assertItem: AssertItem = {
                     '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
                 },
             },
             {
@@ -135,6 +153,9 @@ let assertItem: AssertItem = {
                     '5': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '6': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
                     '7': { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" },
+                    '8': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
+                    '9': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "", annotationStyle: {textLabel0: 'CARTA REGION TEST'} },
+                    '10': { color: "#2EE6D6", dashList: [], lineWidth: 1, name: "" },
                 }
             },
         ],
@@ -170,18 +191,18 @@ let assertItem: AssertItem = {
         [
             {
                 success: true,
-                lengthOfRegions: 7,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 6,
-                    id: 14,
+                    index: 10,
+                    id: 20,
                 },
             },
             {
                 success: true,
-                lengthOfRegions: 7,
+                lengthOfRegions: 10,
                 assertRegionId: {
-                    index: 6,
-                    id: 21,
+                    index: 10,
+                    id: 30,
                 },
             },
         ],
@@ -258,6 +279,8 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                         regionStyle.set(6, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(7, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
                         regionStyle.set(8, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
+                        regionStyle.set(9, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "", annotationStyle: { textLabel0: "CARTA REGION TEST", font: "Helvetica", fontSize: 20, fontStyle: "Normal", textPosition: 0} });
+                        regionStyle.set(10, { color: "#2EE6D6", dashList: [], lineWidth: 2, name: "" });
 
                         assertItem.exportRegion[idxRegion].directory = basepath + "/" + saveSubdirectory; 
                         exportRegionAck = await msgController.exportRegion(assertItem.exportRegion[idxRegion].directory, assertItem.exportRegion[idxRegion].file, assertItem.exportRegion[idxRegion].type, assertItem.exportRegion[idxRegion].coordType, assertItem.exportRegion[idxRegion].fileId, regionStyle);
