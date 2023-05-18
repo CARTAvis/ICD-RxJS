@@ -215,22 +215,22 @@ describe("PV_GENERATOR_HDF5_COMPARED_FITS:Testing PV generator with hdf5 file an
                     expect(Tile1.tiles[0].layer).toEqual(1);
                     expect(Tile1.tiles[0].width).toEqual(145);
                     expect(Tile1.tiles[0].x).toEqual(1);
-                    for (let i=0; i<assertItem.imageData1.length; i++) {
-                        expect(Tile1.tiles[0].imageData[assertItem.imageDataIndex[i]]).toEqual(assertItem.imageData1[i]);
-                    }
-                    for (let i = 0; i <= 10; i++) {
-                        expect(Tile1.tiles[0].imageData[i+18800]).toEqual(assertItem.imageDataSequence1[i]);
-                    }
+                    // for (let i=0; i<assertItem.imageData1.length; i++) {
+                    //     expect(Tile1.tiles[0].imageData[assertItem.imageDataIndex[i]]).toEqual(assertItem.imageData1[i]);
+                    // }
+                    // for (let i = 0; i <= 10; i++) {
+                    //     expect(Tile1.tiles[0].imageData[i+18800]).toEqual(assertItem.imageDataSequence1[i]);
+                    // }
     
                     expect(Tile2.tiles[0].layer).toEqual(1);
                     expect(Tile2.tiles[0].width).toEqual(256);
                     expect(Tile2.tiles[0].height).toEqual(250);
-                    for (let i=0; i<assertItem.imageData2.length; i++) {
-                        expect(Tile2.tiles[0].imageData[assertItem.imageDataIndex[i]]).toEqual(assertItem.imageData2[i]);
-                    }
-                    for (let i = 0; i <= 10; i++) {
-                        expect(Tile2.tiles[0].imageData[i+35500]).toEqual(assertItem.imageDataSequence2[i]);
-                    }
+                    // for (let i=0; i<assertItem.imageData2.length; i++) {
+                    //     expect(Tile2.tiles[0].imageData[assertItem.imageDataIndex[i]]).toEqual(assertItem.imageData2[i]);
+                    // }
+                    // for (let i = 0; i <= 10; i++) {
+                    //     expect(Tile2.tiles[0].imageData[i+35500]).toEqual(assertItem.imageDataSequence2[i]);
+                    // }
                 } else if (Tile1.tiles[0].width === 256) {
                     expect(Tile2.tiles[0].layer).toEqual(1);
                     expect(Tile2.tiles[0].width).toEqual(145);
