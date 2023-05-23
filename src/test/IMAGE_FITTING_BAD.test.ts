@@ -21,6 +21,7 @@ interface AssertItem {
     fittingResponseMacOS110601: CARTA.IFittingResponse[];
     fittingResponseMacOS12: CARTA.IFittingResponse[];
     fittingResponseMacOS13Intel: CARTA.IFittingResponse[];
+    fittingResponseMacOS13M1: CARTA.IFittingResponse[];
     fittingResponseLinux: CARTA.IFittingResponse[];
     fittingResponseUbuntu2204: CARTA.IFittingResponse[];
     precisionDigits: number;
@@ -232,6 +233,46 @@ let assertItem: AssertItem = {
             message: 'fit did not converge'
         }
     ],
+    fittingResponseMacOS13M1: [
+        {
+            resultValues: [
+                {
+                    center: {x: 139.88828927260894, y: 285.63743853031957}, 
+                    amp: -0.09046278591104534,
+                    fwhm: {x: -0.7281890831651717, y: -0.10089592905045275},
+                    pa: 109.78802516494271
+                }, 
+                {
+                    center: {x: 324.3452616872527, y: 324.3493423440347}, 
+                    amp: 9.996084410000183,
+                    fwhm: {x: 29.39775151995946, y: 117.47356948279578},
+                    pa: 0.5470083928473619
+                }
+            ],
+            resultErrors: [
+                {
+                    center: {x: 16160262987404282000, y:2.6053708763051396e+21},
+                    fwhm: {},
+                    pa:1.0280825445404448e+23
+                },
+                {
+                    center: {x: 0.14349869564476797, y: 0.039352289800575986},
+                    amp: 0.012355048218821756,
+                    fwhm: {x: 0.06293761631405334, y: 0.17994623248919553},
+                    pa: 0.0048896212175092825
+                }
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations'
+        },
+        {
+            resultValues: [],
+            resultErrors: [],
+            success: true,
+            message: 'fit did not converge'
+        }
+    ],
     fittingResponseLinux: [
         {
             resultValues: [
@@ -404,7 +445,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS110601[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS110601[0].message);
-                } else if (Math.floor(MacOSNumber) >= 12 && platformOS === 'macOS' && MacChipM1 === true) {
+                } else if (Math.floor(MacOSNumber) === 12 && platformOS === 'macOS' && MacChipM1 === true) {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultValues[0].amp, assertItem.precisionDigits);
@@ -432,6 +473,35 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS12[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS12[0].message);
+                } else if (Math.floor(MacOSNumber) === 13 && platformOS === 'macOS' && MacChipM1 === true) {
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponseMacOS13M1[0].success);
+
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
+                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].pa, assertItem.precisionDigits);
+                
+                    expect(response.log).toContain(assertItem.fittingResponseMacOS13M1[0].log);
+                    expect(response.message).toContain(assertItem.fittingResponseMacOS13M1[0].message);
                 } else if (Math.floor(MacOSNumber) === 13 && platformOS === 'macOS' && MacChipM1 === false) {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultValues[0].center.y, assertItem.precisionDigits);
