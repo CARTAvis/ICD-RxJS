@@ -261,6 +261,23 @@ describe("Testing set region ICD message to all annotation RegionTypes and expor
                     expect(data.stokes).toEqual(assertItem.setImageChannel.stokes);
                 })
             });
+
+            test(`(Case 3) Reset the Histogram to default and check the correction of RegionHistogramData:`, async () => {
+                msgController.setHistogramRequirements(assertItem.setHistogramRequirements[2]);
+                let RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
+                expect(RegionHistogramData[0].channel).toEqual(assertItem.ResponseRegionHistogramData[3].channel);
+                expect(RegionHistogramData[0].progress).toEqual(assertItem.ResponseRegionHistogramData[3].progress);
+                expect(RegionHistogramData[0].regionId).toEqual(assertItem.ResponseRegionHistogramData[3].regionId);
+                expect(RegionHistogramData[0].stokes).toEqual(assertItem.ResponseRegionHistogramData[3].stokes);
+                expect(RegionHistogramData[0].config.bounds).toEqual(assertItem.ResponseRegionHistogramData[3].config.bounds);
+                expect(RegionHistogramData[0].config.numBins).toEqual(assertItem.ResponseRegionHistogramData[3].config.numBins);
+                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(assertItem.ResponseRegionHistogramData[3].histograms.binWidth, assertItem.precisionDigits);
+                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(assertItem.ResponseRegionHistogramData[3].histograms.firstBinCenter, assertItem.precisionDigits);
+                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(assertItem.ResponseRegionHistogramData[3].histograms.mean, assertItem.precisionDigits);
+                expect(RegionHistogramData[0].histograms.numBins).toBeCloseTo(assertItem.ResponseRegionHistogramData[3].histograms.numBins, assertItem.precisionDigits);
+                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(assertItem.ResponseRegionHistogramData[3].histograms.stdDev, assertItem.precisionDigits);
+                expect(RegionHistogramData[0].histograms.bins.length).toEqual(assertItem.ResponseRegionHistogramData[3].histograms.numBins);
+            });
         });
 
         afterAll(() => msgController.closeConnection());
