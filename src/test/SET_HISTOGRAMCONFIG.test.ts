@@ -6,7 +6,6 @@ import { take } from 'rxjs/operators';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
-let saveSubdirectory = config.path.save;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 
