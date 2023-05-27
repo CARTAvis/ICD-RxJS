@@ -14,8 +14,10 @@ interface AssertItem {
     addTilesRequire: CARTA.IAddRequiredTiles;
     precisionDigits: number;
     setRegion: CARTA.ISetRegion;
-    setHistogramRequirements: CARTA.ISetHistogramRequirements[];
-    ResponseRegionHistogramData: CARTA.IRegionHistogramData[];
+    setHistogramRequirements: CARTA.ISetHistogramRequirements;
+    numBinsArray: number[];
+    ResponseRegionHistogramData: CARTA.IRegionHistogramData;
+    firstBinsArray: number[];
 };
 
 let assertItem: AssertItem = {
@@ -40,109 +42,64 @@ let assertItem: AssertItem = {
         regionId: -1,
         regionInfo: {
         regionType: CARTA.RegionType.POLYGON,
-            controlPoints: [{ x: 155, y: 552 }, { x: 134, y: 498 }, { x: 185, y: 509 }],
+            controlPoints: [
+                {x: 2846, y: 9898},
+                {x: 2362, y: 8506},
+                {x: 1756, y: 8597},
+                {x: 1938, y: 8112},
+                {x: 818, y: 7567},
+                {x: 1938, y: 6932},
+                {x: 939, y: 6266},
+                {x: 1696, y: 5781},
+                {x: 969, y: 4570},
+                {x: 2422, y: 5085},
+                {x: 2210, y: 3541},
+                {x: 2604, y: 3934},
+                {x: 2876, y: 2300},
+                {x: 3542, y: 3632},
+                {x: 4057, y: 2542},
+                {x: 4057, y: 3632},
+                {x: 5631, y: 2996},
+                {x: 4904, y: 3723},
+                {x: 6569, y: 4056},
+                {x: 5298, y: 4267},
+                {x: 6297, y: 5085},
+                {x: 5147, y: 5145},
+                {x: 7054, y: 6387},
+                {x: 6025, y: 6356},
+                {x: 6933, y: 8112},
+                {x: 5934, y: 7416},
+                {x: 6691, y: 9020},
+                {x: 5601, y: 8203},
+                {x: 5752, y: 9474},
+                {x: 3936, y: 7961},
+                {x: 5056, y: 9989},
+                {x: 3966, y: 8506},
+                {x: 3966, y: 10413},
+                {x: 3270, y: 8657},
+                {x: 3361, y: 10292},
+            ],
             rotation: 0.0,
         },
     },
-    setHistogramRequirements: [
-        // {
-        //     fileId: 0,
-        //     regionId: -1,
-        //     histograms: [{channel: -1, numBins: -1, bounds: {min: 0, max: 0}, coordinate: "z", fixedBounds: false, fixedNumBins: false}]
-        // },
-        // {
-        //     fileId: 0,
-        //     regionId: -1,
-        //     histograms: [{channel: -1, numBins: 2, bounds: {min: -1, max: 0.1376738934777677}, coordinate: "Qz", fixedBounds: true, fixedNumBins: true}]
-        // },
-        // {
-        //     fileId: 0,
-        //     regionId: -1,
-        //     histograms: [{channel: -1, numBins: -1, bounds: {min: 0, max: 0}, coordinate: "Qz", fixedBounds: false, fixedNumBins: false}]
-        // }
-    ],
+    setHistogramRequirements: {
+        fileId: 0,
+        regionId: 1,
+        histograms: [{channel: -1, numBins: 4779, bounds: {min: 0.01625968888401985, max: 78.3388689942658}, coordinate: "z", fixedBounds: true, fixedNumBins: true}]
+    },
+    numBinsArray: [4779, 4853, 5003, 5078, 5227, 5376, 5526, 5675, 5750, 5899, 5974, 6048],
     ResponseRegionHistogramData: 
-    [
-        // {
-        //     progress: 1,
-        //     regionId: -1,
-        //     config: 
-        //     {
-        //         bounds: {},
-        //         numBins: -1
-        //     },
-        //     histograms: 
-        //     {
-        //         binWidth: 0.0002482116688042879,
-        //         firstBinCenter: -0.12420587241649628,
-        //         mean: 0.000008066841056845398,
-        //         numBins: 1049,
-        //         stdDev: 0.014460244218400708,
-        //     }
-        // },
-        // {
-        //     progress: 1,
-        //     regionId: -1,
-        //     stokes: 1,
-        //     config: 
-        //     {
-        //         bounds:{min: -1, max: 0.1376738934777677},
-        //         fixedBounds: true, 
-        //         fixedNumBins: true, 
-        //         numBins: 2
-        //     },
-        //     histograms: 
-        //     {
-        //         binWidth: 0.5688369274139404,
-        //         bins: [0, 736448],
-        //         firstBinCenter: -0.7155815362930298,
-        //         mean: -0.0000026881257400475778,
-        //         numBins: 2,
-        //         stdDev: 0.0142919735819505,
-        //     }
-        // },
-        // {
-        //     channel: 3,
-        //     progress: 1,
-        //     regionId: -1,
-        //     stokes: 1,
-        //     config: 
-        //     {
-        //         bounds:{min: -1, max: 0.1376738934777677},
-        //         fixedBounds: true, 
-        //         fixedNumBins: true, 
-        //         numBins: 2
-        //     },
-        //     histograms: 
-        //     {
-        //         binWidth: 0.5688369274139404,
-        //         bins: [0, 736705],
-        //         firstBinCenter: -0.7155815362930298,
-        //         mean: 0.000002222024835655828,
-        //         numBins: 2,
-        //         stdDev: 0.002096762523721388,
-        //     }
-        // },
-        // {
-        //     channel: 3,
-        //     progress: 1,
-        //     regionId: -1,
-        //     stokes: 1,
-        //     config: 
-        //     {
-        //         bounds:{},
-        //         numBins: -1
-        //     },
-        //     histograms: 
-        //     {
-        //         binWidth: 0.00003724902853718959,
-        //         firstBinCenter: -0.016793109476566315,
-        //         mean: 0.000002222024835655828,
-        //         numBins: 1049,
-        //         stdDev: 0.002096762523721388,
-        //     }
-        // }
-    ]
+    {
+        progress: 1,
+        regionId: 1,
+        config: 
+        {
+            bounds: {min: 0.01625968888401985, max: 78.3388689942658},
+            fixedBounds: true,
+            fixedNumBins: true
+        },
+    },
+    firstBinsArray: [1738900, 1703245, 1634588, 1601625, 1539657, 1481300, 1425994, 1373866, 1348887, 1300739, 1277511, 1255213],
 }
 
 let basepath: string;
@@ -177,6 +134,13 @@ describe("Testing the large image with multi-polygon region and set_histogram_re
                 
                 expect(receiveNumber2 - receiveNumber1).toEqual(3);
             }, openFileTimeout);
+
+            test(`(Step 1) Set a many points polygon region:`, async () => {
+                let SetRegionAck: CARTA.ISetRegionAck;
+                SetRegionAck = await msgController.setRegion(assertItem.setRegion.fileId, assertItem.setRegion.regionId, assertItem.setRegion.regionInfo);
+                expect(SetRegionAck.success).toEqual(true);
+                expect(SetRegionAck.regionId).toEqual(1);
+            });
 
         });
 
