@@ -174,7 +174,7 @@ describe("Testing the large image with multi-polygon region and set_histogram_re
             }, dragHistogramNumberBins);
 
             test(`(Step 3) Check the receiveing RegionHistogramData * 12 `, () => {
-                console.log(regionHistogramDataResponse);
+                expect(regionHistogramDataResponse.length).toEqual(assertItem.numBinsArray.length);
             })
 
         });
