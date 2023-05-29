@@ -51,13 +51,15 @@
         "openLargeFiles": 60000,
         "pvRequest": 60000,
         "imageFitting": 100000,
-        "vectorOverlay": 6000
+        "vectorOverlay": 6000,
+        "dragManyNumberBins": 10000
     },
     "repeat": {
         "concurrent": 10,
         "cursor": 10,
         "image": 10,
-        "animation": 100
+        "animation": 100,
+        "setHistogram": 200
     },
     "log": {
         "error": false,

@@ -8,6 +8,8 @@ let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
+let repeatSetHistogram = config.repeat.setHistogram;
+let dragHistogramNumberBins = config.timeout.dragManyNumberBins;
 
 interface AssertItem {
     openFile: CARTA.IOpenFile;
@@ -102,6 +104,10 @@ let assertItem: AssertItem = {
     firstBinsArray: [1738900, 1703245, 1634588, 1601625, 1539657, 1481300, 1425994, 1373866, 1348887, 1300739, 1277511, 1255213],
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms)).then(() => { console.log('wait 200ms and send the next setHistogramRequirements!') });
+}
+
 let basepath: string;
 describe("Testing the large image with multi-polygon region and set_histogram_requirement, let the region_histogram_data in queue:", () => {
     const msgController = MessageController.Instance;
@@ -141,6 +147,35 @@ describe("Testing the large image with multi-polygon region and set_histogram_re
                 expect(SetRegionAck.success).toEqual(true);
                 expect(SetRegionAck.regionId).toEqual(1);
             });
+
+            let RegionHistogramDataArray: CARTA.RegionHistogramData[] = [];
+            let regionHistogramDataResponse: any = []
+            test(`(Step 2) Send sequent setHistogramRequirements with different numBins, to simulate the user drag the Number of bins in the setting of Histogram`, async () => {
+                let count = 0;
+                let regionHistogramDataPromise = new Promise((resolve)=>{
+                    msgController.histogramStream.subscribe({
+                        next: (data) => {
+                            count = count + 1
+                            RegionHistogramDataArray.push(data)
+                            if (count === assertItem.numBinsArray.length) {
+                                resolve(RegionHistogramDataArray)
+                            }
+                        }
+                    })
+                });
+
+                for (let i=0; i<assertItem.numBinsArray.length; i++) {
+                    assertItem.setHistogramRequirements.histograms[0].numBins = assertItem.numBinsArray[i];
+                    msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
+                    await await sleep(repeatSetHistogram);
+                }
+
+                regionHistogramDataResponse = await regionHistogramDataPromise;
+            }, dragHistogramNumberBins);
+
+            test(`(Step 3) Check the receiveing RegionHistogramData * 12 `, () => {
+                console.log(regionHistogramDataResponse);
+            })
 
         });
 
