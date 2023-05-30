@@ -59,7 +59,7 @@
         "cursor": 10,
         "image": 10,
         "animation": 100,
-        "setHistogram": 200
+        "setHistogram": 500
     },
     "log": {
         "error": false,
