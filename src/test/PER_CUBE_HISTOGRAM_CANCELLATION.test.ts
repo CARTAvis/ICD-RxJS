@@ -11,6 +11,7 @@ let readFileTimeout = config.timeout.readFile;
 let cubeHistogramTimeout = config.timeout.cubeHistogram;
 let messageReturnTimeout = config.timeout.readFile;
 let cancelTimeout = config.timeout.cancel;
+let firstHistogramDataTimeout = config.timeout.firstHistogramCancellation;
 
 interface IRegionHistogramDataExt extends CARTA.IRegionHistogramData {
     lengthOfHistogramBins: number;
@@ -119,7 +120,7 @@ describe("PER_CUBE_HISTOGRAM_CANCELLATION: Testing calculations of the per-cube 
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
                 RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
                 ReceiveProgress = RegionHistogramData[0].progress;
-            }, 10000);
+            }, firstHistogramDataTimeout);
 
             test(`(Step2) REGION_HISTOGRAM_DATA.progress > 0 and REGION_HISTOGRAM_DATA.region_id = ${assertItem.regionHistogramData.regionId}`, () => {
                 expect(RegionHistogramData[0].progress).toBeGreaterThan(0);
