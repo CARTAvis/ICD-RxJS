@@ -26,6 +26,7 @@ let assertItem: AssertItem = {
                     file: "M17_SWex.fits",
                     fileId: 0,
                     hdu: "",
+                    lelExpr: undefined,
                     renderMode: CARTA.RenderMode.RASTER,
                     channel: 0,
                     stokes: 0,
@@ -69,20 +70,26 @@ describe("RESUME CONTOUR: Test to resume contour lines", () => {
 
         checkConnection();
         test(`Get basepath and modify the assertItem.resumeSession.image.directory`, async () => {
+            msgController.closeFile(-1);
             let fileListResponse = await msgController.getFileList("$BASE",0);
             basepath = fileListResponse.directory;
             assertItem.resumeSession.images[0].directory = basepath + "/" + assertItem.resumeSession.images[0].directory;
         });
 
         let RegionHistogramData = [];
-        test(`Resume Image: 2 REGION_HISTOGRAM_DATA & RESUME_SESSION_ACK should arrive within ${resumeTimeout} ms`, async () => {
-            msgController.histogramStream.pipe(take(2)).subscribe({
-                next: (data) => {RegionHistogramData.push(data)},
-                complete: () => {
-                    expect(RegionHistogramData.length).toEqual(2)
-                }
+        test(`Resume Image: REGION_HISTOGRAM_DATA & RESUME_SESSION_ACK should arrive within ${resumeTimeout} ms`, async () => {
+            let regionHistogramDataPromise = new Promise((resolve)=>{
+                msgController.histogramStream.subscribe({
+                    next: (data) => {
+                        RegionHistogramData.push(data)
+                        if (RegionHistogramData.length === 1) {
+                            resolve(RegionHistogramData)
+                        }
+                    }
+                })
             });
             let ResumeAck = await msgController.resumeSession(assertItem.resumeSession);
+            let regionHistogramDataResponse = await regionHistogramDataPromise;
             expect(ResumeAck.success).toBe(assertItem.resumeSessionAck.success);
             if (ResumeAck.message) {
                 console.warn(`RESUME_SESSION_ACK error message: 
@@ -92,23 +99,43 @@ describe("RESUME CONTOUR: Test to resume contour lines", () => {
 
         describe(`Register another session`, () => {
             let RegionHistogramData2 = [];
-            test(`Resume Images again: 2 REGION_HISTOGRAM_DATA & RESUME_SESSION_ACK should arrive within ${resumeTimeout} ms`, async ()=> {
+            test(`Resume Images again: REGION_HISTOGRAM_DATA & RESUME_SESSION_ACK should arrive within ${resumeTimeout} ms`, async ()=> {
+                msgController.closeFile(-1);
                 await msgController.connect(testServerUrl);
-                msgController.histogramStream.pipe(take(2)).subscribe({
-                    next: (data) => {RegionHistogramData2.push(data)},
-                    complete: () => {
-                        expect(RegionHistogramData2.length).toEqual(2)
-                    }
+                let regionHistogramDataPromise2 = new Promise((resolve)=>{
+                    msgController.histogramStream.subscribe({
+                        next: (data) => {
+                            RegionHistogramData2.push(data)
+                            if (RegionHistogramData2.length === 1) {
+                                resolve(RegionHistogramData2)
+                            }
+                        }
+                    })
                 });
                 let ResumeAck = await msgController.resumeSession(assertItem.resumeSession);
                 expect(ResumeAck.success).toBe(assertItem.resumeSessionAck.success);
+                let regionHistogramDataResponse2 = await regionHistogramDataPromise2;
             }, resumeTimeout);
 
-            test(`Receive ${assertItem.resumeSession.images[0].contourSettings.levels.length} set of contour lines`, async () => {
+            let RegionHistogramData3 = [];
+            test(`Receive ${assertItem.resumeSession.images[0].contourSettings.levels.length} set of contour lines and REGION_HISTOGRAM_DATA(channel of 1)`, async () => {
                 msgController.setChannels(assertItem.setImageChannels);
-                let ContourImageResponse = await Stream(CARTA.ContourImageData, 12);
+                let ContourImageResponse = await Stream(CARTA.ContourImageData, assertItem.resumeSession.images[0].contourSettings.levels.length);
+                let regionHistogramDataPromise3 = new Promise((resolve)=>{
+                    msgController.histogramStream.subscribe({
+                        next: (data) => {
+                            RegionHistogramData3.push(data)
+                            if (RegionHistogramData3.length === 1) {
+                                resolve(RegionHistogramData3)
+                            }
+                        }
+                    })
+                });
+                let regionHistogramDataResponse3 = await regionHistogramDataPromise3;
+                expect(ContourImageResponse.length).toEqual(assertItem.resumeSession.images[0].contourSettings.levels.length);
+                expect(regionHistogramDataResponse3[0].channel).toEqual(assertItem.setImageChannels.channel);
             });
-        })
+        });
 
         afterAll(() => msgController.closeConnection());
     });
