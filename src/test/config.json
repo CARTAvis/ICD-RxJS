@@ -19,7 +19,7 @@
     "timeout": {
         "connection": 1100,
         "listFile": 1200,
-        "openFile": 6000,
+        "openFile": 8000,
         "readFile": 6000,
         "saveFile": 3000,
         "readLargeImage": 90000,
