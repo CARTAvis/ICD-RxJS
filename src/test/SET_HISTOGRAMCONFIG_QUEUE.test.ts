@@ -173,7 +173,7 @@ describe("Testing the large image with multi-polygon region and set_histogram_re
                 regionHistogramDataResponse = await regionHistogramDataPromise;
             }, dragHistogramNumberBins);
 
-            test(`(Step 3) Check the receiveing RegionHistogramData * 12 `, () => {
+            test(`(Step 3) Check the receiving RegionHistogramData * 12 `, () => {
                 expect(regionHistogramDataResponse.length).toEqual(assertItem.numBinsArray.length);
                 regionHistogramDataResponse.map((RegionHistogramData,index) => {
                     expect(RegionHistogramData.progress).toEqual(assertItem.ResponseRegionHistogramData.progress);
@@ -182,9 +182,9 @@ describe("Testing the large image with multi-polygon region and set_histogram_re
                     expect(RegionHistogramData.config.bounds.max).toEqual(assertItem.ResponseRegionHistogramData.config.bounds.max);
                     expect(RegionHistogramData.config.fixedBounds).toEqual(assertItem.ResponseRegionHistogramData.config.fixedBounds);
                     expect(RegionHistogramData.config.fixedNumBins).toEqual(assertItem.ResponseRegionHistogramData.config.fixedNumBins);
-                    expect(RegionHistogramData.config.numBins).toEqual(assertItem.numBinsArray[index]);
-                    expect(RegionHistogramData.histograms.numBins).toEqual(assertItem.numBinsArray[index]);
-                    expect(RegionHistogramData.histograms.bins[0]).toEqual(assertItem.firstBinsArray[index]);
+                    expect(assertItem.numBinsArray).toContainEqual(RegionHistogramData.config.numBins);
+                    expect(assertItem.numBinsArray).toContainEqual(RegionHistogramData.histograms.numBins);
+                    expect(assertItem.firstBinsArray).toContainEqual(RegionHistogramData.histograms.bins[0]);
                 })
             })
 

@@ -116,7 +116,7 @@ describe("PER_CUBE_HISTOGRAM_CANCELLATION: Testing calculations of the per-cube 
         let RegionHistogramData: CARTA.RegionHistogramData;
         let RegionHistogramDataTemp1 = []
         describe(`Set histogram requirements:`, () => {
-            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within 10000 ms:`, async () => {
+            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within ${firstHistogramDataTimeout} ms:`, async () => {
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
                 RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
                 ReceiveProgress = RegionHistogramData[0].progress;
