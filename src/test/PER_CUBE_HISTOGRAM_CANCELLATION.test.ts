@@ -54,7 +54,9 @@ let assertItem: AssertItem = {
     setHistogramRequirements: {
         fileId: 0,
         regionId: -2,
-        histograms: [{bounds: {min: 0, max: 0}, channel: -2, numBins: -1, fixedBounds: false, fixedNumBins: false}],
+        histograms: [
+            { channel: -2, numBins: -1 },
+        ],
     },
     cancelHistogramRequirements: {
         fileId: 0,
