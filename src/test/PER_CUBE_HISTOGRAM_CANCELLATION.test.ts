@@ -11,6 +11,7 @@ let readFileTimeout = config.timeout.readFile;
 let cubeHistogramTimeout = config.timeout.cubeHistogram;
 let messageReturnTimeout = config.timeout.readFile;
 let cancelTimeout = config.timeout.cancel;
+let firstHistogramDataTimeout = config.timeout.firstHistogramCancellation;
 
 interface IRegionHistogramDataExt extends CARTA.IRegionHistogramData {
     lengthOfHistogramBins: number;
@@ -53,9 +54,7 @@ let assertItem: AssertItem = {
     setHistogramRequirements: {
         fileId: 0,
         regionId: -2,
-        histograms: [
-            { channel: -2, numBins: -1 },
-        ],
+        histograms: [{bounds: {min: 0, max: 0}, channel: -2, numBins: -1, fixedBounds: false, fixedNumBins: false}],
     },
     cancelHistogramRequirements: {
         fileId: 0,
@@ -117,11 +116,11 @@ describe("PER_CUBE_HISTOGRAM_CANCELLATION: Testing calculations of the per-cube 
         let RegionHistogramData: CARTA.RegionHistogramData;
         let RegionHistogramDataTemp1 = []
         describe(`Set histogram requirements:`, () => {
-            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within 10000 ms:`, async () => {
+            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within ${firstHistogramDataTimeout} ms:`, async () => {
                 msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
                 RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
                 ReceiveProgress = RegionHistogramData[0].progress;
-            }, 10000);
+            }, firstHistogramDataTimeout);
 
             test(`(Step2) REGION_HISTOGRAM_DATA.progress > 0 and REGION_HISTOGRAM_DATA.region_id = ${assertItem.regionHistogramData.regionId}`, () => {
                 expect(RegionHistogramData[0].progress).toBeGreaterThan(0);
