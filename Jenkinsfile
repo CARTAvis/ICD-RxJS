@@ -563,6 +563,23 @@ pipeline {
                             }
                         }
                     }
+                    stage('vector_overlay') {
+                        agent {
+                            label "${PLATFORM}-agent"
+                        }
+                        steps {
+                            warnError(catchInterruptions: true, message: 'ICD test vector_overlay failure') {
+                                unstash "${PLATFORM}-backend"
+                                unstash "debug-folder"
+                                sh "rm -f /root/.carta/log/carta.log"
+                                dir ('carta-backend/build') {
+                                    sh "ASAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan.supp LSAN_OPTIONS=suppressions=${WORKSPACE}/carta-backend/debug/asan/myasan-leaks.supp ASAN_SYMBOLIZER_PATH=llvm-symbolizer ./carta_backend /images --top_level_folder /images --port ${env.PORT} --omp_threads 4 --debug_no_auth --no_frontend --no_database --verbosity=5 &"
+                                }
+                                unstash "${PLATFORM}-ICD"
+                                vector_overlay()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -835,11 +852,15 @@ def cube_histogram() {
                 ret = true
             }
             sh "pgrep carta_backend"
-            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM.test.ts # test 1 of 3"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM.test.ts # test 1 of 5"
             sh "sleep 3 && pgrep carta_backend"
-            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_HDF5.test.ts # test 2 of 3"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_HDF5.test.ts # test 2 of 5"
             sh "sleep 3 && pgrep carta_backend"
-            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_CANCELLATION.test.ts # test 3 of 3"
+            sh "CI=true npm test src/test/PER_CUBE_HISTOGRAM_CANCELLATION.test.ts # test 3 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/SET_HISTOGRAMCONFIG.test.ts # test 4 of 5"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/SET_HISTOGRAMCONFIG_QUEUE.test.ts # test 5 of 5"
             sh "pgrep carta_backend"
         }
     }
@@ -1041,6 +1062,35 @@ def image_fitting() {
             sh "CI=true npm test src/test/IMAGE_FITTING_CANCEL.test.ts # test 4 of 5"
             sh "sleep 3 && pgrep carta_backend"
             sh "CI=true npm test src/test/IMAGE_FITTING_BAD.test.ts # test 5 of 5"
+            sh "pgrep carta_backend"
+        }
+    }
+}
+
+def vector_overlay() {
+    script {
+        sh "npm install && ./protobuf/build_proto.sh"
+        ret = false
+        retry(3) {
+            if (ret) {
+                sleep(time:30,unit:"SECONDS")
+                sh "cat /root/.carta/log/carta.log"
+                echo "Trying again"
+            } else {
+                 ret = true
+            }
+            sh "pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_FITS.test.ts # test 1 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_CASA.test.ts # test 2 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_HDF5.test.ts # test 3 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_NO_POLARIZATION.test.ts # test 4 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_CONTOUR_CHANNEL.test.ts # test 5 of 6"
+            sh "sleep 3 && pgrep carta_backend"
+            sh "CI=true npm test src/test/VECTOR_OVERLAY_CHANNEL_STREAM.test.ts # test 6 of 6"
             sh "pgrep carta_backend"
         }
     }
