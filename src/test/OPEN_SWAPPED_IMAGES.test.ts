@@ -300,10 +300,20 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
             test(`(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`,async () => {
                 msgController.closeFile(-1);
                 let iniRegionHistogramData: any = []
-                msgController.histogramStream.pipe(take(1)).subscribe(data => {
-                    iniRegionHistogramData.push(data);
-                })
+                let iniRegionHistogramDataPromise = new Promise((resolve) => {
+                    msgController.histogramStream.subscribe({
+                        next: (data) => {
+                            iniRegionHistogramData.push(data)
+                            if (iniRegionHistogramData.length === 1) {
+                                resolve(iniRegionHistogramData)
+                            }
+                        }
+                    })
+                });
+
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
+                let iniRegionHistogramDataResponse = await iniRegionHistogramDataPromise;
+
                 expect(OpenFileResponse.success).toEqual(true);
                 expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFileAckResponse[0].fileInfo.name);
                 expect(OpenFileResponse.fileInfoExtended.axesNumbers.depth).toEqual(assertItem.openFileAckResponse[0].fileInfoExtended.axesNumbers.depth);
@@ -345,7 +355,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                     msgController.rasterTileStream.subscribe({
                         next: (data) => {
                             RasterTileArray.push(data)
-                            if (RasterTileArray.length === 5) {
+                            if (RasterTileArray.length === assertItem.setImageChannel[0].requiredTiles.tiles.length) {
                                 resolve(RasterTileArray)
                             }
                         }
@@ -357,10 +367,10 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 let rasterTileDataResponse = await RasterTileDataPromise;
 
                 expect(RegionHistogramResponse[0].channel).toEqual(assertItem.setImageChannel[0].channel);
-                for (let i=0; i< RasterSyncArray.length; i++) {
+                for (let i=0; i< 2; i++) {
                     expect(RasterSyncArray[i].channel).toEqual(assertItem.setImageChannel[0].channel)
                 }
-                for (let i=0; i< RasterTileArray.length; i++) {
+                for (let i=0; i< assertItem.setImageChannel[0].requiredTiles.tiles.length; i++) {
                     expect(RasterTileArray[i].channel).toEqual(assertItem.setImageChannel[0].channel)
                 }
             });
@@ -480,10 +490,20 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
             let iniRegionHistogramData: any = []
             test(`(Step 1)"Open the first image: ${assertItem.fileOpen[3].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`, async () => {
                 msgController.closeFile(-1);
-                msgController.histogramStream.pipe(take(1)).subscribe(data => {
-                    iniRegionHistogramData.push(data);
-                })
+                let iniRegionHistogramData: any = []
+                let iniRegionHistogramDataPromise = new Promise((resolve) => {
+                    msgController.histogramStream.subscribe({
+                        next: (data) => {
+                            iniRegionHistogramData.push(data)
+                            if (iniRegionHistogramData.length === 1) {
+                                resolve(iniRegionHistogramData)
+                            }
+                        }
+                    })
+                });
+
                 let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[3]);
+                let iniRegionHistogramDataResponse = await iniRegionHistogramDataPromise;
         
                 expect(OpenFileResponse.success).toEqual(true);
                 expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFileAckResponse[3].fileInfo.name);
@@ -499,8 +519,8 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(OpenFileResponse.fileInfoExtended.width).toEqual(assertItem.openFileAckResponse[3].fileInfoExtended.width);
                 
                 // // REGION_HISTOGRAM_DATA because the bins is empty [0]
-                // expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
-                // expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
+                expect(iniRegionHistogramData[0].histograms.numBins).toEqual(1);
+                expect(Number(iniRegionHistogramData[0].histograms.bins[0])).toEqual(0);
             }, openFileTimeout);
         
             test(`(Step 2)"${assertItem.fileOpen[3].file}" add tile request and receive RASTER_TILE_DATA(Stream) and check total length`, async () => {
@@ -539,10 +559,10 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 let rasterTileDataResponse = await RasterTileDataPromise;
         
                 expect(RegionHistogramResponse[0].channel).toEqual(assertItem.setImageChannel[1].channel);
-                for (let i=0; i< RasterSyncArray.length; i++) {
+                for (let i=0; i< 2; i++) {
                     expect(RasterSyncArray[i].channel).toEqual(assertItem.setImageChannel[1].channel)
                 }
-                for (let i=0; i< RasterTileArray.length; i++) {
+                for (let i=0; i< assertItem.setImageChannel[1].requiredTiles.tiles.length; i++) {
                     expect(RasterTileArray[i].channel).toEqual(assertItem.setImageChannel[1].channel)
                 }
             });
@@ -631,7 +651,7 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[2]);
             });
         
-            test(`(Step 3)"${assertItem.fileOpen[0].file}" SET_IMAGE_CHANNELS and check the 7 stream, all channels of 500`, async () => {
+            test(`(Step 3)"${assertItem.fileOpen[0].file}" SET_IMAGE_CHANNELS and check the 4 stream, all channels of 500`, async () => {
                 let RasterTileArray: any = [];
                 let RasterSyncArray: any = [];
                 let RegionHistogramResponse: any = []
@@ -659,10 +679,10 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 let rasterTileDataResponse = await RasterTileDataPromise;
         
                 expect(RegionHistogramResponse[0].channel).toEqual(assertItem.setImageChannel[2].channel);
-                for (let i=0; i< RasterSyncArray.length; i++) {
+                for (let i=0; i< 2; i++) {
                     expect(RasterSyncArray[i].channel).toEqual(assertItem.setImageChannel[2].channel)
                 }
-                for (let i=0; i< RasterTileArray.length; i++) {
+                for (let i=0; i< assertItem.setImageChannel[2].requiredTiles.tiles.length; i++) {
                     expect(RasterTileArray[i].channel).toEqual(assertItem.setImageChannel[2].channel)
                 }
             });
