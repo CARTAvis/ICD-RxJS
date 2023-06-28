@@ -360,7 +360,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async() => {
-                console.warn(`(Step 2) Sequent channel index: ${sequence}`);
+                console.log(`(Step 2) Sequent channel index: ${sequence}`);
                 assertItem.numArray2.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -429,7 +429,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async() => {
-                console.warn(`(Step 3) Sequent channel index: ${sequence}`);
+                console.log(`(Step 3) Sequent channel index: ${sequence}`);
                 assertItem.numArray3.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -499,7 +499,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async() => {
-                console.warn(`(Step 4) Sequent channel index: ${sequence}`);
+                console.log(`(Step 4) Sequent channel index: ${sequence}`);
                 assertItem.numArray4.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -561,7 +561,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence and then reverse:`, async () => {
-                console.warn(`(Step 5) Channel index in roundtrip: ${sequence}`);
+                console.log(`(Step 5) Channel index in roundtrip: ${sequence}`);
                 assertItem.numArray5.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -626,7 +626,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async () => {
-                console.warn(`(Step 6) Backward channel index with method 1: ${sequence}`);
+                console.log(`(Step 6) Backward channel index with method 1: ${sequence}`);
                 assertItem.numArray6.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -691,7 +691,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async () => {
-                console.warn(`(Step 6) Backward channel index with method 2: ${sequence}`);
+                console.log(`(Step 6) Backward channel index with method 2: ${sequence}`);
                 assertItem.numArray6.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })
@@ -747,7 +747,7 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
             }, playAnimatorTimeout);
 
             test(`Received image channels should be in sequence`, async () => {
-                console.warn(`(Step 7) Blink channel index: ${sequence}`);
+                console.log(`(Step 7) Blink channel index: ${sequence}`);
                 assertItem.numArray7.map((value,index) => {
                     expect(sequence[index]).toEqual(value)
                 })

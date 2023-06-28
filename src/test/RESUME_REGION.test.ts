@@ -115,7 +115,7 @@ describe("RESUME REGION: Test to resume regions", () => {
             let ResumeAck = await msgController.resumeSession(assertItem.resumeSession);
             expect(ResumeAck.success).toBe(assertItem.resumeSessionAck.success);
             if (ResumeAck.message) {
-                console.warn(`RESUME_SESSION_ACK error message: 
+                console.log(`RESUME_SESSION_ACK error message: 
                         ${ResumeAck.message}`);
             }
         }, resumeTimeout);
