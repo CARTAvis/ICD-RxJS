@@ -252,7 +252,7 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
                     importRegionAck = await msgController.importRegion(basepath + "/" + regionSubdirectory,assertItem.importRegion.file, assertItem.importRegion.type, assertItem.importRegion.groupId )
                     importRegionAckProperties = Object.keys(importRegionAck.regions);
                     if (importRegionAck.message != '') {
-                        console.warn(importRegionAck.message);
+                        console.log(importRegionAck.message);
                     }
                 }, importTimeout);
     
@@ -325,7 +325,7 @@ describe("CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
 
                         importRegionAckProperties = Object.keys(importRegionAck.regions);
                         if (importRegionAck.message != '') {
-                            console.warn(importRegionAck.message);
+                            console.log(importRegionAck.message);
                         }
                     }, importTimeout);
     

@@ -159,7 +159,7 @@ describe("PV_GENERATOR_FITS:Testing PV generator with fits file.", () => {
                     msgController.pvProgressStream.subscribe({
                         next: (data) => {
                             count++;
-                            console.warn('request ' + assertItem.openFile.file + ' PV response progress :', data.progress);
+                            console.log('request ' + assertItem.openFile.file + ' PV response progress :', data.progress);
                             pvProgressArray.push(data)
                             if (count == 3) {
                                 msgController.cancelRequestingPV(assertItem.setPVRequest.fileId);
