@@ -821,7 +821,7 @@ export class BackendService {
         const eventId = eventHeader32[0];
 
         if (eventIcdVersion !== BackendService.IcdVersion) {
-            console.warn(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`);
+            console.log(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`);
         }
         try {
             const decoderEntry = this.decoderMap.get(eventType);

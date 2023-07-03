@@ -263,7 +263,7 @@ describe("ANIMATOR_CONTOUR: Testing animation playback with contour lines", () =
             }, playAnimatorTimeout);
 
             test(`Received RasterTileData channels should be in sequence`, async () => {
-                console.warn(`(Step 1) Sequent channel index: ${RasterTileSequence}`);
+                console.log(`(Step 1) Sequent channel index: ${RasterTileSequence}`);
                 RasterTileSequence.map((id, index) => {
                     let channelId = (index + assertItem.startAnimation[0].startFrame.channel + assertItem.startAnimation[0].deltaFrame.channel) - 1.;
                     expect(id).toEqual(channelId);
@@ -408,7 +408,7 @@ describe("ANIMATOR_CONTOUR: Testing animation playback with contour lines", () =
             }, playAnimatorTimeout);
 
             test(`Received RasterTileData channels should be in sequence`, async () => {
-                console.warn(`(Step 2) Sequent channel index: ${RasterTileSequence}`);
+                console.log(`(Step 2) Sequent channel index: ${RasterTileSequence}`);
                 RasterTileSequence.map((id, index) => {
                     let channelId = -index + assertItem.startAnimation[1].startFrame.channel - 1;
                     expect(id).toEqual(channelId);

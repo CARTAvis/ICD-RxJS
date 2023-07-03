@@ -888,7 +888,7 @@ export class MessageController {
         const eventId = eventHeader32[0];
 
         if (eventIcdVersion !== MessageController.IcdVersion) {
-            console.warn(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${MessageController.IcdVersion}. Errors may occur`);
+            console.log(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${MessageController.IcdVersion}. Errors may occur`);
         }
         try {
             const decoderEntry = this.decoderMap.get(eventType);

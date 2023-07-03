@@ -92,7 +92,7 @@ describe("RESUME CONTOUR: Test to resume contour lines", () => {
             let regionHistogramDataResponse = await regionHistogramDataPromise;
             expect(ResumeAck.success).toBe(assertItem.resumeSessionAck.success);
             if (ResumeAck.message) {
-                console.warn(`RESUME_SESSION_ACK error message: 
+                console.log(`RESUME_SESSION_ACK error message: 
                         ${ResumeAck.message}`);
             }
         }, resumeTimeout);
