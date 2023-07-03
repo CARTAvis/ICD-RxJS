@@ -136,7 +136,7 @@ describe("IMAGE_FITTING_CANCEL test: Testing cancel function in image fitting.",
                         msgController.fittingProgressStream.subscribe({
                             next: (data) => {
                                 count++;
-                                console.warn('Image Fitting progress :', data.progress);
+                                console.log('Image Fitting progress :', data.progress);
                                 imageFittingProgressArray.push(data)
                                 if (count == 10) {
                                     msgController.cancelRequestingFitting(assertItem.stopFittingRequest.fileId)
