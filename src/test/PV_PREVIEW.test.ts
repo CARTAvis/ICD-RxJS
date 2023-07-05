@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import exp from "constants";
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
@@ -15,6 +16,13 @@ interface AssertItem {
     setCursor: CARTA.ISetCursor[];
     setRegion: CARTA.ISetRegion[];
     setPVRequest: CARTA.IPvRequest[];
+    pvResponse: CARTA.IPvResponse;
+    histogramBinsIndex: Number[];
+    histogramBinsValue: Number[];
+    imageDataIndex: Number[];
+    imageDataValue: Number[];
+    precisionDigits: number;
+    setSpatialReq: CARTA.ISetSpatialRequirements[];
 };
 
 let assertItem: AssertItem = {
@@ -86,7 +94,47 @@ let assertItem: AssertItem = {
                 regionId: -1,
             }
         }
-    ]
+    ],
+    pvResponse: {
+        success: true,
+        previewData: {
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            height: 250,
+            width: 401,
+            histogram: {
+                binWidth: 0.0022617133799940348,
+                firstBinCenter: -0.04723597317934036,
+                mean: 0.004336727754377657,
+                numBins: 316,
+                stdDev: 0.040239019771367436,
+            },
+            histogramBounds: {
+                max: 0.6663346290588379,
+                min: -0.04836682975292206,
+            },
+            imageInfo: {
+                axesNumbers: {
+                    spatialX: 1,
+                    spectral: 2,
+                    stokes: 3,
+                }
+            },
+            nanEncodings: new Uint8Array([154, 135, 1, 0]),
+        },
+    },
+    histogramBinsIndex: [0, 100, 200, 300],
+    histogramBinsValue: [4, 8, 4, 1],
+    imageDataIndex: [0, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000],
+    imageDataValue: [241, 69, 198, 204, 61, 200, 226, 216, 77],
+    precisionDigits: 8,
+    setSpatialReq: [
+        {
+            fileId: -2,
+            regionId: 0,
+            spatialProfiles: [{coordinate:"x", mip:1, width: undefined}, {coordinate:"y", mip:1, width: undefined}]
+        }
+    ],
 };
 
 let basepath: string;
@@ -113,7 +161,7 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 expect(OpenFileResponse.success).toEqual(true);
                 expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.fileOpen[i].file);
                 expect(RegionHistogramData.length).toEqual(1);
-            });
+            }, openFileTimeout);
 
             test(`(Stpe 2): Set cursor and add required tiles`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[0]);
@@ -129,19 +177,49 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 expect(setRegionAckResponse.success).toEqual(true);
             });
 
-            let regionHistogramData = [];
+            let pVProgressData = [];
             test(`(Step 4): set PV request`, async () => {
-                let regionHistogramDataPromise = new Promise((resolve)=>{
-                    msgController.histogramStream.subscribe({
+                let pvProgressPromise = new Promise((resolve)=>{
+                    msgController.pvProgressStream.subscribe({
                         next: (data) => {
-                            regionHistogramData.push(data)
-                            resolve(regionHistogramData)
+                            pVProgressData.push(data)
+                            resolve(pVProgressData)
                         }
                     })
                 });
                 let PVresponse = await msgController.requestPV(assertItem.setPVRequest[0]);
-                // console.log(PVresponse);
-                // console.log(regionHistogramDataPromise);
+
+                expect(pVProgressData[pVProgressData.length-1].progress).toEqual(1);
+                expect(PVresponse.success).toEqual(assertItem.pvResponse.success);
+                expect(PVresponse.previewData.compressionQuality).toEqual(assertItem.pvResponse.previewData.compressionQuality);
+                expect(PVresponse.previewData.compressionType).toEqual(assertItem.pvResponse.previewData.compressionType);
+                expect(PVresponse.previewData.height).toEqual(assertItem.pvResponse.previewData.height);
+                expect(PVresponse.previewData.width).toEqual(assertItem.pvResponse.previewData.width);
+                expect(PVresponse.previewData.histogram.binWidth).toBeCloseTo(assertItem.pvResponse.previewData.histogram.binWidth, assertItem.precisionDigits);
+                assertItem.histogramBinsIndex.map((input, index) => {
+                    expect(PVresponse.previewData.histogram.bins[input]).toEqual(assertItem.histogramBinsValue[index]);
+                });
+                expect(PVresponse.previewData.histogram.firstBinCenter).toBeCloseTo(assertItem.pvResponse.previewData.histogram.firstBinCenter, assertItem.precisionDigits);
+                expect(PVresponse.previewData.histogram.mean).toBeCloseTo(assertItem.pvResponse.previewData.histogram.mean, assertItem.precisionDigits);
+                expect(PVresponse.previewData.histogram.numBins).toEqual(assertItem.pvResponse.previewData.histogram.numBins);
+                expect(PVresponse.previewData.histogram.stdDev).toBeCloseTo(assertItem.pvResponse.previewData.histogram.stdDev, assertItem.precisionDigits);
+                expect(PVresponse.previewData.histogramBounds.max).toBeCloseTo(assertItem.pvResponse.previewData.histogramBounds.max, assertItem.precisionDigits);
+                expect(PVresponse.previewData.histogramBounds.min).toBeCloseTo(assertItem.pvResponse.previewData.histogramBounds.min, assertItem.precisionDigits);
+                assertItem.imageDataIndex.map((input, index) => {
+                    expect(PVresponse.previewData.imageData[input]).toEqual(assertItem.imageDataValue[index]);
+                });
+                expect(PVresponse.previewData.imageInfo.axesNumbers.spatialX).toEqual(assertItem.pvResponse.previewData.imageInfo.axesNumbers.spatialX);
+                expect(PVresponse.previewData.imageInfo.axesNumbers.spectral).toEqual(assertItem.pvResponse.previewData.imageInfo.axesNumbers.spectral);
+                expect(PVresponse.previewData.imageInfo.axesNumbers.stokes).toEqual(assertItem.pvResponse.previewData.imageInfo.axesNumbers.stokes);
+                for (i=0; i<assertItem.pvResponse.previewData.nanEncodings.length; i++) {
+                    expect(PVresponse.previewData.nanEncodings[i]).toEqual(assertItem.pvResponse.previewData.nanEncodings[i])
+                }
+            });
+
+            test(`(Step 5): set spatial requirement`, async () => {
+                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
+                let ErrorResponse = await Stream(CARTA.ErrorData,1);
+                expect(ErrorResponse[0].message).toContain("File id -2 not found");
             });
 
             afterAll(() => msgController.closeConnection());
