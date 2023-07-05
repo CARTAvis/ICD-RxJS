@@ -23,6 +23,7 @@ interface AssertItem {
     imageDataValue: Number[];
     precisionDigits: number;
     setSpatialReq: CARTA.ISetSpatialRequirements[];
+    closepvpreview: CARTA.IClosePvPreview;
 };
 
 let assertItem: AssertItem = {
@@ -135,6 +136,9 @@ let assertItem: AssertItem = {
             spatialProfiles: [{coordinate:"x", mip:1, width: undefined}, {coordinate:"y", mip:1, width: undefined}]
         }
     ],
+    closepvpreview: {
+        previewId: 0
+    }
 };
 
 let basepath: string;
@@ -220,6 +224,16 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
                 let ErrorResponse = await Stream(CARTA.ErrorData,1);
                 expect(ErrorResponse[0].message).toContain("File id -2 not found");
+            });
+
+            test(`(Step 6): close the pv preview and NO message from the backend (timeout of 1000ms)`, done => {
+                let receiveNumberCurrent = msgController.messageReceiving();
+                msgController.closePvPreview(assertItem.closepvpreview.previewId);
+                setTimeout(() => {
+                    let receiveNumberLatter = msgController.messageReceiving();
+                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 1000 ms
+                    done();
+                }, 1000)
             });
 
             afterAll(() => msgController.closeConnection());
