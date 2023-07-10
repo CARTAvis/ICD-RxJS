@@ -24,6 +24,9 @@ interface AssertItem {
     precisionDigits: number;
     setSpatialReq: CARTA.ISetSpatialRequirements[];
     closepvpreview: CARTA.IClosePvPreview;
+    spatialProfileDataResponse: CARTA.ISpatialProfileData;
+    spatialProfileDataRawValueIndex: Number[];
+    spatialProfileDataRawValue: Number[];
 };
 
 let assertItem: AssertItem = {
@@ -134,11 +137,34 @@ let assertItem: AssertItem = {
             fileId: -2,
             regionId: 0,
             spatialProfiles: [{coordinate:"x", mip:1, width: undefined}, {coordinate:"y", mip:1, width: undefined}]
-        }
+        },
+        {
+            fileId: -2,
+            regionId: 0,
+            spatialProfiles: []
+        },
+        {
+            fileId: 0,
+            regionId: 1,
+            spatialProfiles: [{coordinate: "", mip: 1, width: 3}]
+        },
     ],
     closepvpreview: {
         previewId: 0
-    }
+    },
+    spatialProfileDataResponse: {
+        regionId: 1,
+        profiles: [{
+            end: 400,
+            lineAxis: {
+                cdelt: 0.05000000074505806,
+                crpix: 200,
+                unit: "arcsec"
+            }
+        }]
+    },
+    spatialProfileDataRawValueIndex: [0,500,1000,1500, 1603],
+    spatialProfileDataRawValue: [152, 10, 220, 106, 186],
 };
 
 let basepath: string;
@@ -231,9 +257,28 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 msgController.closePvPreview(assertItem.closepvpreview.previewId);
                 setTimeout(() => {
                     let receiveNumberLatter = msgController.messageReceiving();
-                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 1000 ms
+                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Received the number is equal during 1000 ms
                     done();
                 }, 1000)
+            });
+
+            test(`(Step 7): the SET_SPATIAL_REQUIREMENTS of frontend after closing the pv previes`, async () => {
+                msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
+                let ErrorResponse = await Stream(CARTA.ErrorData,1);
+                expect(ErrorResponse[0].message).toContain("File id -2 not found");
+
+                msgController.setSpatialRequirements(assertItem.setSpatialReq[2]);
+                let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
+
+                expect(SpatialProfileDataResponse[0].regionId).toEqual(assertItem.spatialProfileDataResponse.regionId);
+                expect(SpatialProfileDataResponse[0].profiles[0].end).toEqual(assertItem.spatialProfileDataResponse.profiles[0].end);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.cdelt).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.cdelt);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.crpix).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.crpix);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.unit).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.unit);
+                assertItem.spatialProfileDataRawValueIndex.map((input, index) => {
+                    expect(SpatialProfileDataResponse[0].profiles[0].rawValuesFp32[input]).toEqual(assertItem.spatialProfileDataRawValue[index]);
+                });
+
             });
 
             afterAll(() => msgController.closeConnection());
