@@ -24,10 +24,10 @@ interface AssertItem {
     precisionDigits: number;
     setSpatialReq: CARTA.ISetSpatialRequirements[];
     closepvpreview: CARTA.IClosePvPreview;
-    spatialProfileDataResponse: CARTA.ISpatialProfileData;
+    spatialProfileDataResponse: CARTA.ISpatialProfileData[];
     spatialProfileDataRawValueIndex: Number[];
     spatialProfileDataRawValue: Number[];
-    pvPreviewStream: CARTA.IPvPreviewData;
+    pvPreviewStream: CARTA.IPvPreviewData[];
     pvPreviewStreamImageDataIndex: Number[];
     pvPreviewStreamImageDataValue: Number[];
 };
@@ -98,7 +98,7 @@ let assertItem: AssertItem = {
             previewRegion: true,
             regionInfo: {
                 regionType: CARTA.RegionType.LINE,
-                controlPoints: [{ x: 106, y: 34 }, { x: 376, y: 304 }],
+                controlPoints: [{x: 106, y: 34}, {x: 376, y: 304}],
                 rotation: 135,
             }
         },
@@ -175,35 +175,59 @@ let assertItem: AssertItem = {
     closepvpreview: {
         previewId: 0
     },
-    spatialProfileDataResponse: {
-        regionId: 1,
-        profiles: [{
-            end: 400,
-            lineAxis: {
-                cdelt: 0.05000000074505806,
-                crpix: 200,
-                unit: "arcsec"
-            }
-        }]
-    },
+    spatialProfileDataResponse: [
+        {
+            regionId: 1,
+            profiles: [{
+                end: 400,
+                lineAxis: {
+                    cdelt: 0.05000000074505806,
+                    crpix: 200,
+                    unit: "arcsec"
+                }
+            }]
+        },
+        {
+            regionId: 1,
+            profiles: [{
+                end: 380,
+                lineAxis: {
+                    cdelt: 0.04999999701976776,
+                    crpix: 190,
+                    unit: "arcsec"
+                }
+            }]
+        }
+    ],    
     spatialProfileDataRawValueIndex: [0,500,1000,1500, 1603],
     spatialProfileDataRawValue: [152, 10, 220, 106, 186],
-    pvPreviewStream: {
-        height: 250,
-        width: 381, 
-        histogram: {
-            binWidth: 0.0022551496513187885,
-            firstBinCenter: -0.04696602001786232,
-            mean: 0.004437232558026276,
-            numBins: 308,
-            stdDev: 0.04092432589528144
+    pvPreviewStream: [
+        {
+            height: 250,
+            width: 381, 
+            histogram: {
+                binWidth: 0.0022551496513187885,
+                firstBinCenter: -0.04696602001786232,
+                mean: 0.004437232558026276,
+                numBins: 308,
+                stdDev: 0.04092432589528144
+            },
+            histogramBounds: {
+                max: 0.6464924812316895,
+                min: -0.04809359461069107,
+            },
+            nanEncodings: new Uint8Array([18, 116, 1, 0]),
         },
-        histogramBounds: {
-            max: 0.6464924812316895,
-            min: -0.04809359461069107,
+        {
+            height: 250,
+            width: 381, 
+            histogramBounds: {
+                max: 0.3305862545967102,
+                min: -0.04476132243871689,
+            },
+            nanEncodings: new Uint8Array([18, 116, 1, 0]),
         },
-        nanEncodings: new Uint8Array([18, 116, 1, 0]),
-    },
+    ],
     pvPreviewStreamImageDataIndex: [0, 50, 100, 200, 300],
     pvPreviewStreamImageDataValue: [3, 25, 9, 4, 8]
 };
@@ -311,11 +335,11 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 msgController.setSpatialRequirements(assertItem.setSpatialReq[2]);
                 let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
 
-                expect(SpatialProfileDataResponse[0].regionId).toEqual(assertItem.spatialProfileDataResponse.regionId);
-                expect(SpatialProfileDataResponse[0].profiles[0].end).toEqual(assertItem.spatialProfileDataResponse.profiles[0].end);
-                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.cdelt).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.cdelt);
-                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.crpix).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.crpix);
-                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.unit).toEqual(assertItem.spatialProfileDataResponse.profiles[0].lineAxis.unit);
+                expect(SpatialProfileDataResponse[0].regionId).toEqual(assertItem.spatialProfileDataResponse[0].regionId);
+                expect(SpatialProfileDataResponse[0].profiles[0].end).toEqual(assertItem.spatialProfileDataResponse[0].profiles[0].end);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.cdelt).toEqual(assertItem.spatialProfileDataResponse[0].profiles[0].lineAxis.cdelt);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.crpix).toEqual(assertItem.spatialProfileDataResponse[0].profiles[0].lineAxis.crpix);
+                expect(SpatialProfileDataResponse[0].profiles[0].lineAxis.unit).toEqual(assertItem.spatialProfileDataResponse[0].profiles[0].lineAxis.unit);
                 assertItem.spatialProfileDataRawValueIndex.map((input, index) => {
                     expect(SpatialProfileDataResponse[0].profiles[0].rawValuesFp32[input]).toEqual(assertItem.spatialProfileDataRawValue[index]);
                 });
@@ -323,26 +347,73 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
 
             test(`(Step 7): moving SET_REGION with previewRegion = false`, async () => {           
                 let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[1].fileId, assertItem.setRegion[1].regionId, assertItem.setRegion[1].regionInfo, assertItem.setRegion[1].previewRegion);
-                let pVPreviewStream = await Stream(CARTA.PvPreviewData, 1);
-                let SpatialProfileData = await Stream(CARTA.SpatialProfileData, 1);
-                
+                let pVPreviewStream = [];
+                let SpatialProfileData  = [];
+                let pVPreviewStreamPromise = new Promise((resolve)=>{
+                    msgController.pvPreviewStream.subscribe({
+                        next: (data) => {
+                            pVPreviewStream.push(data)
+                            resolve(pVPreviewStream)
+                        }
+                    })
+                });
+                let SpatialProfileDataPromise = new Promise((resolve)=>{
+                    msgController.spatialProfileStream.subscribe({
+                        next: (data) => {
+                            SpatialProfileData.push(data)
+                            resolve(SpatialProfileData)
+                        }
+                    })
+                });
+                let pVPreviewStreamResponse = await pVPreviewStreamPromise;
+                let SpatialProfileDataResponse = await SpatialProfileDataPromise;
+
                 expect(setRegionAckResponse.success).toEqual(true);
                 expect(setRegionAckResponse.regionId).toEqual(assertItem.setRegion[1].regionId);
-                expect(pVPreviewStream[0].height).toEqual(assertItem.pvPreviewStream.height);
-                expect(pVPreviewStream[0].width).toEqual(assertItem.pvPreviewStream.width);
-                expect(pVPreviewStream[0].histogram.binWidth).toEqual(assertItem.pvPreviewStream.histogram.binWidth);
+                expect(pVPreviewStream[0].height).toEqual(assertItem.pvPreviewStream[0].height);
+                expect(pVPreviewStream[0].width).toEqual(assertItem.pvPreviewStream[0].width);
+                expect(pVPreviewStream[0].histogram.binWidth).toEqual(assertItem.pvPreviewStream[0].histogram.binWidth);
                 assertItem.pvPreviewStreamImageDataIndex.map((input, index) => {
                     expect(pVPreviewStream[0].histogram.bins[input]).toEqual(assertItem.pvPreviewStreamImageDataValue[index]);
                 });
-                expect(pVPreviewStream[0].histogram.firstBinCenter).toEqual(assertItem.pvPreviewStream.histogram.firstBinCenter);
-                expect(pVPreviewStream[0].histogram.mean).toEqual(assertItem.pvPreviewStream.histogram.mean);
-                expect(pVPreviewStream[0].histogram.numBins).toEqual(assertItem.pvPreviewStream.histogram.numBins);
-                expect(pVPreviewStream[0].histogram.stdDev).toEqual(assertItem.pvPreviewStream.histogram.stdDev);
-                expect(pVPreviewStream[0].histogramBounds.max).toEqual(assertItem.pvPreviewStream.histogramBounds.max);
-                expect(pVPreviewStream[0].histogramBounds.min).toEqual(assertItem.pvPreviewStream.histogramBounds.min);
+                expect(pVPreviewStream[0].histogram.firstBinCenter).toEqual(assertItem.pvPreviewStream[0].histogram.firstBinCenter);
+                expect(pVPreviewStream[0].histogram.mean).toEqual(assertItem.pvPreviewStream[0].histogram.mean);
+                expect(pVPreviewStream[0].histogram.numBins).toEqual(assertItem.pvPreviewStream[0].histogram.numBins);
+                expect(pVPreviewStream[0].histogram.stdDev).toEqual(assertItem.pvPreviewStream[0].histogram.stdDev);
+                expect(pVPreviewStream[0].histogramBounds.max).toBeCloseTo(assertItem.pvPreviewStream[0].histogramBounds.max, assertItem.precisionDigits);
+                expect(pVPreviewStream[0].histogramBounds.min).toBeCloseTo(assertItem.pvPreviewStream[0].histogramBounds.min, assertItem.precisionDigits);
                 expect(pVPreviewStream[0].imageData.length).toEqual(68224);
-                for (i=0; i<assertItem.pvPreviewStream.nanEncodings.length; i++) {
-                    expect(pVPreviewStream[0].nanEncodings[i]).toEqual(assertItem.pvPreviewStream.nanEncodings[i]);
+                for (i=0; i<assertItem.pvPreviewStream[0].nanEncodings.length; i++) {
+                    expect(pVPreviewStream[0].nanEncodings[i]).toEqual(assertItem.pvPreviewStream[0].nanEncodings[i]);
+                }
+                expect(SpatialProfileData[0].regionId).toEqual(assertItem.spatialProfileDataResponse[1].regionId);
+                expect(SpatialProfileData[0].profiles[0].end).toEqual(assertItem.spatialProfileDataResponse[1].profiles[0].end);
+                expect(SpatialProfileData[0].profiles[0].lineAxis.cdelt).toEqual(assertItem.spatialProfileDataResponse[1].profiles[0].lineAxis.cdelt);
+                expect(SpatialProfileData[0].profiles[0].lineAxis.crpix).toEqual(assertItem.spatialProfileDataResponse[1].profiles[0].lineAxis.crpix);
+                expect(SpatialProfileData[0].profiles[0].lineAxis.unit).toEqual(assertItem.spatialProfileDataResponse[1].profiles[0].lineAxis.unit);
+            });
+
+            test(`(Step 8): moving SET_REGION with previewRegion = true`, async () => {
+                msgController.spectialSetRegion(assertItem.setRegion[2].fileId, assertItem.setRegion[2].regionId, assertItem.setRegion[2].regionInfo, assertItem.setRegion[2].previewRegion);
+                let pVPreviewStream = [];
+                let pVPreviewStreamPromise = new Promise((resolve)=>{
+                    msgController.pvPreviewStream.subscribe({
+                        next: (data) => {
+                            pVPreviewStream.push(data)
+                            resolve(pVPreviewStream)
+                        }
+                    })
+                });
+                let pVPreviewStreamResponse = await pVPreviewStreamPromise;
+                
+                expect(pVPreviewStream[0].height).toEqual(assertItem.pvPreviewStream[1].height);
+                expect(pVPreviewStream[0].width).toEqual(assertItem.pvPreviewStream[1].width);
+                expect(pVPreviewStream[0].histogram).toEqual(null);
+                expect(pVPreviewStream[0].histogramBounds.max).toBeCloseTo(assertItem.pvPreviewStream[1].histogramBounds.max, assertItem.precisionDigits);
+                expect(pVPreviewStream[0].histogramBounds.min).toBeCloseTo(assertItem.pvPreviewStream[1].histogramBounds.min, assertItem.precisionDigits);
+                expect(pVPreviewStream[0].imageData.length).toEqual(49792);
+                for (i=0; i<assertItem.pvPreviewStream[1].nanEncodings.length; i++) {
+                    expect(pVPreviewStream[0].nanEncodings[i]).toEqual(assertItem.pvPreviewStream[1].nanEncodings[i]);
                 }
             });
 
