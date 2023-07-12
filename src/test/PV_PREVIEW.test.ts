@@ -42,20 +42,20 @@ let assertItem: AssertItem = {
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
         },
-        // {
-        //     directory: testSubdirectory,
-        //     file: "HD163296_CO_2_1.image",
-        //     hdu: "0",
-        //     fileId: 0,
-        //     renderMode: CARTA.RenderMode.RASTER,
-        // },
-        // {
-        //     directory: testSubdirectory,
-        //     file: "HD163296_CO_2_1.hdf5",
-        //     hdu: "0",
-        //     fileId: 0,
-        //     renderMode: CARTA.RenderMode.RASTER,
-        // },
+        {
+            directory: testSubdirectory,
+            file: "HD163296_CO_2_1.image",
+            hdu: "0",
+            fileId: 0,
+            renderMode: CARTA.RenderMode.RASTER,
+        },
+        {
+            directory: testSubdirectory,
+            file: "HD163296_CO_2_1.hdf5",
+            hdu: "0",
+            fileId: 0,
+            renderMode: CARTA.RenderMode.RASTER,
+        },
     ],
     addTilesReq: [
         {
@@ -415,6 +415,16 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 for (i=0; i<assertItem.pvPreviewStream[1].nanEncodings.length; i++) {
                     expect(pVPreviewStream[0].nanEncodings[i]).toEqual(assertItem.pvPreviewStream[1].nanEncodings[i]);
                 }
+            });
+
+            test(`(Step 9): close the pv preview and NO message from the backend (timeout of 1000ms)`, done => {
+                let receiveNumberCurrent = msgController.messageReceiving();
+                msgController.closePvPreview(assertItem.closepvpreview.previewId);
+                setTimeout(() => {
+                    let receiveNumberLatter = msgController.messageReceiving();
+                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Received the number is equal during 1000 ms
+                    done();
+                }, 1000)
             });
 
             afterAll(() => msgController.closeConnection());
