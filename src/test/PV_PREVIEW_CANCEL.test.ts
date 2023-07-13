@@ -16,6 +16,7 @@ interface AssertItem {
     setCursor: CARTA.ISetCursor[];
     setRegion: CARTA.ISetRegion[];
     setPVRequest: CARTA.IPvRequest[];
+    pvCancelMessage: String;
 };
 
 let assertItem: AssertItem = {
@@ -50,7 +51,7 @@ let assertItem: AssertItem = {
             previewRegion: false,
             regionInfo: {
                 regionType: CARTA.RegionType.LINE,
-                controlPoints: [{ x: 79, y: 77 }, { x: 362, y: 360 }],
+                controlPoints: [{ x: 260, y: 287 }, { x: 1613, y: 1640 }],
                 rotation: 135,
             }
         },
@@ -59,21 +60,22 @@ let assertItem: AssertItem = {
         {
             fileId: 0,
             regionId: 1,
-            width: 3,
-            keep: true,
+            width: 5,
+            keep: false,
             reverse: false,
-            spectralRange: {min: 0, max: 249},
+            spectralRange: {min: 0, max: 400},
             previewSettings: {
                 animationCompressionQuality: 9,
                 compressionType: CARTA.CompressionType.ZFP,
                 imageCompressionQuality: 11,
                 previewId: 0,
-                rebinXy: 1,
-                rebinZ: 1,
+                rebinXy: 4,
+                rebinZ: 4,
                 regionId: -1,
             }
         }
     ],
+    pvCancelMessage: "PV image preview cancelled",
 };
 
 let basepath: string;
@@ -107,6 +109,36 @@ describe("PV_PREVIEW_CANCEL test: Testing PV preview with cancel request", () =>
 
                 msgController.setCursor(assertItem.setCursor[0].fileId, assertItem.setCursor[0].point.x, assertItem.setCursor[0].point.y);
                 let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
+            });
+
+            test(`(Step 3): Set region`, async () => {
+                let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[0].fileId, assertItem.setRegion[0].regionId, assertItem.setRegion[0].regionInfo, assertItem.setRegion[0].previewRegion);
+                expect(setRegionAckResponse.regionId).toEqual(1);
+                expect(setRegionAckResponse.success).toEqual(true);
+            });
+
+            test(`(Step 4): Set PV request`, async () => {
+                let pVProgressData = [];
+                let pvProgressPromise = new Promise((resolve)=>{
+                    msgController.pvProgressStream.subscribe({
+                        next: (data) => {
+                            pVProgressData.push(data)
+                            if (pVProgressData.length === 1) {
+                                msgController.cancelRequestingPV(assertItem.setRegion[0].fileId);
+                                msgController.stopPvPreview(assertItem.setRegion[0].fileId);
+                                resolve(pVProgressData);
+                            }
+                        }
+                    })
+                });
+
+                try {
+                    let PVresponse = await msgController.requestPV(assertItem.setPVRequest[0]);
+                } catch (err) {
+                    expect(err).toContain(assertItem.pvCancelMessage);
+                } 
+                let pvProgressReponse = await pvProgressPromise;
+                expect(pvProgressReponse[0].progress).toBeLessThan(1);
             });
         });
 

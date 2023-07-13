@@ -266,14 +266,14 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
             });
 
-            test(`(Step 3): set region`, async () => {
+            test(`(Step 3): Set region`, async () => {
                 let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[0].fileId, assertItem.setRegion[0].regionId, assertItem.setRegion[0].regionInfo, assertItem.setRegion[0].previewRegion);
                 expect(setRegionAckResponse.regionId).toEqual(1);
                 expect(setRegionAckResponse.success).toEqual(true);
             });
 
             let pVProgressData = [];
-            test(`(Step 4): set PV request`, async () => {
+            test(`(Step 4): Set PV request`, async () => {
                 let pvProgressPromise = new Promise((resolve)=>{
                     msgController.pvProgressStream.subscribe({
                         next: (data) => {
@@ -311,21 +311,11 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 }
             });
 
-            test(`(Step 5): set spatial requirement`, async () => {
+            test(`(Step 5): Set spatial requirement`, async () => {
                 msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
                 let ErrorResponse = await Stream(CARTA.ErrorData,1);
                 expect(ErrorResponse[0].message).toContain("File id -2 not found");
             });
-
-            // test(`(Step 6): close the pv preview and NO message from the backend (timeout of 1000ms)`, done => {
-            //     let receiveNumberCurrent = msgController.messageReceiving();
-            //     msgController.closePvPreview(assertItem.closepvpreview.previewId);
-            //     setTimeout(() => {
-            //         let receiveNumberLatter = msgController.messageReceiving();
-            //         expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Received the number is equal during 1000 ms
-            //         done();
-            //     }, 1000)
-            // });
 
             test(`(Step 6): the SET_SPATIAL_REQUIREMENTS of frontend after closing the pv previes`, async () => {
                 msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
@@ -345,7 +335,7 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 });
             });
 
-            test(`(Step 7): moving SET_REGION with previewRegion = false`, async () => {           
+            test(`(Step 7): Moving SET_REGION with previewRegion = false`, async () => {           
                 let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[1].fileId, assertItem.setRegion[1].regionId, assertItem.setRegion[1].regionInfo, assertItem.setRegion[1].previewRegion);
                 let pVPreviewStream = [];
                 let SpatialProfileData  = [];
@@ -393,7 +383,7 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 expect(SpatialProfileData[0].profiles[0].lineAxis.unit).toEqual(assertItem.spatialProfileDataResponse[1].profiles[0].lineAxis.unit);
             });
 
-            test(`(Step 8): moving SET_REGION with previewRegion = true`, async () => {
+            test(`(Step 8): Moving SET_REGION with previewRegion = true`, async () => {
                 msgController.spectialSetRegion(assertItem.setRegion[2].fileId, assertItem.setRegion[2].regionId, assertItem.setRegion[2].regionInfo, assertItem.setRegion[2].previewRegion);
                 let pVPreviewStream = [];
                 let pVPreviewStreamPromise = new Promise((resolve)=>{
@@ -417,7 +407,7 @@ describe("PV_PREVIEW test: Testing PV preview with FITS, CASA, and HDF5 file", (
                 }
             });
 
-            test(`(Step 9): close the pv preview and NO message from the backend (timeout of 1000ms)`, done => {
+            test(`(Step 9): Close the pv preview and NO message from the backend (timeout of 1000ms)`, done => {
                 let receiveNumberCurrent = msgController.messageReceiving();
                 msgController.closePvPreview(assertItem.closepvpreview.previewId);
                 setTimeout(() => {
