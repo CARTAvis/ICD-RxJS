@@ -129,6 +129,17 @@ function Stream(cartaType: any, InputNum?: number) {
                     }
                 })
                 break;
+            case CARTA.PvPreviewData:
+                let pvPreviewStream : any [] = [];
+                let resPvPreviewStream = msgController.pvPreviewStream.pipe(take(InputNum));
+                resPvPreviewStream.subscribe(data => {
+                    pvPreviewStream.push(data);
+                    _count++;
+                    if (_count === InputNum) {
+                        resolve(pvPreviewStream);
+                    }
+                })
+                break;       
         }
     })
 }

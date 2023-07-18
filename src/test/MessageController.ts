@@ -524,6 +524,27 @@ export class MessageController {
         return false;
     }
 
+    spectialSetRegion(fileId: number, regionId: number, region: RegionStore, isRequestingPreview?: boolean): boolean {
+        if (this.connectionStatus === ConnectionStatus.ACTIVE) {
+            const message = CARTA.SetRegion.create({
+                fileId,
+                regionId,
+                regionInfo: {
+                    regionType: region.regionType,
+                    rotation: region.rotation,
+                    controlPoints: region.controlPoints.slice()
+                },
+                previewRegion: isRequestingPreview
+            });
+            const requestId = this.eventCounter;
+            this.logEvent(CARTA.EventType.SET_REGION, requestId, message, false);
+            if (this.sendEvent(CARTA.EventType.SET_REGION, CARTA.SetRegion.encode(message).finish())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     async setRegion(fileId: number, regionId: number, region: RegionStore, isRequestingPreview?: boolean): Promise<CARTA.ISetRegionAck> {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
             throw new Error("Not connected");
