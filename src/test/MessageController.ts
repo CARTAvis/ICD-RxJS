@@ -297,7 +297,8 @@ export class MessageController {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
             throw new Error("Not connected");
         } else {
-            const message = CARTA.FileInfoRequest.create({directory, file, hdu});
+            const supportAipsBeam = false;
+            const message = CARTA.FileInfoRequest.create({directory, file, hdu, supportAipsBeam});
             const requestId = this.eventCounter;
             this.logEvent(CARTA.EventType.FILE_INFO_REQUEST, requestId, message, false);
             if (this.sendEvent(CARTA.EventType.FILE_INFO_REQUEST, CARTA.FileInfoRequest.encode(message).finish())) {
@@ -393,7 +394,8 @@ export class MessageController {
                 hdu,
                 fileId,
                 lelExpr: imageArithmetic,
-                renderMode: CARTA.RenderMode.RASTER
+                renderMode: CARTA.RenderMode.RASTER,
+                supportAipsBeam: false
             });
             const requestId = this.eventCounter;
             this.logEvent(CARTA.EventType.OPEN_FILE, requestId, message, false);
