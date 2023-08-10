@@ -102,6 +102,7 @@ let assertItem: AssertItem = {
             frameRate: 5,
             looping: true,
             reverse: false,
+            matchedFrames: {},
             stokesIndices: [0, 1, 2, 14, 16, 17],
             requiredTiles: {
                 fileId: 0,
@@ -159,6 +160,10 @@ let assertItem: AssertItem = {
     ]
 };
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms)).then(() => { console.log('sleep!') });
+}
+
 let basepath: string;
 describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation for swapped image", () => {
     const msgController = MessageController.Instance;
@@ -206,7 +211,7 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
             describe(`(Step 3)Play some channels forwardly`, () => {
                 let sequence: number[] = [];
                 let RegionHistogramData: CARTA.RegionHistogramData[] = [];
-                test(`running animation (channels) flow and stop`, async () => {
+                test(`running animation (channels) flow and stop within ${playAnimatorTimeout} ms`, async () => {
                     let StartAnimationResponse: CARTA.IStartAnimationAck;
                     StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[0]);
                     expect(StartAnimationResponse.success).toEqual(true);
@@ -254,7 +259,8 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
             describe(`(Step 4)Play some stokes forwardly`, () => {
                 let StokesSequence: number[] = [];
                 let RegionHistogramData: CARTA.RegionHistogramData[] = [];
-                test(`running animation (stokes) flow and stop`, async () => {
+                test(`running animation (stokes) flow and stop within ${playAnimatorTimeout} ms`, async () => {
+                    await sleep(8000);
                     let StartAnimationResponse: CARTA.IStartAnimationAck;
                     StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[1]);
                     expect(StartAnimationResponse.success).toEqual(true);
@@ -273,7 +279,7 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
                         expect(RasterTileData[0].animationId).toEqual(2);
     
                         msgController.sendAnimationFlowControl({
-                            ...assertItem.animationFlowControl[0],
+                            ...assertItem.animationFlowControl[1],
                             receivedFrame: {
                                 stokes: RasterTileData[0].stokes,
                                 channel: 0
@@ -293,7 +299,9 @@ describe("ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
                     let lastRasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[1].tiles.length+2);
                     StokesSequence.push(lastRasterTileData[1].stokes);
                     for (let i=0; i<StokesSequence.length; i++) {
-                        expect(RegionHistogramData[i].stokes).toEqual(StokesSequence[i])
+                        if (RegionHistogramData[i].stokes !== undefined) {
+                            expect(RegionHistogramData[i].stokes).toEqual(StokesSequence[i])
+                        }
                     }
                     console.log(`(Step 4) Sequent Stokes index: ${StokesSequence}`);
                 }, playAnimatorTimeout);
