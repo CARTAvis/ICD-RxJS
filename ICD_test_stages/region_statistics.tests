@@ -1,0 +1,3 @@
+src/test/REGION_STATISTICS_RECTANGLE.test.ts
+src/test/REGION_STATISTICS_ELLIPSE.test.ts
+src/test/REGION_STATISTICS_POLYGON.test.ts

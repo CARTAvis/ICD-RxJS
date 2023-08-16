@@ -1,0 +1,6 @@
+src/test/MOMENTS_GENERATOR_CASA.test.ts
+src/test/MOMENTS_GENERATOR_EXCEPTION.test.ts
+src/test/MOMENTS_GENERATOR_SAVE.test.ts
+src/test/MOMENTS_GENERATOR_CANCEL.test.ts
+src/test/MOMENTS_GENERATOR_FITS.test.ts
+src/test/MOMENTS_GENERATOR_HDF5.test.ts

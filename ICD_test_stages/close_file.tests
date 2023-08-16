@@ -1,0 +1,5 @@
+src/test/CLOSE_FILE_SINGLE.test.ts
+src/test/CLOSE_FILE_ANIMATION.test.ts
+src/test/CLOSE_FILE_ERROR.test.ts
+src/test/CLOSE_FILE_SPECTRAL_PROFILE.test.ts
+src/test/CLOSE_FILE_TILE.test.ts

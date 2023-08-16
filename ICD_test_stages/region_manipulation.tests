@@ -1,0 +1,8 @@
+src/test/CASA_REGION_INFO.test.ts
+src/test/CASA_REGION_IMPORT_INTERNAL.test.ts
+src/test/CASA_REGION_IMPORT_EXPORT.test.ts
+src/test/CASA_REGION_IMPORT_EXCEPTION.test.ts
+src/test/CASA_REGION_EXPORT.test.ts
+src/test/DS9_REGION_EXPORT.test.ts
+src/test/DS9_REGION_IMPORT_EXCEPTION.test.ts
+src/test/DS9_REGION_IMPORT_EXPORT.test.ts
