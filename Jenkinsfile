@@ -184,6 +184,7 @@ pipeline {
                             sh "export PATH=/usr/local/bin:$PATH"
                             sh "git clone https://github.com/CARTAvis/carta-backend.git || true"
                             dir ('carta-backend') {
+                                sh "git pull"
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
                                 dir ('build') {
@@ -210,6 +211,7 @@ pipeline {
                             sh "export PATH=/usr/local/bin:$PATH"
                             sh "git clone https://github.com/CARTAvis/carta-backend.git || true"
                             dir ('carta-backend') {
+                                sh "git pull"
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
                                 dir ('build') {
@@ -236,6 +238,7 @@ pipeline {
                             sh "export PATH=/usr/local/bin:$PATH"
                             sh "git clone https://github.com/CARTAvis/carta-backend.git || true"
                             dir ('carta-backend') {
+                                sh "git pull"
                                 sh "git checkout ${env.BACKENDBRANCH}"
                                 sh "git submodule update --init --recursive"
                                 dir ('build') {
