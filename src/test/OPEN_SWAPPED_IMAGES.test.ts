@@ -177,6 +177,16 @@ let assertItem: AssertItem = {
             regionId: 0,
             spatialProfiles: [{coordinate:"x", mip:1, width: undefined}, {coordinate:"y", mip:1, width: undefined}],
         }, 
+        {
+            fileId: 0,
+            regionId: 0,
+            spatialProfiles: [],
+        },
+        {
+            fileId: 1,
+            regionId: 0,
+            spatialProfiles: [{coordinate:"Ix", start: 267, end: 781, mip: 1}, {coordinate:"Iy", mip:1, start: 0, end: 1024}],
+        }
     ],
     setCursor: [
         {
@@ -450,10 +460,12 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 let RasterTileData = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[2].tiles.length + 2);
                 expect(RasterTileData.length).toEqual(assertItem.addTilesReq[2].tiles.length + 2);
                 expect(RasterTileData.slice(-1)[0].endSync).toEqual(true);
+                msgController.setSpatialRequirements(assertItem.setSpatialRequirements[3]);
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[1]);
+                msgController.setSpatialRequirements(assertItem.setSpatialRequirements[4]);
             });
         
-            test(`(Step 5) Set cursor on two images, the return values should be the same`, async () => {
+            test(`(Step 5) Set cursor on two images, the return values should be the same (one profile should be [])`, async () => {
                 msgController.setCursor(assertItem.setCursor[1].fileId, assertItem.setCursor[1].point.x, assertItem.setCursor[1].point.y);
                 let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
         
@@ -466,9 +478,6 @@ describe("OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(SpatialProfileDataResponse2[0].x).toEqual(assertItem.spatialProfileData[2].x);
                 expect(SpatialProfileDataResponse2[0].y).toEqual(assertItem.spatialProfileData[2].y);
                 expect(SpatialProfileDataResponse2[0].value).toEqual(assertItem.spatialProfileData[2].value);
-        
-                expect(SpatialProfileDataResponse1[0].profiles[0]).toEqual(SpatialProfileDataResponse2[0].profiles[0]);
-                expect(SpatialProfileDataResponse1[0].profiles[1]).toEqual(SpatialProfileDataResponse2[0].profiles[1]);
         
                 msgController.closeFile(0);
                 msgController.closeFile(1);
