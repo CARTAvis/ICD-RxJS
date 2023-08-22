@@ -184,7 +184,7 @@ describe("VECTOR_OVERLAY_CHANNEL_STREAM: Testing the vector overlay ICD messages
             test(`return RASTER_TILE_DATA(Stream) and check total length `, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq);
                 let RasterTileData = await Stream(CARTA.RasterTileData,3); //RasterTileData * 1 + RasterTileSync * 2
-                expect(JSON.stringify(RasterTileData[2])).toMatch(/{\"endSync\":true}/)
+                expect(RasterTileData[2].tileCount).toEqual(assertItem.addTilesReq.tiles.length);
             }, openFileTimeout);
         });
 
