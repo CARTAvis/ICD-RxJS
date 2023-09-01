@@ -21,8 +21,6 @@ interface IVectorOverlayTileDataExt extends CARTA.IVectorOverlayTileData {
 interface IContourImageDataExt extends CARTA.IContourImageData {
     totalCoordinate?: Number;
     totalStartIndices?: Number;
-    // selectedStartIndicesIndex?:  Number[];
-    // selectedStartIndicesValue?: Number[];
 }
 
 interface AssertItem {
@@ -288,11 +286,7 @@ let assertItem: AssertItem = {
             }],
             progress: 1,
             totalCoordinate: 301,
-            // selectedCoordinateIndex: [0,50, 100, 150, 200, 250],
-            // selectedCoordinateValue: [40, 130, 189, 120, 142, 243],
             totalStartIndices: 48,
-            // selectedStartIndicesIndex: [0, 20, 40],
-            // selectedStartIndicesValue: [0, 118, 208]
         },
         {
             contourSets: [{
@@ -302,11 +296,7 @@ let assertItem: AssertItem = {
             }],
             progress: 1,
             totalCoordinate: 4085,
-            // selectedCoordinateIndex: [0, 500, 1000, 2500, 3500, 4000],
-            // selectedCoordinateValue: [40, 191, 159, 143, 79, 196],
             totalStartIndices: 780,
-            // selectedStartIndicesIndex: [0, 50, 100, 350, 500, 750],
-            // selectedStartIndicesValue: [0, 0, 10, 0, 46, 0]
         },
         {
             contourSets: [{
@@ -316,11 +306,7 @@ let assertItem: AssertItem = {
             }],
             progress: 1,
             totalCoordinate: 47845,
-            // selectedCoordinateIndex: [0, 500, 1000, 7500, 10000, 13000, 22000, 35000, 41000, 45000],
-            // selectedCoordinateValue: [40, 254, 82, 128, 252, 96, 166, 18, 118, 15],
             totalStartIndices: 6396,
-            // selectedStartIndicesIndex: [0, 500, 1000, 2000, 3000, 4000, 6000],
-            // selectedStartIndicesValue: [0, 174, 32, 36,  108, 196, 220]
         },
     ],
     contourImageData2: [
@@ -354,11 +340,7 @@ let assertItem: AssertItem = {
             progress: 1,
             channel: 1,
             totalCoordinate: 503,
-            // selectedCoordinateIndex: [0, 50, 100, 200, 300, 400, 500],
-            // selectedCoordinateValue: [40, 42, 41, 235, 131, 11, 114],
             totalStartIndices: 64,
-            // selectedStartIndicesIndex: [0, 10, 20, 30, 40, 50, 60],
-            // selectedStartIndicesValue: [0, 0, 142, 0, 44, 0, 6]
         },
     ],
     precisionDigits: 8,
@@ -392,7 +374,7 @@ describe("VECTOR_OVERLAY_CONTOUR_CHANNEL: Testing the vector overlay ICD message
             test(`return RASTER_TILE_DATA(Stream) and check total length `, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq[0]);
                 let RasterTileData = await Stream(CARTA.RasterTileData,3); //RasterTileData * 1 + RasterTileSync * 2
-                expect(JSON.stringify(RasterTileData[2])).toMatch(/{\"endSync\":true}/)
+                expect(RasterTileData[2].tileCount).toEqual(assertItem.addTilesReq[0].tiles.length);
             }, openFileTimeout);
         });
 
@@ -492,7 +474,7 @@ describe("VECTOR_OVERLAY_CONTOUR_CHANNEL: Testing the vector overlay ICD message
                 msgController.addRequiredTiles(assertItem.addTilesReq[1]);
                 let RasterTileData = await Stream(CARTA.RasterTileData,3); //RasterTileData * 1 + RasterTileSync * 2
                 expect(RasterTileData[1].fileId).toEqual(assertItem.addTilesReq[1].fileId);
-                expect(JSON.stringify(RasterTileData[2])).toMatch(/{\"fileId\":1,\"endSync\":true}/)
+                expect(RasterTileData[2].tileCount).toEqual(assertItem.addTilesReq[1].tiles.length);
             }, openFileTimeout);
         });
 
@@ -625,12 +607,6 @@ describe("VECTOR_OVERLAY_CONTOUR_CHANNEL: Testing the vector overlay ICD message
                     expect(eachContourImageData[0].contourSets[0].decimationFactor).toEqual(data.contourSets[0].decimationFactor);
                     expect(eachContourImageData[0].contourSets[0].level).toEqual(data.contourSets[0].level);
                     expect(eachContourImageData[0].contourSets[0].uncompressedCoordinatesSize).toEqual(data.contourSets[0].uncompressedCoordinatesSize);
-                    // data.selectedCoordinateIndex?.map((subdata, index) => {
-                    //     expect(eachContourImageData[0].contourSets[0].rawCoordinates[subdata]).toEqual(data.selectedCoordinateValue[index]);
-                    // })
-                    // data.selectedStartIndicesIndex?.map((subdata, index) => {
-                    //     expect(eachContourImageData[0].contourSets[0].rawStartIndices[subdata]).toEqual(data.selectedStartIndicesValue[index]);
-                    // })
                 })
             });
 
