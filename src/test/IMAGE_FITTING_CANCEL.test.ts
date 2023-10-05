@@ -21,6 +21,7 @@ interface AssertItem {
     stopFittingRequest: CARTA.IStopFitting;
     precisionDigits: number;
     imageFittingCancelMessage: string;
+    setRegion: CARTA.ISetRegion;
 };
 
 let assertItem: AssertItem = {
@@ -55,7 +56,7 @@ let assertItem: AssertItem = {
             createResidualImage: false,
             fixedParams: [false, false, false, false, false, false, true],
             fovInfo: null,
-            regionId: -1, 
+            regionId: 1, 
             initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
             solver: 1,
             offset: 0,
@@ -73,10 +74,10 @@ let assertItem: AssertItem = {
             ],
             resultErrors: [
                 {
-                    center: {x: 0.0004006969240219716, y: 0.0005001794973076322},
-                    amp: 0.00003971187313364324,
-                    fwhm: {x: 0.0008773295469374465, y: 0.00021417449809861666},
-                    pa: 0.00020655506565535857
+                    center: {x: 0.040531502240883394, y: 0.05070914048412857},
+                    amp: 0.008664186974964344,
+                    fwhm: {x: 0.14862749061886218, y: 0.03575562219341978},
+                    pa: 0.01804504831105634
                 }
             ],
             success: true,
@@ -88,6 +89,15 @@ let assertItem: AssertItem = {
     },
     precisionDigits: 2,
     imageFittingCancelMessage: 'task cancelled',
+    setRegion: {
+        fileId: 0,
+        regionId: 1,
+        regionInfo: {
+            regionType: CARTA.RegionType.RECTANGLE,
+            controlPoints: [{ x: 324, y: 398 }, { x: 270, y: 270 }],
+            rotation: 0,
+        }
+    }
 };
 
 function sleep(ms) {
@@ -125,6 +135,12 @@ describe("IMAGE_FITTING_CANCEL test: Testing cancel function in image fitting.",
                     msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
                     let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
                 }, openFileTimeout);
+
+                test(`Set a region:`, async () => {
+                    let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion.fileId, assertItem.setRegion.regionId, assertItem.setRegion.regionInfo);
+                    expect(setRegionAckResponse.regionId).toEqual(1);
+                    expect(setRegionAckResponse.success).toEqual(true);
+                });
             });
 
             describe(`(Step 1) Request 1st image fitting, and send stop request:`, ()=>{
