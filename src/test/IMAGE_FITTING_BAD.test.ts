@@ -416,6 +416,36 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
         describe(`(Case 1) Image fitting: exceeded max number of iterations`, ()=>{
             test(`Send Image fitting request and match the result`, async()=>{
                 let response = await msgController.requestFitting(assertItem.fittingRequest[0]);
+                console.log(MacOSNumber);
+                console.log(platformOS);
+
+                console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
+                console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
+                console.log('response.resultValues[0].amp', response.resultValues[0].amp);
+                console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
+                console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
+                console.log('response.resultValues[0].pa', response.resultValues[0].pa);
+                console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
+                console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
+                console.log('response.resultValues[1].amp', response.resultValues[1].amp);
+                console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
+                console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
+                console.log('response.resultValues[1].pa', response.resultValues[1].pa);
+                console.log('response.success', response.success);
+
+                console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
+                console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
+                console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
+                console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
+                console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
+                console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
+                console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
+                console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
+                console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
+                console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
+                
+                console.log('response.log', response.log);
+                console.log('response.message', response.message);
 
                 // if (MacOSNumber === "11.6.1" && platformOS === 'macOS') {
                 //     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultValues[0].center.x, assertItem.precisionDigits);
