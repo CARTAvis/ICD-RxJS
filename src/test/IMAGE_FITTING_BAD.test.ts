@@ -285,16 +285,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 141.19569242428403, y: 274.468080399765}, 
-                    amp: 0.0073312614530695805,
-                    fwhm: {x: 1.8888434341244704, y: 0.003414731271306315},
-                    pa: 289.1517791897806
+                    center: {x: 1040.8290607922947, y: 318.1424610658663}, 
+                    amp: 0.3378970051535388,
+                    fwhm: {x: -682.8189818197304, y: 7.346474069762189},
+                    pa: 338.2100075009321
                 }, 
                 {
-                    center: {x: 324.34387675503626, y: 324.3494127204754}, 
-                    amp: 9.995719972488988,
-                    fwhm: {x: 29.395209261545435, y: 117.53236329753543},
-                    pa: 0.5369662783821492
+                    center: {x: 324.35187056418823, y: 324.3484712737422}, 
+                    amp: 9.996963949794086,
+                    fwhm: {x: 29.40611215758184, y: 117.4975572537292},
+                    pa: 0.5352608476716524
                 }
             ],
             resultErrors: [
@@ -303,10 +303,10 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14270290674700617, y: 0.03926940295174565},
-                    amp: 0.011794239703922002,
-                    fwhm: {x: 0.045959932685532584, y: 0.18286860946141664},
-                    pa: 0.004197561925501329
+                    center: {x: 2.646221869634662e-9, y: 6.627293636592795e-10},
+                    amp: 5.30201596436001e-10,
+                    fwhm: {x: 1.55959026052576e-9, y: 6.231631197843904e-9},
+                    pa: 1.1473887943482772e-9
                 }
             ],
             success: true,
@@ -566,10 +566,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseUbuntu2204[0].success);
 
-                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
-                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
-                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
-                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.x).toEqual(NaN);
+                    expect(response.resultErrors[0].center.y).toEqual(NaN);
+                    expect(response.resultErrors[0].fwhm.x).toEqual(NaN);
+                    expect(response.resultErrors[0].fwhm.y).toEqual(NaN);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].amp, assertItem.precisionDigits);
