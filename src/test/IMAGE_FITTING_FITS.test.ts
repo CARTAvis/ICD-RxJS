@@ -265,7 +265,7 @@ let assertItem: AssertItem = {
         regionId: 1,
         regionInfo: {
             regionType: CARTA.RegionType.RECTANGLE,
-            controlPoints: [{ x: 324, y: 398 }, { x: 270, y: 270 }],
+            controlPoints: [{x:319.5, y:399.5}, {x: 216.70644391408112, y: 199.99999999999997}],
             rotation: 0,
         }
     }
@@ -639,20 +639,20 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
 
-                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.x, assertItem.precisionDigits);
-                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.y, assertItem.precisionDigits);
-                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].amp, assertItem.precisionDigits);
-                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
-                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
-                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].pa, assertItem.precisionDigits);
-                    expect(response.success).toEqual(assertItem.fittingResponse[0].success);
-                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].center.x, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].center.y, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].amp, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].fwhm.x, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].fwhm.y, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[0].pa, assertItem.precisionDigits);
-                    expect(response.log).toContain(assertItem.fittingResponse[0].log);
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponse[1].success);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[1].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.log).toContain(assertItem.fittingResponse[1].log);
                 },imageFittingTimeout);
 
                 test(`Request the tiles for the model image`, async () => {
