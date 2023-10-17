@@ -180,7 +180,7 @@ let assertItem: AssertItem = {
             regionId: 1, 
             initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
             solver: 1,
-            offset: 0.5,
+            offset: 0.0001,
         },
     ],
     fittingResponse: [
@@ -243,7 +243,7 @@ let assertItem: AssertItem = {
             ],
             success: true,
             log: 'Gaussian fitting with 1 component',
-            offsetError: 0.04800288030158323,
+            offsetError: 0.2926514393559657,
             offsetValue: 0.000004103639426728544,
         },
     ],
