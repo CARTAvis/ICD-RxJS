@@ -285,16 +285,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 1040.8290607922947, y: 318.1424610658663}, 
-                    amp: 0.3378970051535388,
-                    fwhm: {x: -682.8189818197304, y: 7.346474069762189},
-                    pa: 338.2100075009321
+                    center: {x: 135.6039671553926, y: 279.3982090340097}, 
+                    amp: 0.2667783422848237,
+                    fwhm: {x: 0.00663387750450295, y: 0.25375495985499164},
+                    pa: 268.82156926726475
                 }, 
                 {
-                    center: {x: 324.35187056418823, y: 324.3484712737422}, 
-                    amp: 9.996963949794086,
-                    fwhm: {x: 29.40611215758184, y: 117.4975572537292},
-                    pa: 0.5352608476716524
+                    center: {x: 324.3548469822517, y: 324.3493131416585}, 
+                    amp: 9.996067823419335,
+                    fwhm: {x: 29.404786487293283, y: 117.49510621189104},
+                    pa: 0.5401367844577657
                 }
             ],
             resultErrors: [
@@ -538,10 +538,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseLinux[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseLinux[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(NaN);
-                    expect(response.resultErrors[0].center.y).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(NaN);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -566,10 +566,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseUbuntu2204[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(NaN);
-                    expect(response.resultErrors[0].center.y).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(NaN);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].amp, assertItem.precisionDigits);
