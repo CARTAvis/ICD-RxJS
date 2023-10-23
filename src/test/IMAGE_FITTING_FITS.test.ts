@@ -13,7 +13,7 @@ let imageFittingTimeout: number = config.timeout.imageFitting;
 interface AssertItem {
     register: CARTA.IRegisterViewer;
     filelist: CARTA.IFileListRequest;
-    fileOpen: CARTA.IOpenFile;
+    fileOpen: CARTA.IOpenFile[];
     addTilesReq: CARTA.IAddRequiredTiles[];
     setCursor: CARTA.ISetCursor;
     fittingRequest: CARTA.IFittingRequest[];
@@ -29,13 +29,22 @@ let assertItem: AssertItem = {
         clientFeatureFlags: 5,
     },
     filelist: { directory: testSubdirectory },
-    fileOpen: {
-        directory: testSubdirectory,
-        file: "M17_SWex-channel0-addOneGaussian.fits",
-        hdu: "0",
-        fileId: 0,
-        renderMode: CARTA.RenderMode.RASTER,
-    },
+    fileOpen: [
+        {
+            directory: testSubdirectory,
+            file: "M17_SWex-channel0-addOneGaussian.fits",
+            hdu: "0",
+            fileId: 0,
+            renderMode: CARTA.RenderMode.RASTER,
+        }, 
+        {
+            directory: testSubdirectory,
+            file: "M17_SWex-channel0-addOneGaussian-addBackgroundFlux.fits",
+            hdu: "0",
+            fileId: 0,
+            renderMode: CARTA.RenderMode.RASTER,
+        }
+    ],
     addTilesReq: [
         {
             fileId: 0,
@@ -180,7 +189,7 @@ let assertItem: AssertItem = {
             regionId: 1, 
             initialValues: [{amp: 10, center: {x: 320, y: 400}, fwhm: {x: 100, y: 50}, pa: 135}],
             solver: 1,
-            offset: 0.0001,
+            offset: 9,
         },
     ],
     fittingResponse: [
@@ -228,23 +237,25 @@ let assertItem: AssertItem = {
             resultValues: [
                 {
                     center: {x: 319.4995814506346, y: 399.4997816490029}, 
-                    amp: 9.999559472737332,
+                    amp: 9.999364723563854,
                     fwhm: {x: 170.63727122575295, y: 41.48182201673784},
-                    pa: 142.16266600131718
+                    pa: 142.16253087438943
                 }
             ],
             resultErrors: [
                 {
                     center: {x: 0.2839504902335992, y: 0.3552501801628741},
-                    amp: 0.06069917078489473,
+                    amp: 0.06070009999532681,
                     fwhm: {x: 1.0412323853467904, y: 0.25049418978226967},
-                    pa: 0.1264201180047695,
+                    pa: 0.1264221290078967,
                 }
             ],
+            integratedFluxValues: [ 3684.4455134450345 ],
+            integratedFluxErrors: [ 22.426663226537094 ],
             success: true,
             log: 'Gaussian fitting with 1 component',
-            offsetError: 0.2926514393559657,
-            offsetValue: 0.000004103639426728544,
+            offsetError: 0.002090941903577148,
+            offsetValue: 10.000099734013848,
         },
     ],
     precisionDigits: 2,
@@ -272,7 +283,7 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) with fits file.", () => {
+describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing Image Fitting (with and without fov) with fits file.`, () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async ()=> {
@@ -283,7 +294,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
         test(`Get basepath`, async () => {
             let fileListResponse = await msgController.getFileList("$BASE",0);
             basepath = fileListResponse.directory;
-            assertItem.fileOpen.directory = basepath + "/" + assertItem.filelist.directory;
+            assertItem.fileOpen[0].directory = basepath + "/" + assertItem.filelist.directory;
         });
 
         describe(`Go to "${assertItem.filelist.directory}" folder`, () => {
@@ -291,7 +302,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 test(`OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async () => {
                     msgController.closeFile(-1);
                     msgController.closeFile(0);
-                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen);
+                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
                     expect(OpenFileResponse.success).toEqual(true);
                     let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
                 }, openFileTimeout);
@@ -700,7 +711,138 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 });
             });
 
+            // describe(`(Case 6) Image fitting with setting region, sky offset and creating model image and residual image:`, ()=>{
+            //     test(`Send Image fitting request and match the result`, async()=>{
+            //         let imageFittingProgressArray4 = [];
+            //         let imageFittingProgressReponse4 : any;
+            //         let RegionHistogramDataResponse2: CARTA.RegionHistogramData[] = [];
+            //         let imageFittingProgressPromise4 = new Promise((resolve)=>{
+            //             msgController.fittingProgressStream.subscribe({
+            //                 next: (data) => {
+            //                     imageFittingProgressArray4.push(data)
+            //                     if (Math.round(data.progress) > 0.99) {
+            //                         msgController.histogramStream.pipe(take(2)).subscribe(data2 => {
+            //                             RegionHistogramDataResponse2.push(data2)
+            //                         })
+            //                         resolve(imageFittingProgressArray4)
+            //                     }
+            //                 }
+            //             })
+            //         });
+
+            //         let response = await msgController.requestFitting(assertItem.fittingRequest[7]);
+
+            //         imageFittingProgressReponse4 = await imageFittingProgressPromise4;
+            //         for (let i = 0; i < imageFittingProgressReponse4.length; i++) {
+            //             console.log('[Case 6] Image Fitting progress :', imageFittingProgressReponse4[i].progress);
+            //         }
+                    
+            //         let RegionHistogramDatafileID = [];
+            //         RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
+            //         expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
+            //         expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+
+            //         expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.x, assertItem.precisionDigits);
+            //         expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.y, assertItem.precisionDigits);
+            //         expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].amp, assertItem.precisionDigits);
+            //         expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].fwhm.x, assertItem.precisionDigits);
+            //         expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].fwhm.y, assertItem.precisionDigits);
+            //         expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].pa, assertItem.precisionDigits);
+            //         expect(response.success).toEqual(assertItem.fittingResponse[2].success);
+            //         expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].center.x, assertItem.precisionDigits);
+            //         expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].center.y, assertItem.precisionDigits);
+            //         expect(response.resultErrors[0].amp).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].amp, assertItem.precisionDigits);
+            //         expect(response.resultErrors[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].fwhm.x, assertItem.precisionDigits);
+            //         expect(response.resultErrors[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].fwhm.y, assertItem.precisionDigits);
+            //         expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponse[2].resultErrors[0].pa, assertItem.precisionDigits);
+            //         expect(response.log).toContain(assertItem.fittingResponse[2].log);
+            //         expect(response.offsetValue).toBeCloseTo(assertItem.fittingResponse[2].offsetValue, assertItem.precisionDigits);
+            //         expect(response.offsetError).toBeCloseTo(assertItem.fittingResponse[2].offsetError, assertItem.precisionDigits);
+            //     },imageFittingTimeout);
+
+            //     test(`Request the tiles for the model image`, async () => {
+            //         msgController.rasterSyncStream.pipe(take(4)).subscribe({
+            //             next: (data) => {
+            //                 RasterTileSyncArray.push(data)
+            //             }
+            //         })
+
+            //         msgController.addRequiredTiles(assertItem.addTilesReq[6]);
+            //         msgController.addRequiredTiles(assertItem.addTilesReq[7]);
+
+            //         let RasterTileArray = [];
+            //         let RasterTileSyncArray = [];
+            //         let RasterTileDataPromise = new Promise((resolve) => {
+            //             msgController.rasterTileStream.pipe(take(assertItem.addTilesReq[6].tiles.length + assertItem.addTilesReq[7].tiles.length)).subscribe({
+            //                 next: (data) => {
+            //                     RasterTileArray.push(data)
+            //                 },
+            //                 complete: () => {
+            //                     resolve(RasterTileArray)
+            //                 }
+            //             })
+            //         })
+
+            //         let RasterTileDataResponse: any = await RasterTileDataPromise;
+            //         let _countFileID999 = 0;
+            //         let _countFileID998 = 0;
+
+            //         RasterTileDataResponse.forEach(element => {
+            //             if (element.fileId == assertItem.addTilesReq[6].fileId) {
+            //                 _countFileID999++
+            //             } else if (element.fileId == assertItem.addTilesReq[7].fileId) {
+            //                 _countFileID998++
+            //             }
+            //         });
+            //         expect(_countFileID999).toEqual(assertItem.addTilesReq[6].tiles.length);
+            //         expect(_countFileID998).toEqual(assertItem.addTilesReq[7].tiles.length);
+            //     });
+            // });
+
+        });
+        test(`close file`, async () => {
+            msgController.closeFile(-1);
+        }, connectTimeout);
+
+        afterAll(() => msgController.closeConnection());
+    });
+});
+
+describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[1].file}":`, () => {
+    const msgController = MessageController.Instance;
+    describe(`Register a session`, () => {
+        beforeAll(async ()=> {
+            await msgController.connect(testServerUrl);
+        }, connectTimeout);
+
+        checkConnection();
+        test(`Get basepath`, async () => {
+            let fileListResponse = await msgController.getFileList("$BASE",0);
+            basepath = fileListResponse.directory;
+            assertItem.fileOpen[1].directory = basepath + "/" + assertItem.filelist.directory;
+        });
+        describe(`Go to "${assertItem.filelist.directory}" folder`, () => {
+            test(`OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async () => {
+                msgController.closeFile(-1);
+                msgController.closeFile(0);
+                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[1]);
+                expect(OpenFileResponse.success).toEqual(true);
+                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
+            }, openFileTimeout);
+
+            test(`return RASTER_TILE_DATA(Stream) and check total length `, async () => {
+                msgController.addRequiredTiles(assertItem.addTilesReq[0]);
+                let RasterTileData = await Stream(CARTA.RasterTileData,3); //RasterTileData * 1 + RasterTileSync * 2
+                msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
+                let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
+            }, openFileTimeout);
             describe(`(Case 6) Image fitting with setting region, sky offset and creating model image and residual image:`, ()=>{
+                test(`Set a region:`, async () => {
+                    let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion.fileId, assertItem.setRegion.regionId, assertItem.setRegion.regionInfo);
+                    expect(setRegionAckResponse.regionId).toEqual(1);
+                    expect(setRegionAckResponse.success).toEqual(true);
+                });
+
                 test(`Send Image fitting request and match the result`, async()=>{
                     let imageFittingProgressArray4 = [];
                     let imageFittingProgressReponse4 : any;
@@ -730,6 +872,8 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+
+                    console.log(response)
 
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.y, assertItem.precisionDigits);
@@ -787,12 +931,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(_countFileID998).toEqual(assertItem.addTilesReq[7].tiles.length);
                 });
             });
-
         });
-        test(`close file`, async () => {
-            msgController.closeFile(-1);
-        }, connectTimeout);
-
         afterAll(() => msgController.closeConnection());
     });
 });
