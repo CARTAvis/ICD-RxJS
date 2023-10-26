@@ -1,0 +1,73 @@
+{
+    "serverURL0": "ws://127.0.0.1:3006",	
+    "path": {
+        "root": ".",
+        "base": "$BASE",
+        "directory": ".",
+        "QA": "set_QA",
+        "casa_varients": "set_casaImageVarients",
+        "region": "set_QA/regionTest",
+        "performance": "set_QA_performance",
+        "catalogArtificial": "set_QA/carta_artificial_catalog",
+        "catalogLarge": "set_cosmos",
+        "save": "set_QA/tmp",
+        "save_rhel9": "set_QA/tmp/rhel9",
+        "concat_stokes": "set_StokesCube",
+        "large_files": "set_lotsFiles2",
+        "compressed_fits": "set_compressed_fits"
+    },
+    "performance": {
+        "openFile": 16000
+    },
+    "timeout": {
+        "connection": 1100,
+        "listFile": 1200,
+        "openFile": 8000,
+        "readFile": 6000,
+        "saveFile": 3000,
+        "readLargeImage": 90000,
+        "changeChannel": 3000,
+        "playImages": 8000,
+        "renderImages": 5000,
+        "contour": 30000,
+        "cubeHistogram": 160000,
+        "cancel": 5000,
+        "concurrent": 7000,
+        "messageEvent": 500,
+        "mouseEvent": 1000,
+        "cursor": 500,
+        "region": 5000,
+        "import": 500,
+        "export": 500,
+        "resume": 3000,
+        "spatralProfile": 500,
+        "spectralProfile": 2000,
+        "sleep": 3000,
+        "playAnimator": 30000,
+        "wasm": 3000,
+        "moment": 5300,
+        "momentLargeCube": 50000,
+        "spectralLineRequest": 3000,
+        "spectralLineRequestWide": 60000,
+        "openCatalogLarge": 100000,
+        "concatStokes": 3000,
+        "openLargeFiles": 60000,
+        "pvRequest": 60000,
+        "imageFitting": 100000,
+        "vectorOverlay": 6000,
+        "firstHistogramCancellation": 30000,
+        "dragManyNumberBins": 100000
+    },
+    "repeat": {
+        "concurrent": 10,
+        "cursor": 10,
+        "image": 10,
+        "animation": 100,
+        "setHistogram": 200
+    },
+    "log": {
+        "error": false,
+        "warning": true,
+        "event": false
+    }
+}
