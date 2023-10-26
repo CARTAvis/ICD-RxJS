@@ -82,5 +82,7 @@ describe("PERF_LOAD_IMAGE",()=>{
             }, openFileTimeout);
 
         });
+
+        afterAll(() => msgController.closeConnection());
     });
 });

@@ -17,7 +17,8 @@
         "compressed_fits": "set_compressed_fits"
     },
     "performance": {
-        "openFile": 16000
+        "openFile": 16000,
+        "readFile": 5000
     },
     "timeout": {
         "connection": 1100,
