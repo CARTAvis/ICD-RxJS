@@ -10,19 +10,12 @@ let openFileTimeout: number = config.performance.openFile;
 let readFileTimeout: number = config.timeout.readFile;
 
 interface AssertItem {
-    registerViewer: CARTA.IRegisterViewer;
-    filelist: CARTA.IFileListRequest;
     fileOpen: CARTA.IOpenFile[];
     initTilesReq: CARTA.IAddRequiredTiles;
     initSetCursor: CARTA.ISetCursor;
     initSpatialRequirements: CARTA.ISetSpatialRequirements;
 }
 let assertItem: AssertItem = {
-    registerViewer: {
-        sessionId: 0,
-        clientFeatureFlags: 5,
-    },
-    filelist: { directory: testSubdirectory },
     fileOpen: [
         {
             directory: testSubdirectory + "/cube_B",
