@@ -54,14 +54,14 @@ let assertItem: AssertItem = {
         {
             fileId: 0,
             referenceFileId: 0,
-            smoothingMode: 0,
+            smoothingMode: 1,
             smoothingFactor: 4,
             levels: [0.1, 0.36, 0.72, 1.09, 1.46],
             imageBounds: { xMin: 0, xMax: 8600, yMin: 0, yMax: 12200 },
             decimationFactor: 4,
             compressionLevel: 8,
             contourChunkSize: 100000,
-        }
+        },
     ],
 };
 
