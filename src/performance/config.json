@@ -18,7 +18,8 @@
     },
     "performance": {
         "openFile": 16000,
-        "readFile": 5000
+        "readFile": 5000,
+        "playContour": 12000
     },
     "timeout": {
         "connection": 1100,
