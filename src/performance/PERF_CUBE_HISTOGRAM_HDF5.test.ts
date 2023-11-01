@@ -21,7 +21,7 @@ let assertItem: AssertItem = {
     fileOpen: [
         {
             directory: testSubdirectory + "/cube_B",
-            file: "cube_B_09600_z00100.fits",
+            file: "cube_B_09600_z00100.hdf5",
             hdu: "0",
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
@@ -48,7 +48,7 @@ let assertItem: AssertItem = {
         regionId: -2,
         histograms: [{ channel: -2, numBins: -1 }],
     },
-    cubeHistogramTimeout: [300000],
+    cubeHistogramTimeout: [500],
 }
 
 let basepath: string;
