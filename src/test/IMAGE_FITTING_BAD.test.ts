@@ -81,16 +81,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 137.38653112387235, y: 279.4981126459642}, 
-                    amp: 0.4154252260972863,
-                    fwhm: {x: 4.621008222932152, y: 0.17833738966389817},
-                    pa: 269.8859608973245
+                    center: {x: 134.71901545254707, y: 280.5806035857425}, 
+                    amp: 0.32324384579078735,
+                    fwhm: {x: 0.11156025893790322, y: 0.24300739457731213},
+                    pa: 269.765289976127
                 }, 
                 {
-                    center: {x: 324.34275275632024, y: 324.34873891574335}, 
-                    amp: 9.99701377626984,
-                    fwhm: {x: 29.399853003901757, y: 117.47303700274334},
-                    pa: 0.5342821807532023
+                    center: {x: 324.3521444187749, y: 324.3491586869771}, 
+                    amp: 9.99634021928039,
+                    fwhm: {x: 29.398134914496783, y: 117.48901863716506},
+                    pa: 0.5342657009476233
                 }
             ],
             resultErrors: [
@@ -120,16 +120,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 126.24520373457794, y: 281.01284636648023}, 
-                    amp: -0.40320994041380914,
-                    fwhm: {x: -0.049009166755163314, y: -0.06419367220631492},
-                    pa: 262.52401250579095
+                    center: {x: 133.68963395314788, y: 279.4296558916677}, 
+                    amp: 0.3051940682010388,
+                    fwhm: {x: 0.9918277059980043, y: 0.10724962636867277},
+                    pa: 270.34921504256135
                 }, 
                 {
-                    center: {x: 324.3471436722692, y: 324.3485568907615}, 
-                    amp: 9.99626612349591,
-                    fwhm: {x: 29.397309361478744, y: 117.50616421197844},
-                    pa: 0.5159782022909046
+                    center: {x: 324.35325414270676, y: 324.3486351500509}, 
+                    amp: 9.998129592410757,
+                    fwhm: {x: 29.401693377698905, y: 117.46523145735479},
+                    pa: 0.5400323304359984
                 }
             ],
             resultErrors: [
@@ -153,16 +153,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 131.73852523177715, y: 279.49700153311375}, 
-                    amp: 0.2702911043209064,
-                    fwhm: {x: 3.3916396328623564, y: 0.16342490216882044},
-                    pa: 269.38597981013845
+                    center: {x: 133.4184530167203, y: 280.52502826230335}, 
+                    amp: 0.25241074009104447,
+                    fwhm: {x: 0.24917287151473577, y: 0.20202155323899262},
+                    pa: 271.65734710218123
                 }, 
                 {
-                    center: {x: 324.3522354755093, y: 324.34874853324305}, 
-                    amp: 9.997657580387253,
-                    fwhm: {x: 29.4002254920355, y: 117.48566674597177},
-                    pa: 0.5210121850843422
+                    center: {x: 324.3500898741599, y: 324.34882505943415}, 
+                    amp: 9.998730466240248,
+                    fwhm: {x: 29.40086746322177, y: 117.48600516164915},
+                    pa: 0.5286898742437943
                 }
             ],
             resultErrors: [
@@ -186,16 +186,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 135.48814745127947, y: 280.4081908832589}, 
-                    amp: 0.39565466359077145,
-                    fwhm: {x: 1.8422383959469286, y: 0.01776596312117093},
-                    pa: 269.94827629559535
+                    center: {x: 136.76553013744936, y: 279.50635164812815}, 
+                    amp: 0.36574294260117873,
+                    fwhm: {x: 1.1387893241134832, y: 0.18890294966851637},
+                    pa: 270.8147167298713
                 }, 
                 {
-                    center: {x: 324.34745973151905, y: 324.3486697952626}, 
-                    amp: 9.996599026123887,
-                    fwhm: {x: 29.396858662561396, y: 117.48132877819968},
-                    pa: 0.5157058198280735
+                    center: {x: 324.34924142407914, y: 324.34970453785337}, 
+                    amp: 9.997706868406881,
+                    fwhm: {x: 29.3988719098713, y: 117.49522726645462},
+                    pa: 0.5372354225396865
                 }
             ],
             resultErrors: [
@@ -219,16 +219,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 131.73852523177715, y: 279.49700153311375}, 
-                    amp: 0.2702911043209056,
-                    fwhm: {x: 3.3916396328623506, y: 0.16342490216882155},
-                    pa: 269.38597981013845
+                    center: {x: 133.4184530167203, y: 280.52502826230335}, 
+                    amp: 0.25241074009104547,
+                    fwhm: {x: 0.24917287151474088, y: 0.20202155323899124},
+                    pa: 271.6573471021813
                 }, 
                 {
-                    center: {x: 324.3522354755093, y: 324.34874853324305}, 
-                    amp: 9.997657580387251,
-                    fwhm: {x: 29.4002254920355, y: 117.48566674597177},
-                    pa: 0.5210121850843422
+                    center: {x: 324.35415486029046, y: 324.3493042512026}, 
+                    amp: 9.996523847544967,
+                    fwhm: {x: 29.402929410267397, y: 117.47664910355407},
+                    pa: 0.5456977999242042
                 }
             ],
             resultErrors: [
@@ -252,16 +252,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 131.22830254633894, y: 279.5204268875009}, 
-                    amp: 0.3893859590687304,
-                    fwhm: {x: -0.3077265162957777, y: 0.17292286190463807},
-                    pa: 269.27636311071603
+                    center: {x: 136.37672823927974, y: 279.5037991104328}, 
+                    amp: 0.2904618522435351,
+                    fwhm: {x: 1.9853484080837196, y: 0.146547210359357},
+                    pa: 269.45997949821316
                 }, 
                 {
-                    center: {x: 324.3553142692332, y: 324.3493844237152}, 
-                    amp: 9.995244552415132,
-                    fwhm: {x: 29.40426103098145, y: 117.49294428949506},
-                    pa: 0.5366536550079546
+                    center: {x: 324.3496961381463, y: 324.34883759659834}, 
+                    amp: 9.997264701948565,
+                    fwhm: {x: 29.393895344533018, y: 117.4720630755205},
+                    pa: 0.536583218147941
                 }
             ],
             resultErrors: [
@@ -285,16 +285,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 1040.8290607922947, y: 318.1424610658663}, 
-                    amp: 0.3378970051535388,
-                    fwhm: {x: -682.8189818197304, y: 7.346474069762189},
-                    pa: 338.2100075009321
+                    center: {x: 135.6039671553926, y: 279.3982090340097}, 
+                    amp: 0.2667783422848237,
+                    fwhm: {x: 0.00663387750450295, y: 0.25375495985499164},
+                    pa: 268.82156926726475
                 }, 
                 {
-                    center: {x: 324.35187056418823, y: 324.3484712737422}, 
-                    amp: 9.996963949794086,
-                    fwhm: {x: 29.40611215758184, y: 117.4975572537292},
-                    pa: 0.5352608476716524
+                    center: {x: 324.3548469822517, y: 324.3493131416585}, 
+                    amp: 9.996067823419335,
+                    fwhm: {x: 29.404786487293283, y: 117.49510621189104},
+                    pa: 0.5401367844577657
                 }
             ],
             resultErrors: [
@@ -379,36 +379,36 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
         describe(`(Case 1) Image fitting: exceeded max number of iterations`, ()=>{
             test(`Send Image fitting request and match the result`, async()=>{
                 let response = await msgController.requestFitting(assertItem.fittingRequest[0]);
-                console.log(MacOSNumber);
-                console.log(platformOS);
+                // console.log(MacOSNumber);
+                // console.log(platformOS);
 
-                console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
-                console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
-                console.log('response.resultValues[0].amp', response.resultValues[0].amp);
-                console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
-                console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
-                console.log('response.resultValues[0].pa', response.resultValues[0].pa);
-                console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
-                console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
-                console.log('response.resultValues[1].amp', response.resultValues[1].amp);
-                console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
-                console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
-                console.log('response.resultValues[1].pa', response.resultValues[1].pa);
-                console.log('response.success', response.success);
+                // console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
+                // console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
+                // console.log('response.resultValues[0].amp', response.resultValues[0].amp);
+                // console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
+                // console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
+                // console.log('response.resultValues[0].pa', response.resultValues[0].pa);
+                // console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
+                // console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
+                // console.log('response.resultValues[1].amp', response.resultValues[1].amp);
+                // console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
+                // console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
+                // console.log('response.resultValues[1].pa', response.resultValues[1].pa);
+                // console.log('response.success', response.success);
 
-                console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
-                console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
-                console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
-                console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
-                console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
-                console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
-                console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
-                console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
-                console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
-                console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
+                // console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
+                // console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
+                // console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
+                // console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
+                // console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
+                // console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
+                // console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
+                // console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
+                // console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
+                // console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
                 
-                console.log('response.log', response.log);
-                console.log('response.message', response.message);
+                // console.log('response.log', response.log);
+                // console.log('response.message', response.message);
 
                 if (MacOSNumber === "11.6.1" && platformOS === 'macOS') {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultValues[0].center.x, assertItem.precisionDigits);
@@ -538,10 +538,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseLinux[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseLinux[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(NaN);
-                    expect(response.resultErrors[0].center.y).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(NaN);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -566,10 +566,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseUbuntu2204[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(NaN);
-                    expect(response.resultErrors[0].center.y).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(NaN);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(NaN);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].amp, assertItem.precisionDigits);
