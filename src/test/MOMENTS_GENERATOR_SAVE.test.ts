@@ -142,7 +142,7 @@ describe("MOMENTS_GENERATOR_FITS: Testing moments generator for a given region o
             for (let i = 0; i < assertItem.saveFile.length; i++) {
                 for (let j = 0; j < assertItem.saveFile[i].length; j++) {
                     test(`Save moment generated image ${assertItem.saveFile[i][j].outputFileName}`, async () => {
-                        assertItem.saveFile[i][j].outputFileDirectory = basepath + "/" + assertItem.saveFile[i][j].outputFileDirectory
+                        assertItem.saveFile[i][j].outputFileDirectory = basepath + "/" + saveSubdirectory;
                         let saveFileResponse = await msgController.saveFile(FileId[j], assertItem.saveFile[i][j].outputFileDirectory, assertItem.saveFile[i][j].outputFileName, assertItem.saveFile[i][j].outputFileType);
                         saveFileAck.push(saveFileResponse);
                         await sleep(200);
