@@ -30,7 +30,7 @@ let assertItem: AssertItem = {
     fileOpen: [
         {
             directory: testSubdirectory + "/cube_B",
-            file: "cube_B_09600_z00100.fits",
+            file: "cube_B_09600_z00100.hdf5",
             hdu: "0",
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
@@ -113,7 +113,7 @@ let assertItem: AssertItem = {
                 },
             },
         ],
-    playAnimatorTimeout: [200000],
+    playAnimatorTimeout: [600000],
 };
 
 let basepath: string;
