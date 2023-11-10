@@ -112,7 +112,7 @@ describe("PERF_LOAD_IMAGE",()=>{
             }, readRegionTimeout);
 
             test(`(Step 3)"${assertItem.fileOpen[0].file}" SPECTRAL_PROFILE_DATA stream should arrive within ${spectralProfileTimeout} ms`, async () => {
-                await msgController.setSpectralRequirements(assertItem.setSpectralRequirements[0]);
+                msgController.setSpectralRequirements(assertItem.setSpectralRequirements[0]);
                 let SpectralProfileDataStreamPromise = new Promise((resolve) => {
                     msgController.spectralProfileStream.subscribe({
                         next: (data) => {
