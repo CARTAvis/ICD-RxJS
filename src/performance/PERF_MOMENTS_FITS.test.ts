@@ -99,23 +99,6 @@ describe("PERF_MOMENT_GENERATOR",()=>{
                 let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
             }, openFileTimeout);
 
-            // let acktemp: AckStream;
-            //         test(`(Step 2)"${assertItem.openFile[key].file}" Set SET_SPECTRAL_REQUIREMENTS, the responses should arrive within ${setSpectralReqTimeout} ms`, async () => {
-            //             await Connection.send(CARTA.AddRequiredTiles, assertItem.addTilesReq);
-            //             await Connection.send(CARTA.SetCursor, assertItem.setCursor);
-            //             acktemp = await Connection.streamUntil((type, data) => type == CARTA.RasterTileSync ? data.endSync : false);
-            //             expect(acktemp.RasterTileSync.length).toEqual(2); //RasterTileSync: start & end
-            //             expect(acktemp.RasterTileData.length).toEqual(assertItem.addTilesReq.tiles.length); //only 1 Tile returned
-
-            //             await Connection.send(CARTA.SetSpatialRequirements, assertItem.setSpatialReq);
-            //             await Connection.receive(CARTA.SpatialProfileData);
-                        
-            //             await Connection.send(CARTA.SetSpectralRequirements, assertItem.setSpectralRequirements);
-            //             let temp = await Connection.streamUntil((type,data) => type == CARTA.SpectralProfileData && data.progress == 1)
-            //             // let temp = await Connection.receive(CARTA.SpectralProfileData);
-            //             // expect(temp.progress).toEqual(1);
-            //         }, readFileTimeout);
-
             test(`(Step 2)"${assertItem.openFile[0].file}" Set SET_SPECTRAL_REQUIREMENTS, the responses should arrive within ${setSpectralReqTimeout} ms`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq);
                 let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.addTilesReq.tiles.length + 2);
@@ -128,8 +111,71 @@ describe("PERF_MOMENT_GENERATOR",()=>{
 
                 expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
 
-                await msgController.setSpectralRequirements(assertItem.setSpectralRequirements[0]);
+                msgController.setSpectralRequirements(assertItem.setSpectralRequirements);
+                let SpectralProfileDataStreamPromise = new Promise((resolve) => {
+                    msgController.spectralProfileStream.subscribe({
+                        next: (data) => {
+                            if (data.progress === 1) {
+                                resolve(data)
+                            }
+                        }
+                    })
+                })
+                let SpectralProfileDataResponse = await SpectralProfileDataStreamPromise as CARTA.SpectralProfileData;
+                expect(SpectralProfileDataResponse.progress).toEqual(1);
             }, setSpectralReqTimeout);
+
+            let FileId: number[] = [];
+            let regionHistogramDataArray = [];
+            let momentResponse: any;
+            let regionHistogramDataResponse: any;
+            describe(`Moment generator`, () => {
+                // let ack: AckStream;
+                test(`(Step 3)"${assertItem.openFile[0].file}": Receive a series of moment progress within ${momentTimeout}ms`, async () => {
+                    let regionHistogramDataPromise = new Promise((resolve)=>{
+                        msgController.histogramStream.subscribe({
+                            next: (data) => {
+                                regionHistogramDataArray.push(data)
+                                resolve(regionHistogramDataArray)
+                            }
+                        })
+                    });
+                    momentResponse = await msgController.requestMoment(assertItem.momentRequest);
+                    regionHistogramDataResponse = await regionHistogramDataPromise;
+                    FileId = regionHistogramDataResponse.map(data => data.fileId);
+                }, momentTimeout);
+
+                test(`Receive ${assertItem.momentRequest.moments.length} REGION_HISTOGRAM_DATA`,()=>{
+                    expect(FileId.length).toEqual(assertItem.momentRequest.moments.length);
+                });
+
+                test(`Assert MomentResponse.success = true`,()=>{
+                    expect(momentResponse.success).toBe(true);
+                });
+
+                test(`Assert MomentResponse.openFileAcks.length = ${assertItem.momentRequest.moments.length}`,()=>{
+                    expect(momentResponse.openFileAcks.length).toEqual(assertItem.momentRequest.moments.length);
+                });
+
+                test(`Assert all MomentResponse.openFileAcks[].success = true`,()=>{
+                    momentResponse.openFileAcks.map(ack => {
+                        expect(ack.success).toBe(true);
+                    });
+                });
+
+                test(`Assert all openFileAcks[].fileId > 0`,()=>{
+                    momentResponse.openFileAcks.map(ack => {
+                        expect(ack.fileId).toBeGreaterThan(0);
+                    });
+                });
+
+                test(`Assert openFileAcks[].fileInfo.name`,()=>{
+                    momentResponse.openFileAcks.map((ack,index)=>{
+                        expect(ack.fileInfo.name).toEqual(assertItem.openFile[0].file + ".moment." + momentName[index])
+                    });
+                });
+
+            });
 
         });
 
