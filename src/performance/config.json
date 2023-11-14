@@ -19,7 +19,9 @@
     "performance": {
         "openFile": 16000,
         "readFile": 5000,
-        "playContour": 12000
+        "playContour": 12000,
+        "setSpectralReqTimeout": 5000,
+        "momentTimeout": 400000
     },
     "timeout": {
         "connection": 1100,

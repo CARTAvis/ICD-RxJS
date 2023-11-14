@@ -25,7 +25,7 @@ let assertItem: AssertItem = {
     openFile: [
        {
            directory: testSubdirectory,
-           file: "S255_IR_sci.spw25.cube.I.pbcor.fits",
+           file: "S255_IR_sci.spw25.cube.I.pbcor.image",
            hdu: "0",
            fileId: 0,
            renderMode: CARTA.RenderMode.RASTER,
