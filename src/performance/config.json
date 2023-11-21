@@ -21,7 +21,8 @@
         "readFile": 5000,
         "playContour": 12000,
         "setSpectralReqTimeout": 5000,
-        "momentTimeout": 400000
+        "momentTimeout": 400000,
+        "pvTimeout": 200000
     },
     "timeout": {
         "connection": 1100,
