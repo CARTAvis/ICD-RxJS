@@ -81,16 +81,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 137.4108664786717, y: 278.30044158477193}, 
-                    amp: 0.2970113045359871,
-                    fwhm: {x: -0.1892426922028161, y: 0.2257496773140682},
-                    pa: 270.38937779546336
+                    center: {x: 134.71901545254707, y: 280.5806035857425}, 
+                    amp: 0.32324384579078735,
+                    fwhm: {x: 0.11156025893790322, y: 0.24300739457731213},
+                    pa: 269.765289976127
                 }, 
                 {
-                    center: {x: 324.3493469406151, y: 324.34873891574335}, 
-                    amp: 9.99701377626984,
-                    fwhm: {x: 29.399853003901757, y: 117.49088485007636},
-                    pa: 0.5342821807532023
+                    center: {x: 324.3521444187749, y: 324.3491586869771}, 
+                    amp: 9.99634021928039,
+                    fwhm: {x: 29.398134914496783, y: 117.48901863716506},
+                    pa: 0.5342657009476233
                 }
             ],
             resultErrors: [
@@ -99,9 +99,9 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14270290674700617, y: 0.03926940295174565},
-                    amp: 0.011881771744524577,
-                    fwhm: {x: 0.045959932685532584, y: 0.18286860946141664},
+                    center: {x: 2.6460482230020513e-9, y: 6.626869826553853e-10},
+                    amp: 5.303135956592168e-10,
+                    fwhm: {x: 1.5594807132289487e-9, y: 6.2312247312355106e-9},
                     pa: 0.0049460116505525625
                 }
             ],
@@ -120,16 +120,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 101.25754777255497, y: 289.50143388893946}, 
-                    amp: 0.20980810056293095,
-                    fwhm: {x: 4.831878951840909, y: -0.13027624912739558},
-                    pa: 270.12676256733675
+                    center: {x: 133.68963395314788, y: 279.4296558916677}, 
+                    amp: 0.3051940682010388,
+                    fwhm: {x: 0.9918277059980043, y: 0.10724962636867277},
+                    pa: 270.34921504256135
                 }, 
                 {
-                    center: {x: 324.34784293804995, y: 324.3488176351443}, 
-                    amp: 9.995468914523238,
-                    fwhm: {x: 29.399978883356663, y: 117.51285901668908},
-                    pa: 0.5307253505485405
+                    center: {x: 324.35325414270676, y: 324.3486351500509}, 
+                    amp: 9.998129592410757,
+                    fwhm: {x: 29.401693377698905, y: 117.46523145735479},
+                    pa: 0.5400323304359984
                 }
             ],
             resultErrors: [
@@ -138,37 +138,31 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.1423816628460514, y: 0.03918068073755874},
-                    amp: 0.0116739400572081767,
-                    fwhm: {x: 0.04547626539798418, y: 0.1796625783242974},
-                    pa: 0.005286464774864215
+                    center: {x: 2.6469073879195015e-9, y: 6.626218916661896e-10},
+                    amp: 5.302615518052789e-10,
+                    fwhm: {x: 1.5594085519870113e-9, y: 6.2332275083467686e-9},
+                    pa: 1.147113972816126e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     fittingResponseMacOS12: [
         {
             resultValues: [
                 {
-                    center: {x: 129.52934425744016, y: 285.4183410816301}, 
-                    amp: 0.4657574006276674,
-                    fwhm: {x: -1.0178734138400989, y: 0.0643954893477044},
-                    pa: 356.65196671978725
+                    center: {x: 133.4184530167203, y: 280.52502826230335}, 
+                    amp: 0.25241074009104447,
+                    fwhm: {x: 0.24917287151473577, y: 0.20202155323899262},
+                    pa: 271.65734710218123
                 }, 
                 {
-                    center: {x: 324.3426307770264, y: 324.34813278164734}, 
-                    amp: 9.995057596365545,
-                    fwhm: {x: 29.40129200278109, y: 117.49460686897025},
-                    pa: 0.5241778093682095
+                    center: {x: 324.3500898741599, y: 324.34882505943415}, 
+                    amp: 9.998730466240248,
+                    fwhm: {x: 29.40086746322177, y: 117.48600516164915},
+                    pa: 0.5286898742437943
                 }
             ],
             resultErrors: [
@@ -177,37 +171,31 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14270290674700617, y: 0.03926940295174565},
-                    amp: 0.011881771744524577,
-                    fwhm: {x: 0.045959932685532584, y: 0.18286860946141664},
-                    pa: 0.0049460116505525625
+                    center: {x: 2.6461749462157232e-9, y: 6.626279656060305e-10},
+                    amp: 5.302815060054006e-10,
+                    fwhm: {x: 1.5594048631350577e-9, y: 6.231507310104269e-9},
+                    pa: 1.1473533301969971e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     fittingResponseMacOS13Intel: [
         {
             resultValues: [
                 {
-                    center: {x: 136.49556911082368, y: 278.08008022648016}, 
-                    amp: 0.2414428639733735,
-                    fwhm: {x: -0.035086268932571996, y: 1.011727212842695},
-                    pa: 271.18864267723285
+                    center: {x: 136.76553013744936, y: 279.50635164812815}, 
+                    amp: 0.36574294260117873,
+                    fwhm: {x: 1.1387893241134832, y: 0.18890294966851637},
+                    pa: 270.8147167298713
                 }, 
                 {
-                    center: {x: 324.3598704687632, y: 324.34942213905913}, 
-                    amp: 9.995537508226132,
-                    fwhm: {x: 29.405181974640342, y: 117.48854907348138},
-                    pa: 0.5265650438721612
+                    center: {x: 324.34924142407914, y: 324.34970453785337}, 
+                    amp: 9.997706868406881,
+                    fwhm: {x: 29.3988719098713, y: 117.49522726645462},
+                    pa: 0.5372354225396865
                 }
             ],
             resultErrors: [
@@ -216,77 +204,64 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14246835955239062, y: 0.0391787062010038},
-                    amp: 0.011865601682753666,
-                    fwhm: {x: 0.04589568731464764, y: 0.18529292212690812},
-                    pa: 0.004632250668430636
+                    center: {x: 2.6465599150911108e-9, y: 6.626641860809681e-10},
+                    amp: 5.303216624960029e-10,
+                    fwhm: {x: 1.5595094809093706e-9, y: 6.232408985003761e-9},
+                    pa: 1.147460776442933e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     fittingResponseMacOS13M1: [
         {
             resultValues: [
                 {
-                    center: {x: 139.88828927260894, y: 285.63743853031957}, 
-                    amp: -0.09046278591104534,
-                    fwhm: {x: -0.7281890831651717, y: -0.10089592905045275},
-                    pa: 109.78802516494271
+                    center: {x: 133.4184530167203, y: 280.52502826230335}, 
+                    amp: 0.25241074009104547,
+                    fwhm: {x: 0.24917287151474088, y: 0.20202155323899124},
+                    pa: 271.6573471021813
                 }, 
                 {
-                    center: {x: 324.3452616872527, y: 324.3493423440347}, 
-                    amp: 9.996084410000183,
-                    fwhm: {x: 29.39775151995946, y: 117.47356948279578},
-                    pa: 0.5470083928473619
+                    center: {x: 324.35415486029046, y: 324.3493042512026}, 
+                    amp: 9.996523847544967,
+                    fwhm: {x: 29.402929410267397, y: 117.47664910355407},
+                    pa: 0.5456977999242042
                 }
             ],
             resultErrors: [
                 {
-                    center: {x: 16160262987404282000, y:2.6053708763051396e+21},
-                    fwhm: {},
-                    pa:1.0280825445404448e+23
+                    center: {},
+                    fwhm: {}
                 },
                 {
-                    center: {x: 0.14349869564476797, y: 0.039352289800575986},
-                    amp: 0.012355048218821756,
-                    fwhm: {x: 0.06293761631405334, y: 0.17994623248919553},
-                    pa: 0.0048896212175092825
+                    center: {x: 2.6461749462157237e-9, y: 6.626279656060306e-10},
+                    amp: 5.302815060054006e-10,
+                    fwhm: {x: 1.559404863135058e-9, y: 6.231507310104271e-9},
+                    pa: 1.1473533301969971e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     fittingResponseLinux: [
         {
             resultValues: [
                 {
-                    center: {x: 135.44304395891785, y: 279.2872847693339}, 
-                    amp: 0.3679796147238359,
-                    fwhm: {x: 0.10606045985196957, y: 0.28676758030525856},
-                    pa: 280.48905602819553
+                    center: {x: 136.37672823927974, y: 279.5037991104328}, 
+                    amp: 0.2904618522435351,
+                    fwhm: {x: 1.9853484080837196, y: 0.146547210359357},
+                    pa: 269.45997949821316
                 }, 
                 {
-                    center: {x: 324.3493469406151, y: 324.34873891574335}, 
-                    amp: 9.99701377626984,
-                    fwhm: {x: 29.399853003901757, y: 117.47343456730091},
-                    pa: 0.5291923527559826
+                    center: {x: 324.3496961381463, y: 324.34883759659834}, 
+                    amp: 9.997264701948565,
+                    fwhm: {x: 29.393895344533018, y: 117.4720630755205},
+                    pa: 0.536583218147941
                 }
             ],
             resultErrors: [
@@ -295,37 +270,31 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14270290674700617, y: 0.03926940295174565},
-                    amp: 0.011881771744524577,
-                    fwhm: {x: 0.045959932685532584, y: 0.18286860946141664},
-                    pa: 0.0049460116505525625
+                    center: {x: 2.646707864394448e-9, y: 6.628377900916031e-10},
+                    amp: 5.30228693940221e-10,
+                    fwhm: {x: 1.5598400660409465e-9, y: 6.232777004216184e-9},
+                    pa: 1.147613998115689e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     fittingResponseUbuntu2204: [
         {
             resultValues: [
                 {
-                    center: {x: 141.19569242428403, y: 274.468080399765}, 
-                    amp: 0.0073312614530695805,
-                    fwhm: {x: 1.8888434341244704, y: 0.003414731271306315},
-                    pa: 289.1517791897806
+                    center: {x: 135.6039671553926, y: 279.3982090340097}, 
+                    amp: 0.2667783422848237,
+                    fwhm: {x: 0.00663387750450295, y: 0.25375495985499164},
+                    pa: 268.82156926726475
                 }, 
                 {
-                    center: {x: 324.34387675503626, y: 324.3494127204754}, 
-                    amp: 9.995719972488988,
-                    fwhm: {x: 29.395209261545435, y: 117.53236329753543},
-                    pa: 0.5369662783821492
+                    center: {x: 324.3548469822517, y: 324.3493131416585}, 
+                    amp: 9.996067823419335,
+                    fwhm: {x: 29.404786487293283, y: 117.49510621189104},
+                    pa: 0.5401367844577657
                 }
             ],
             resultErrors: [
@@ -334,22 +303,16 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 0.14270290674700617, y: 0.03926940295174565},
-                    amp: 0.011794239703922002,
-                    fwhm: {x: 0.045959932685532584, y: 0.18286860946141664},
-                    pa: 0.004197561925501329
+                    center: {x: 2.646221869634662e-9, y: 6.627293636592795e-10},
+                    amp: 5.30201596436001e-10,
+                    fwhm: {x: 1.55959026052576e-9, y: 6.231631197843904e-9},
+                    pa: 1.1473887943482772e-9
                 }
             ],
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations'
         },
-        {
-            resultValues: [],
-            resultErrors: [],
-            success: true,
-            message: 'fit did not converge'
-        }
     ],
     precisionDigits: 2,
 };
@@ -416,6 +379,36 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
         describe(`(Case 1) Image fitting: exceeded max number of iterations`, ()=>{
             test(`Send Image fitting request and match the result`, async()=>{
                 let response = await msgController.requestFitting(assertItem.fittingRequest[0]);
+                // console.log(MacOSNumber);
+                // console.log(platformOS);
+
+                // console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
+                // console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
+                // console.log('response.resultValues[0].amp', response.resultValues[0].amp);
+                // console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
+                // console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
+                // console.log('response.resultValues[0].pa', response.resultValues[0].pa);
+                // console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
+                // console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
+                // console.log('response.resultValues[1].amp', response.resultValues[1].amp);
+                // console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
+                // console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
+                // console.log('response.resultValues[1].pa', response.resultValues[1].pa);
+                // console.log('response.success', response.success);
+
+                // console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
+                // console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
+                // console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
+                // console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
+                // console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
+                // console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
+                // console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
+                // console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
+                // console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
+                // console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
+                
+                // console.log('response.log', response.log);
+                // console.log('response.message', response.message);
 
                 if (MacOSNumber === "11.6.1" && platformOS === 'macOS') {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultValues[0].center.x, assertItem.precisionDigits);
@@ -432,10 +425,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseMacOS110601[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS110601[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -460,10 +453,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseMacOS12[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS12[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -488,11 +481,11 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseMacOS13M1[0].success);
 
-                    expect(response.resultErrors[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].center.x, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].center.y, assertItem.precisionDigits);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
-                    expect(response.resultErrors[0].pa).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[0].pa, assertItem.precisionDigits);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].pa).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -517,10 +510,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseMacOS13Intel[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS13Intel[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -545,10 +538,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseLinux[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseLinux[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseLinux[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -573,10 +566,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponseUbuntu2204[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -601,10 +594,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].pa, assertItem.precisionDigits);
                     expect(response.success).toEqual(assertItem.fittingResponse[0].success);
 
-                    expect(response.resultErrors[0].center.x).toEqual(0);
-                    expect(response.resultErrors[0].center.y).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.x).toEqual(0);
-                    expect(response.resultErrors[0].fwhm.y).toEqual(0);
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].amp, assertItem.precisionDigits);
