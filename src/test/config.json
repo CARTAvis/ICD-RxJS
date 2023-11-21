@@ -41,7 +41,7 @@
         "spatralProfile": 500,
         "spectralProfile": 2000,
         "sleep": 3000,
-        "playAnimator": 20000,
+        "playAnimator": 30000,
         "wasm": 3000,
         "moment": 5300,
         "momentLargeCube": 50000,
