@@ -4,7 +4,7 @@ import { MessageController } from "./MessageController";
 import config from "./config.json";
 
 let testServerUrl = config.serverURL0;
-let testSubdirectory = config.path.QA;
+let testSubdirectory = config.path.performance;
 let connectTimeout = config.timeout.connection;
 let openFileTimeout = config.performance.openFile;
 let setSpectralReqTimeout = config.performance.setSpectralReqTimeout;
