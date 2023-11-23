@@ -24,7 +24,7 @@ let assertItem: AssertItem = {
     precisionDigit: 4,
     openFile: [
        {
-           directory: testSubdirectory,
+           directory: testSubdirectory + "/cube_B",
            file: "S255_IR_sci.spw25.cube.I.pbcor.image",
            hdu: "0",
            fileId: 0,
