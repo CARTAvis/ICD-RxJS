@@ -27,26 +27,25 @@ interface AssertItem {
     ConcatReqQUV: CARTA.IConcatStokesFiles;
     RegionHistogramDataResponseQUV: CARTA.IRegionHistogramData;
     ConcatResponse: ConcatStokesFilesAckExt[];
-    precisionDigits: number;
 };
 
 let assertItem: AssertItem = {
     filelist: { directory: testSubdirectory },
     fileInfoReq:[
         {
-            file:"IRCp10216_sci.spw0.cube.I.manual.pbcor.fits",
+            file:"IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits",
             hdu: "",
         },
         {
-            file:"IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits",
+            file:"IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits",
             hdu: "",
         },
         {
-            file:"IRCp10216_sci.spw0.cube.U.manual.pbcor.fits",
+            file:"IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits",
             hdu: "",
         },
         {
-            file:"IRCp10216_sci.spw0.cube.V.manual.pbcor.fits",
+            file:"IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits",
             hdu: "",
         },
     ],
@@ -57,25 +56,25 @@ let assertItem: AssertItem = {
             {
                 directory: testSubdirectory,
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
                 polarizationType: 4
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
                 polarizationType: 3
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
                 polarizationType: 2
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
                 polarizationType: 1
             },
         ],
@@ -101,13 +100,13 @@ let assertItem: AssertItem = {
             {
                 directory: testSubdirectory,
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
                 polarizationType: 4
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
                 polarizationType: 1
             },
         ],
@@ -133,13 +132,13 @@ let assertItem: AssertItem = {
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
                 polarizationType: 3
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
                 polarizationType: 2
             },
         ],
@@ -166,19 +165,19 @@ let assertItem: AssertItem = {
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
                 polarizationType: 3
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
                 polarizationType: 2
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
                 polarizationType: 1
             },
         ],
@@ -204,19 +203,19 @@ let assertItem: AssertItem = {
             {
                 directory: testSubdirectory,
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
                 polarizationType: 4
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
                 polarizationType: 3
             },
             {
                 directory: testSubdirectory, 
                 hdu:"",
-                file:'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
+                file:'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
                 polarizationType: 2
             },
         ],
@@ -241,7 +240,7 @@ let assertItem: AssertItem = {
         openFileAck: {
             success: true,
             fileInfo: {
-                name:"IRCp10216_sci.spw0.cube.hypercube_IQUV.manual.pbcor.fits"
+                name:"IRCp10216_sci.spw0.cube.hypercube_IQUV.dropdeg.manual.pbcor.fits"
             },
             fileInfoExtended:{
                 depth: 480,
@@ -258,7 +257,7 @@ let assertItem: AssertItem = {
         openFileAck: {
             success: true,
             fileInfo: {
-                name:"IRCp10216_sci.spw0.cube.hypercube_IV.manual.pbcor.fits"
+                name:"IRCp10216_sci.spw0.cube.hypercube_IV.dropdeg.manual.pbcor.fits"
             },
             fileInfoExtended:{
                 depth: 480,
@@ -275,7 +274,7 @@ let assertItem: AssertItem = {
         openFileAck: {
             success: true,
             fileInfo: {
-                name:"IRCp10216_sci.spw0.cube.hypercube_QU.manual.pbcor.fits"
+                name:"IRCp10216_sci.spw0.cube.hypercube_QU.dropdeg.manual.pbcor.fits"
             },
             fileInfoExtended:{
                 depth: 480,
@@ -292,7 +291,7 @@ let assertItem: AssertItem = {
         openFileAck: {
             success: true,
             fileInfo: {
-                name:"IRCp10216_sci.spw0.cube.hypercube_IQU.manual.pbcor.fits"
+                name:"IRCp10216_sci.spw0.cube.hypercube_IQU.dropdeg.manual.pbcor.fits"
             },
             fileInfoExtended:{
                 depth: 480,
@@ -309,7 +308,7 @@ let assertItem: AssertItem = {
         openFileAck: {
             success: true,
             fileInfo: {
-                name:"IRCp10216_sci.spw0.cube.hypercube_QUV.manual.pbcor.fits"
+                name:"IRCp10216_sci.spw0.cube.hypercube_QUV.dropdeg.manual.pbcor.fits"
             },
             fileInfoExtended:{
                 depth: 480,
@@ -321,11 +320,10 @@ let assertItem: AssertItem = {
         },
         OpenFileAckBeamLength: 1440,
     }
-    ],
-    precisionDigits: 6,
+    ]
 };
 
-describe("CONCAT_STOKES_IMAGES test: concatenate different stokes images into single image", () => {
+describe("CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-degeneracy stokes images into a single image.", () => {
     const msgController = MessageController.Instance;
     beforeAll(async ()=> {
         await msgController.connect(testServerUrl);
