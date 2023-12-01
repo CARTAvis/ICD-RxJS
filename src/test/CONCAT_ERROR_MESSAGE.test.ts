@@ -101,4 +101,5 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
         }, concatStokeTimeout);
     });
 
+    afterAll(() => msgController.closeConnection());
 })
