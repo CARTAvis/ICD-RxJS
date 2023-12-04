@@ -10,31 +10,12 @@ let openFileTimeout = config.timeout.openFile;
 let concatStokeTimeout = config.timeout.concatStokes;
 
 interface AssertItem {
-    ConcatReq: CARTA.IConcatStokesFiles;
     ConcatReqShape: CARTA.IConcatStokesFiles;
     ConcatReqDeplicate: CARTA.IConcatStokesFiles;
     ConcatResponse: string[];
 };
 
 let assertItem: AssertItem = {
-    ConcatReq:{
-        fileId: 0,
-        renderMode: 0,
-        stokesFiles:[
-            {
-                directory: testSubdirectory,
-                hdu:"",
-                file:'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
-                polarizationType: 4
-            },
-            {
-                directory: testSubdirectory, 
-                hdu:"",
-                file:'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
-                polarizationType: 3
-            },
-        ],
-    },
     ConcatReqShape:{
         fileId: 0,
         renderMode: 0,
@@ -72,7 +53,6 @@ let assertItem: AssertItem = {
         ],
     },
     ConcatResponse:[
-        'is not allowed!',
         'are not consistent!',
         'Duplicate Stokes type found'
     ]
@@ -87,17 +67,23 @@ describe("PERF_ANIMATION_PLAYBACK",() => {
     checkConnection();
     let basepath: string;
 
-    describe(`Case 1: U & V`,()=>{
+    describe(`Case 1: Q & axis-degeneracy U, Image shape inconsistent`,()=>{
         test(`(Step 1) Get basepath`, async()=>{
             let fileListResponse = await msgController.getFileList("$BASE", 0);
             basepath = fileListResponse.directory;
         });
 
+        let ConcatStokesResponse: any = [];
         test(`(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,async()=>{
-            assertItem.ConcatReq.stokesFiles.map((input,index)=>{
-                assertItem.ConcatReq.stokesFiles[index].directory = basepath + `/` + testSubdirectory; 
+            assertItem.ConcatReqShape.stokesFiles.map((input,index) => {
+                assertItem.ConcatReqShape.stokesFiles[index].directory = testSubdirectory;
             });
-            console.log(assertItem.ConcatReq.stokesFiles);
+            msgController.closeFile(-1);
+            try { 
+                ConcatStokesResponse = await msgController.loadStokeFiles(assertItem.ConcatReqShape.stokesFiles, assertItem.ConcatReqShape.fileId, assertItem.ConcatReqShape.renderMode);
+            } catch (err) {        
+                expect(err).toContain(assertItem.ConcatResponse[0]);
+            }
         }, concatStokeTimeout);
     });
 
