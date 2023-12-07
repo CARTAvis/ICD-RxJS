@@ -1,16 +1,19 @@
 import { CARTA } from "carta-protobuf";
 import config from "./config.json";
-import { checkConnection } from './myClient';
+import { checkConnection, Stream } from './myClient';
 import { MessageController } from "./MessageController";
+import { take } from 'rxjs/operators';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
 let connectTimeout: number = config.timeout.connection;
+let openFileTimeout: number = config.timeout.openFile;
 let readTimeout: number = config.timeout.readFile;
 let contourTimeout: number = config.timeout.contour;
 let messageTimeout: number = config.timeout.messageEvent;
 
 interface AssertItem {
+    filelist: CARTA.IFileListRequest;
     openFile: CARTA.IOpenFile;
     addTilesReq: CARTA.IAddRequiredTiles;
     setCursor: CARTA.ISetCursor;
@@ -19,6 +22,7 @@ interface AssertItem {
 };
 
 let assertItem: AssertItem = {
+    filelist: { directory: testSubdirectory },
     openFile: 
     {
         directory: testSubdirectory,
@@ -72,11 +76,31 @@ describe("CONTOUR_DATA_STREAM: Testing contour data stream when there are a lot 
 
     let basepath: string;
     test(`Get basepath`, async () => {
-        let fileListResponse = await msgController.getFileList("$BASE",0);
+        let fileListResponse = await msgController.getFileList("$BASE", 0);
         basepath = fileListResponse.directory;
     });
 
-    // describe(`Go to "${assertItem.filelist.directory}" folder`, () => {});
+    describe(`Go to "${assertItem.filelist.directory}" folder`, () => {
+        let OpenFileResponse: CARTA.IOpenFileAck;
+        test(`(Step 1)"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,async () => {
+            msgController.closeFile(-1);
+            assertItem.openFile.directory = basepath + "/" + assertItem.filelist.directory;
+            OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+            let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
+
+            expect(OpenFileResponse.success).toBe(true);
+            expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+
+            msgController.addRequiredTiles(assertItem.addTilesReq);
+            let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.addTilesReq.tiles.length + 2);
+            expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
+
+            msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
+            let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
+            console.log(SpatialProfileDataResponse1);
+        });
+        
+    });
 
     afterAll(() => msgController.closeConnection());
 });
