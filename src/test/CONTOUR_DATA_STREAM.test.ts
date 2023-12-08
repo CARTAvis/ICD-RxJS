@@ -2,13 +2,11 @@ import { CARTA } from "carta-protobuf";
 import config from "./config.json";
 import { checkConnection, Stream } from './myClient';
 import { MessageController } from "./MessageController";
-import { take } from 'rxjs/operators';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout: number = config.timeout.openFile;
-let readTimeout: number = config.timeout.readFile;
 let contourTimeout: number = config.timeout.contour;
 let messageTimeout: number = config.timeout.messageEvent;
 
@@ -41,11 +39,11 @@ let assertItem: AssertItem = {
     setCursor: 
     {
         fileId: 0,
-        point: { x: 0.5, y: 0.5 },
+        point: { x: 4000, y: 2000 },
         spatialRequirements: {
             fileId: 0,
             regionId: 0,
-            spatialProfiles: [{coordinate:"x"}, {coordinate:"y"}]
+            spatialProfiles: [{coordinate:"x", mip: 1}, {coordinate:"y", mip: 1}]
         },
     },
     setContour: 
@@ -97,9 +95,46 @@ describe("CONTOUR_DATA_STREAM: Testing contour data stream when there are a lot 
 
             msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
             let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-            console.log(SpatialProfileDataResponse1);
+            expect(SpatialProfileDataResponse1[0].x).toEqual(assertItem.setCursor.point.x);
+            expect(SpatialProfileDataResponse1[0].y).toEqual(assertItem.setCursor.point.y);
         });
         
+        describe(`SET_CONTOUR_PARAMETERS with SmoothingMode:"${CARTA.SmoothingMode[assertItem.setContour.smoothingMode]}"`, () => {
+            let ContourImageDataArray = [];
+            let contourCount = 0
+            test(`should return CONTOUR_IMAGE_DATA x${assertItem.setContour.levels.length} with progress = ${assertItem.contourImageData.progress} in the end`, async () => {
+                msgController.setContourParameters(assertItem.setContour);
+                let ContourImageDataPromise = new Promise((resolve)=>{
+                    msgController.contourStream.subscribe({
+                        next: (data) => {
+                            ContourImageDataArray.push(data)
+                            if (data.progress === 1) {
+                                contourCount += 1
+                                if (contourCount === 3) {
+                                    resolve(ContourImageDataArray)
+                                }
+                            }
+                        }
+                    });
+                });
+
+                let ContourImageDataResponse = await ContourImageDataPromise as CARTA.ContourImageData[];
+                let ContourImageDataProgress1 = ContourImageDataResponse.filter(data => data.progress == assertItem.contourImageData.progress);
+                expect(ContourImageDataProgress1.length).toEqual(assertItem.setContour.levels.length);
+                ContourImageDataProgress1.map(ContourImageData => {
+                    expect(assertItem.setContour.levels).toContain(ContourImageData.contourSets[0].level)
+                })
+            }, contourTimeout * assertItem.setContour.levels.length);
+
+            test(`There is no receiving message within ${messageTimeout} ms`, done => {
+                let receiveNumberCurrent = msgController.messageReceiving();
+                setTimeout(() => {
+                    let receiveNumberLatter = msgController.messageReceiving();
+                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter)
+                    done();
+                }, messageTimeout)
+            })
+        });
     });
 
     afterAll(() => msgController.closeConnection());
