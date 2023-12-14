@@ -1,0 +1,6 @@
+src/test/VECTOR_OVERLAY_FITS.test.ts
+src/test/VECTOR_OVERLAY_CASA.test.ts
+src/test/VECTOR_OVERLAY_HDF5.test.ts
+src/test/VECTOR_OVERLAY_NO_POLARIZATION.test.ts
+src/test/VECTOR_OVERLAY_CONTOUR_CHANNEL.test.ts
+src/test/VECTOR_OVERLAY_CHANNEL_STREAM.test.ts

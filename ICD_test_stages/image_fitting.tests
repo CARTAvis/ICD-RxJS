@@ -1,0 +1,5 @@
+src/test/IMAGE_FITTING_CASA.test.ts
+src/test/IMAGE_FITTING_FITS.test.ts
+src/test/IMAGE_FITTING_HDF5.test.ts
+src/test/IMAGE_FITTING_CANCEL.test.ts
+src/test/IMAGE_FITTING_BAD.test.ts

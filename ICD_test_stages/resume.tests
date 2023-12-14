@@ -1,0 +1,4 @@
+src/test/RESUME_CATALOG.test.ts
+src/test/RESUME_CONTOUR.test.ts
+src/test/RESUME_IMAGE.test.ts
+src/test/RESUME_REGION.test.ts

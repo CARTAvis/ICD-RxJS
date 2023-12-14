@@ -53,7 +53,7 @@
         "pvRequest": 60000,
         "imageFitting": 100000,
         "vectorOverlay": 6000,
-        "firstHistogramCancellation": 30000,
+        "firstHistogramCancellation": 100000,
         "dragManyNumberBins": 100000
     },
     "repeat": {
