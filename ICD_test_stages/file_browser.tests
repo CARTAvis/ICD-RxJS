@@ -1,0 +1,5 @@
+src/test/ACCESS_WEBSOCKET.test.ts
+src/test/GET_FILELIST_ROOTPATH_CONCURRENT.test.ts
+src/test/FILEINFO_FITS_MULTIHDU.test.ts
+src/test/FILEINFO_EXCEPTIONS.test.ts
+src/test/OPEN_SWAPPED_IMAGES.test.ts

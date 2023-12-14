@@ -1,0 +1,4 @@
+src/test/ANIMATOR_DATA_STREAM.test.ts
+src/test/ANIMATOR_NAVIGATION.test.ts
+src/test/ANIMATOR_CONTOUR_MATCH.test.ts
+src/test/ANIMATOR_CONTOUR.test.ts

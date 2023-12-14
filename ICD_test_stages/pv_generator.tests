@@ -1,0 +1,7 @@
+src/test/PV_GENERATOR_CANCEL.test.ts
+src/test/PV_GENERATOR_CASA.test.ts
+src/test/PV_GENERATOR_FITS.test.ts
+src/test/PV_GENERATOR_HDF5_COMPARED_FITS.test.ts
+src/test/PV_GENERATOR_MATCH_SPATIAL.test.ts
+src/test/PV_GENERATOR_NaN.test.ts
+src/test/PV_GENERATOR_WIDE.test.ts
