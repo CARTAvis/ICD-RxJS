@@ -1,5 +1,4 @@
 name: ICD tests on ICD-RxJS repo
-
 on:
   workflow_dispatch:
     inputs:
@@ -10,16 +9,10 @@ on:
         options:
           - File-Browser-ICD-Tests
           - Animator-ICD-Tests      
-      carta_backend_branch:
-        description: 'carta-backend branch to use'
-        required: true
-        default: 'dev'
-        type: choice 
 env:
-  CARTA_BACKEND_BRANCH_NAME: ${{ github.event.inputs.carta_backend_branch }}
+  CARTA_BACKEND_BRANCH_NAME: dev
 
 jobs:
-
   Prepare-ICD-RxJS:
     name: Prepare-ICD-RxJS ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
