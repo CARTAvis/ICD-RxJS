@@ -86,7 +86,6 @@ jobs:
         run: |
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
-          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
             git submodule update --init --recursive && \
             cd $BUILD_DIR && \
