@@ -1,14 +1,7 @@
 name: ICD tests on ICD-RxJS repo
 on:
-  workflow_dispatch:
-    inputs:
-      additional_job:
-        description: 'Select an ICD stage to run'
-        required: false
-        type: choice
-        options:
-          - File-Browser-ICD-Tests
-          - Animator-ICD-Tests      
+  push:
+
 env:
   CARTA_BACKEND_BRANCH_NAME: dev
 
