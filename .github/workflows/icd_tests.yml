@@ -6,13 +6,14 @@ on:
         description: 'carta-backend branch to use'
         required: true
         default: 'dev'
-      job_name:
-        description: 'Select an ICD stage to run'
+      file_browser_icd_tests:
+        description: 'Run File-Browser-ICD-Tests'
         required: false
-        type: choice
-        options:
-          - File-Browser-ICD-Tests
-          - Animator-ICD-Tests
+        type: boolean
+      animator_icd_tests:
+        description: 'Run Animator-ICD-Tests'
+        required: false
+        type: boolean
 env:
   CARTA_BACKEND_BRANCH_NAME: dev
 
@@ -250,7 +251,8 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}  
+    # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
+    if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
       # macOS steps
       - name: File Browser ICD tests
@@ -311,7 +313,8 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}      
+    # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
+    if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
       # macOS steps
       - name: Animator ICD tests
