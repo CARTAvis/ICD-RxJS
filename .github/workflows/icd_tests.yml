@@ -208,6 +208,14 @@ jobs:
             cd ../src/test && \
             perl -p -i -e 's/3002/${{ matrix.port }}/' config.json"
 
+      - name: Upload run-macos action.yml as an artefact
+      if: matrix.os == 'macos'
+      uses: actions/upload-artifact@v4
+      with:
+        name: run-macos-action
+        path: ICD-RxJS/.github/actions/run-macos
+
+
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
@@ -254,10 +262,16 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
     if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
-      # macOS steps
-      - name: File Browser ICD tests
+      - name: Download run-macos action.yml
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: actions/download-artifact@v4
+        with:
+          name: run-macos-action
+          path: ICD-RxJS/.github/actions/run-macos
+      # macOS steps
+      - name: Animator ICD tests
+        if: matrix.os == 'macos'
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
       # Linux steps    
@@ -316,10 +330,16 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
+      - name: Download run-macos action.yml
+        if: matrix.os == 'macos'
+        uses: actions/download-artifact@v4
+        with:
+          name: run-macos-action
+          path: ICD-RxJS/.github/actions/run-macos
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
       # Linux steps
