@@ -167,7 +167,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: Build              
+    needs: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -209,12 +209,11 @@ jobs:
             perl -p -i -e 's/3002/${{ matrix.port }}/' config.json"
 
       - name: Upload run-macos action.yml as an artefact
-      if: matrix.os == 'macos'
-      uses: actions/upload-artifact@v4
-      with:
-        name: run-macos-action
-        path: ICD-RxJS/.github/actions/run-macos
-
+        if: matrix.os == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-macos-action
+          path: ICD-RxJS/.github/actions/run-macos
 
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
