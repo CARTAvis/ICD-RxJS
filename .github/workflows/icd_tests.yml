@@ -14,8 +14,6 @@ on:
         options:
           - File-Browser-ICD-Tests
           - Animator-ICD-Tests
-  push:
-
 env:
   CARTA_BACKEND_BRANCH_NAME: dev
 
