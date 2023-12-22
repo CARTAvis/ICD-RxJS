@@ -6,7 +6,7 @@ on:
         description: 'carta-backend branch to use'
         required: true
         default: 'dev'
-      additional_job:
+      job_name:
         description: 'Select an ICD stage to run'
         required: false
         type: choice
