@@ -209,7 +209,7 @@ jobs:
             perl -p -i -e 's/3002/${{ matrix.port }}/' config.json"
 
       - name: Upload run-macos action.yml as an artefact
-        if: matrix.os == 'macos'
+        if: matrix.os == 'macos' && matrix.os_version == 'macOS-11'
         uses: actions/upload-artifact@v4
         with:
           name: run-macos-action
