@@ -256,12 +256,13 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
     if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
-      - name: Redefine GITHUB_WORKSPACE variable
-        # Strange issue on macOS. The GITHUB_WORKSPACE variable becomes /Users/runner/work for some reason.
-        # This will manually set it to what it should be for our setup.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ICD-RxJS      
+      - name: Check GITHUB_WORKSPACE variable
         if: matrix.os == 'macos'
         run: |
-          GITHUB_WORKSPACE=/Users/acdc/actions-runner/_work/ICD-RxJS/ICD-RxJS
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           pwd
       # macOS steps
@@ -326,12 +327,13 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
-      - name: Redefine GITHUB_WORKSPACE variable
-        # Strange issue on macOS. The GITHUB_WORKSPACE variable becomes /Users/runner/work for some reason.
-        # This will manually set it to what it should be for our setup.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ICD-RxJS
+      - name: Check GITHUB_WORKSPACE variable
         if: matrix.os == 'macos'
         run: |
-          GITHUB_WORKSPACE=/Users/acdc/actions-runner/_work/ICD-RxJS/ICD-RxJS
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           pwd
       # macOS steps
