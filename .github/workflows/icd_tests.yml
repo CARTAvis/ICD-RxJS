@@ -261,12 +261,16 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
     if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
+      - name: Debug path issue
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          pwd
       - name: Download run-macos action.yml
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
         with:
           name: run-macos-action
-          path: ICD-RxJS/.github/actions/run-macos
+          path: $GITHUB_WORKSPACE/ICD-RxJS/.github/actions/run-macos
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
@@ -329,12 +333,16 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
+      - name: Debug path issue
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          pwd
       - name: Download run-macos action.yml
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
         with:
           name: run-macos-action
-          path: ICD-RxJS/.github/actions/run-macos
+          path: $GITHUB_WORKSPACE/ICD-RxJS/.github/actions/run-macos
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
