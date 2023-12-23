@@ -256,10 +256,6 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
     if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ICD-RxJS      
       - name: Check GITHUB_WORKSPACE variable
         if: matrix.os == 'macos'
         run: |
@@ -327,10 +323,6 @@ jobs:
     # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ICD-RxJS
       - name: Check GITHUB_WORKSPACE variable
         if: matrix.os == 'macos'
         run: |
