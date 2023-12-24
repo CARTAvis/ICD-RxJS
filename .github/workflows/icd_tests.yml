@@ -197,11 +197,15 @@ jobs:
               -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
             make -j 16"
 
-      - name: Check backend runs (macOS)
+      - name: Check backend runs and upload it as artefact (macOS)
         if: matrix.os == 'macos'
         shell: bash
         run: |
           ./build/carta_backend --version
+        uses: actions/upload-artifact@v4
+        with:
+          name: carta-backend-${{ matrix.os_version }}
+          path: ./build/carta_backend
 
       - name: Check backend runs (Linux)
         if: matrix.os == 'linux'
@@ -209,13 +213,6 @@ jobs:
         run: |
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "./carta_backend --version"
-      - name: Upload carta_backend executable (macOS)
-        if: matrix.os == 'macos'
-        uses: actions/upload-artifact@v4
-        with:
-          name: carta-backend-${{ matrix.os_version }}
-          path: $GITHUB_WORKSPACE/build/carta_backend
-
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
