@@ -263,9 +263,9 @@ jobs:
           pwd
           ls /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos
       # macOS steps
-      - name: Animator ICD tests
+      - name: File Browser ICD tests
         if: matrix.os == 'macos'
-        uses: /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos 
+        uses: CARTAvis/ICD-RxJS/.github/actions/run-macos@dev
         with:
           test_stage_name: 'file_browser'
       # Linux steps    
@@ -333,7 +333,7 @@ jobs:
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos
+        uses: CARTAvis/ICD-RxJS/.github/actions/run-macos@dev
         with:
           test_stage_name: 'animator'
       # Linux steps
