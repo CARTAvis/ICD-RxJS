@@ -257,9 +257,22 @@ jobs:
     if: ${{ github.event.inputs.file_browser_icd_tests }}  
     steps:
       # macOS steps
+      - name: Checkout
+        if: matrix.os == 'macos'
+        uses: actions/checkout@v4
+        with:
+          path: ICD-RxJS
+      - name: Prepare ICD-RxJS (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
+          cd $ICD_DIR && \
+          git submodule init && git submodule update && npm install && \
+          ./protobuf/build_proto.sh && \
+           perl -p -i -e 's/3002/5555/' src/test/config.json
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
-        uses: CARTAvis/ICD-RxJS/.github/actions/run-macos@dev
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
       # Linux steps    
@@ -319,9 +332,22 @@ jobs:
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
       # macOS steps
+      - name: Checkout
+        if: matrix.os == 'macos'
+        uses: actions/checkout@v4
+        with:
+          path: ICD-RxJS
+      - name: Prepare ICD-RxJS (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
+          cd $ICD_DIR && \
+          git submodule init && git submodule update && npm install && \
+          ./protobuf/build_proto.sh && \
+           perl -p -i -e 's/3002/5555/' src/test/config.json
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: CARTAvis/ICD-RxJS/.github/actions/run-macos@dev
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
       # Linux steps
