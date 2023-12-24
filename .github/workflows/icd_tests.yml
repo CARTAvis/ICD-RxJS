@@ -209,6 +209,12 @@ jobs:
         run: |
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "./carta_backend --version"
+      - name: Upload carta_backend executable (macOS)
+        if: matrix.os == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: carta-backend-${{ matrix.os_version }}
+          path: $GITHUB_WORKSPACE/build/carta_backend
 
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
@@ -270,6 +276,12 @@ jobs:
           git submodule init && git submodule update && npm install && \
           ./protobuf/build_proto.sh && \
            perl -p -i -e 's/3002/5555/' src/test/config.json
+      - name: Download carta_backend executable (macOS)
+        if: matrix.os == 'macos'
+        uses: actions/download-artifact@v4
+        with:
+          name: carta-backend-${{ matrix.os_version }}
+          path: $GITHUB_WORKSPACE/build
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
@@ -345,6 +357,12 @@ jobs:
           git submodule init && git submodule update && npm install && \
           ./protobuf/build_proto.sh && \
            perl -p -i -e 's/3002/5555/' src/test/config.json
+      - name: Download carta_backend executable (macOS)
+        if: matrix.os == 'macos'
+        uses: actions/download-artifact@v4
+        with:
+          name: carta-backend-${{ matrix.os_version }}
+          path: $GITHUB_WORKSPACE/build
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
