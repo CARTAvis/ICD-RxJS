@@ -261,10 +261,11 @@ jobs:
         run: |
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           pwd
+          ls /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: ./ICD-RxJS/.github/actions/run-macos
+        uses: /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos 
         with:
           test_stage_name: 'file_browser'
       # Linux steps    
@@ -328,10 +329,11 @@ jobs:
         run: |
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           pwd
+          ls /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: ./ICD-RxJS/.github/actions/run-macos
+        uses: /Users/runner/work/ICD-RxJS/ICD-RxJS/ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
       # Linux steps
