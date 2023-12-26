@@ -280,7 +280,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: carta-backend-${{ matrix.os_version }}
-          path: $GITHUB_WORKSPACE/build
+          path: ${{ env.GITHUB_WORKSPACE }}/build
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
@@ -361,7 +361,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: carta-backend-${{ matrix.os_version }}
-          path: $GITHUB_WORKSPACE/build
+          path: ${{ env.GITHUB_WORKSPACE }}/build
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
