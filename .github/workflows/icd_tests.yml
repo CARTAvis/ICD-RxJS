@@ -200,7 +200,7 @@ jobs:
       - name: Check backend runs (macOS)
         if: matrix.os == 'macos'
         run: |
-        ./build/carta_backend --version
+          ./build/carta_backend --version
 
       - name: Upload carta_backend executable (macOS)
         if: matrix.os == 'macos'
