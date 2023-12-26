@@ -197,12 +197,14 @@ jobs:
               -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
             make -j 16"
 
-      - name: Check backend runs and upload it as artefact (macOS)
+      - name: Check backend runs (macOS)
         if: matrix.os == 'macos'
-        shell: bash
         run: |
-          ./build/carta_backend --version
-        uses: actions/upload-artifact@v4
+        ./build/carta_backend --version
+
+      - name: Upload carta_backend executable (macOS)
+        if: matrix.os == 'macos'
+        uses: actions/upload-artifact@v2
         with:
           name: carta-backend-${{ matrix.os_version }}
           path: ./build/carta_backend
