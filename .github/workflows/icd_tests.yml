@@ -268,9 +268,9 @@ jobs:
         with:
           path: ICD-RxJS
       - name: Set a random port number
-          if: matrix.os == 'macos'
-          run: |
-            echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
+        if: matrix.os == 'macos'
+        run: |
+          echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
         run: |
@@ -287,9 +287,9 @@ jobs:
           path: ./build
       - name: Rename carta_backend executable
         if: matrix.os == 'macos'
-          run: |
-            cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
-            echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV            
+        run: |
+          cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
+          echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV            
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
@@ -360,9 +360,9 @@ jobs:
         with:
           path: ICD-RxJS
       - name: Set a random port number
-          if: matrix.os == 'macos'
-          run: |
-            echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
+        if: matrix.os == 'macos'
+        run: |
+          echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
         run: |
@@ -379,9 +379,9 @@ jobs:
           path: ./build
       - name: Rename carta_backend executable
         if: matrix.os == 'macos'
-          run: |
-            cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
-            echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV
+        run: |
+          cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
+          echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
