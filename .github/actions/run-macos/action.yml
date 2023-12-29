@@ -32,6 +32,8 @@ runs:
       run: |
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
+        sed -i '2d' src/test/config.json
+        sed -i "2i\    \"serverURL0\": \"ws://127.0.0.1:${{ inputs.port_number }}\"," src/test/config.json        
         for test_file in $(cat ICD_test_stages/${{ inputs.test_stage_name }}.tests); do
           CI=true npm test $test_file
           sleep 3 && pgrep ${{ inputs.executable_name }}

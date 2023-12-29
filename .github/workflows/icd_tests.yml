@@ -277,8 +277,7 @@ jobs:
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
           cd $ICD_DIR && \
           git submodule init && git submodule update && npm install && \
-          ./protobuf/build_proto.sh && \
-           perl -p -i -e 's/3002/$PORT_NUMBER/' src/test/config.json
+          ./protobuf/build_proto.sh
       - name: Download carta_backend executable (macOS)
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
@@ -370,8 +369,7 @@ jobs:
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
           cd $ICD_DIR && \
           git submodule init && git submodule update && npm install && \
-          ./protobuf/build_proto.sh && \
-           perl -p -i -e 's/3002/$PORT_NUMBER/' src/test/config.json
+          ./protobuf/build_proto.sh
       - name: Download carta_backend executable (macOS)
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
