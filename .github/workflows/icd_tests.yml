@@ -267,6 +267,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ICD-RxJS
+      - name: Set a random port number
+          if: matrix.os == 'macos'
+          run: |
+            echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
         run: |
@@ -274,18 +278,25 @@ jobs:
           cd $ICD_DIR && \
           git submodule init && git submodule update && npm install && \
           ./protobuf/build_proto.sh && \
-           perl -p -i -e 's/3002/5555/' src/test/config.json
+           perl -p -i -e 's/3002/$PORT_NUMBER/' src/test/config.json
       - name: Download carta_backend executable (macOS)
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
         with:
           name: carta-backend-${{ matrix.os_version }}
           path: ./build
+      - name: Rename carta_backend executable
+        if: matrix.os == 'macos'
+          run: |
+            cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
+            echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV            
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
+          executable_name: ${{ env.EXECUTABLE_NAME }}
+          port_number: ${{ env.PORT_NUMBER }}            
       # Linux steps    
       - name: File Browser ICD tests
         if: matrix.os == 'linux'
@@ -348,6 +359,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ICD-RxJS
+      - name: Set a random port number
+          if: matrix.os == 'macos'
+          run: |
+            echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
         run: |
@@ -355,18 +370,25 @@ jobs:
           cd $ICD_DIR && \
           git submodule init && git submodule update && npm install && \
           ./protobuf/build_proto.sh && \
-           perl -p -i -e 's/3002/5555/' src/test/config.json
+           perl -p -i -e 's/3002/$PORT_NUMBER/' src/test/config.json
       - name: Download carta_backend executable (macOS)
         if: matrix.os == 'macos'
         uses: actions/download-artifact@v4
         with:
           name: carta-backend-${{ matrix.os_version }}
           path: ./build
+      - name: Rename carta_backend executable
+        if: matrix.os == 'macos'
+          run: |
+            cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
+            echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
+          executable_name: ${{ env.EXECUTABLE_NAME }}
+          port_number: ${{ env.PORT_NUMBER }}            
       # Linux steps
       - name: Animator ICD tests
         if: matrix.os == 'linux'
