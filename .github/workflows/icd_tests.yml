@@ -288,8 +288,9 @@ jobs:
       - name: Rename carta_backend executable
         if: matrix.os == 'macos'
         run: |
-          cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
-          echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV            
+          cp ./build/carta_backend ./build/carta_backend_file_browser
+          echo "EXECUTABLE_NAME=carta_backend_file_browser" >> $GITHUB_ENV
+          chmod +x ./build/${{ env.EXECUTABLE_NAME }}
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
@@ -380,8 +381,9 @@ jobs:
       - name: Rename carta_backend executable
         if: matrix.os == 'macos'
         run: |
-          cp ./build/carta_backend ./build/carta_backend_${{ github.run_id }}
-          echo "EXECUTABLE_NAME=carta_backend_${{ github.run_id }}" >> $GITHUB_ENV
+          cp ./build/carta_backend ./build/carta_backend_animator
+          echo "EXECUTABLE_NAME=carta_backend_animator" >> $GITHUB_ENV
+          chmod +x ./build/${{ env.EXECUTABLE_NAME }}
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
