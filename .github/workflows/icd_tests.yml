@@ -289,10 +289,7 @@ jobs:
         run: |
           cp ./build/carta_backend ./build/carta_backend_file_browser
           echo "EXECUTABLE_NAME=carta_backend_file_browser" >> $GITHUB_ENV
-          ls -l ./build/carta_backend_file_browser
           chmod +x ./build/carta_backend_file_browser
-          ls -l ./build/carta_backend_file_browser
-          otool -L ./build/carta_backend_file_browser
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos
@@ -384,10 +381,7 @@ jobs:
         run: |
           cp ./build/carta_backend ./build/carta_backend_animator
           echo "EXECUTABLE_NAME=carta_backend_animator" >> $GITHUB_ENV
-          ls -l ./build/carta_backend_animator
           chmod +x ./build/carta_backend_animator
-          ls -l ./build/carta_backend_animator
-          otool -L ./build/carta_backend_file_browser
       - name: Animator ICD tests
         if: matrix.os == 'macos'
         uses: ./ICD-RxJS/.github/actions/run-macos

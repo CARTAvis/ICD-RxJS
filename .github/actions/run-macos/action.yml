@@ -20,6 +20,7 @@ runs:
         BUILD_DIR=$GITHUB_WORKSPACE/build
         cd $BUILD_DIR
         export LD_LIBRARY_PATH=/usr/local/opt:/opt/carta-casacore/lib:$LD_LIBRARY_PATH
+        export DYLD_LIBRARY_PATH=/usr/local/opt/protobuf@21/lib:$DYLD_LIBRARY_PATH
         otool -L ./${{ inputs.executable_name }}
         ASAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan.supp \
         LSAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan-leaks.supp \
