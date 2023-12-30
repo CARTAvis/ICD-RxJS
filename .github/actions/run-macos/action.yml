@@ -19,6 +19,7 @@ runs:
         SRC_DIR=$GITHUB_WORKSPACE/source
         BUILD_DIR=$GITHUB_WORKSPACE/build
         cd $BUILD_DIR
+        ls -sort
         ASAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan.supp \
         LSAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan-leaks.supp \
         ASAN_SYMBOLIZER_PATH=llvm-symbolizer \
