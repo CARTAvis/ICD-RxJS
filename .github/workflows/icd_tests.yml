@@ -164,9 +164,7 @@ jobs:
         if: matrix.os == 'macos'
         shell: bash
         run: |
-          which cmake
           export PATH="/opt/intelbrew/bin:$PATH"
-          which cmake
           brew list
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
