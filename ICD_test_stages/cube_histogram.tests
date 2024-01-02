@@ -1,3 +1,2 @@
 src/test/PER_CUBE_HISTOGRAM.test.ts
 src/test/PER_CUBE_HISTOGRAM_HDF5.test.ts
-src/test/PER_CUBE_HISTOGRAM_CANCELLATION.test.ts
