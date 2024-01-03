@@ -2,7 +2,6 @@ name: All Stages ICD test
 on:
   workflow_dispatch:
     inputs:
-      job_name:
       carta_backend_branch:
         description: 'carta-backend branch to use'
         required: true
