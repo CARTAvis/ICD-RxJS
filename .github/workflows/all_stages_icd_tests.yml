@@ -1023,8 +1023,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Vector-Overlay-ICD-Tests, Prepare-ICD-RxJS]          
-    if: ${{ github.event.inputs.job_name == 'Resume-ICD-Tests' }}              
+    needs: [Vector-Overlay-ICD-Tests, Prepare-ICD-RxJS]            
     steps:
       # macOS steps
       - name: Resume ICD tests
