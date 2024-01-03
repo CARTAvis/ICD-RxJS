@@ -98,9 +98,6 @@ let assertItem: AssertItem = {
     ],
     spatialProfileData: [
         {
-            fileId: 0,
-            regionId: 0,
-            stokes: 0,
             x: 50.0,
             y: 50.0,
             rawValuesFp32Length: { x: 400, y: 400 },
