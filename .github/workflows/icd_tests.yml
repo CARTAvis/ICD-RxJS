@@ -2,64 +2,37 @@ name: ICD tests on ICD-RxJS repo
 on:
   workflow_dispatch:
     inputs:
+      # Can only define up to 10 inputs in a workflow_dispatch event
       carta_backend_branch:
         description: 'carta-backend branch to use'
         required: true
         default: 'dev'
-      file_browser_icd_tests:
-        description: 'Run File-Browser-ICD-Tests'
+      file_browser_animator_icd_tests:
+        description: 'File-Browser and Animator'
         required: false
         type: boolean
-      animator_icd_tests:
-        description: 'Run Animator-ICD-Tests'
-        required: false
-        type: boolean
-      region_statistics_icd_tests:
-        description: 'Run Region-Statistics-ICD-Tests'
+      region_statistics_manipulation_icd_tests:
+        description: 'Region-Statistics and Region-Manipulation'
         required: false
         type: boolean 
-      region_manipulation_icd_tests:    
-        description: 'Run Region-Manipulation-ICD-Tests'
+      cube_histogram_pv_generator_icd_tests:    
+        description: 'Cube-Histogram and PV-Generator'
         required: false
         type: boolean
-      cube_histogram_icd_tests:    
-        description: 'Run Cube-Histogram-ICD-Tests'
+      raster_tiles_catalog__icd_tests:    
+        description: 'Raster-Tiles and Catalog'
         required: false
         type: boolean
-      pv_generator_icd_tests:    
-        description: 'Run PV-Generator-ICD-Tests'
+      moment_match_icd_tests:    
+        description: 'Moment and Match'
         required: false
         type: boolean
-      raster_tiles_icd_tests:    
-        description: 'Run Raster-Tiles-ICD-Tests'
+      close_files_image_fitting_icd_tests:    
+        description: 'Close-File and Image-Fitting'
         required: false
         type: boolean
-      catalog_icd_tests:    
-        description: 'Run Catalog-ICD-Tests'
-        required: false
-        type: boolean
-      moment_icd_tests:    
-        description: 'Run Moment-ICD-Tests'
-        required: false
-        type: boolean
-      match_icd_tests:    
-        description: 'Run Match-ICD-Tests'
-        required: false
-        type: boolean
-      close_files_icd_tests:    
-        description: 'Run Close-File-ICD-Tests'
-        required: false
-        type: boolean
-      image_fitting_icd_tests:    
-        description: 'Run Image-Fitting-ICD-Tests'
-        required: false
-        type: boolean
-      vector_overlay_icd_tests:    
-        description: 'Run Vector-Overlay-ICD-Tests'
-        required: false
-        type: boolean
-      resume_icd_tests:   
-        description: 'Run Resume-ICD-Tests'
+      vector_overlay_resume_icd_tests:    
+        description: 'Vector-Overlay and Resume'
         required: false
         type: boolean
 
@@ -282,7 +255,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.file_browser_icd_tests }}      
+    if: ${{ github.event.inputs.file_browser_animator_icd_tests }} 
     steps:
       # macOS steps
       - name: File Browser ICD tests
@@ -337,7 +310,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.animator_icd_tests }} 
+    if: ${{ github.event.inputs.file_browser_animator_icd_tests }} 
     steps:
       # macOS steps
       - name: Animator ICD tests
@@ -392,7 +365,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.region_statistics_icd_tests }}
+    if: ${{ github.event.inputs.region_statistics_manipulation_icd_tests }}
     steps:
       # macOS steps
       - name: Region-Statistics ICD tests
@@ -447,7 +420,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.region_manipulation_icd_tests }}
+    if: ${{ github.event.inputs.region_statistics_manipulation_icd_tests }}
     steps:
       # macOS steps
       - name: Region Manipulation ICD tests
@@ -502,7 +475,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.cube_histogram_icd_tests }}
+    if: ${{ github.event.inputs.cube_histogram_pv_generator_icd_tests }}
     steps:
       # macOS steps
       - name: Cube Histogram ICD tests
@@ -557,7 +530,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.pv_generator_icd_tests }}
+    if: ${{ github.event.inputs.cube_histogram_pv_generator_icd_tests }}
     steps:
       # macOS steps
       - name: PV Generator ICD tests
@@ -612,7 +585,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.raster_tiles_icd_tests }}
+    if: ${{ github.event.inputs.raster_tiles_catalog_icd_tests }}
     steps:
       # macOS steps
       - name: Raster Tiles ICD tests
@@ -667,7 +640,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.catalog_icd_tests }}
+    if: ${{ github.event.inputs.raster_tiles_catalog_icd_tests }}
     steps:
       # macOS steps
       - name: Catalog ICD tests
@@ -722,7 +695,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.moment_icd_tests }}              
+    if: ${{ github.event.inputs.moment_match_icd_tests }}            
     steps:
       # macOS steps
       - name: Moment ICD tests
@@ -777,7 +750,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.match_icd_tests }}
+    if: ${{ github.event.inputs.moment_match_icd_tests }}
     steps:
       # macOS steps
       - name: Match ICD tests
@@ -832,7 +805,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.close_file_icd_tests }}
+    if: ${{ github.event.inputs.close_files_image_fitting_icd_tests }}
     steps:
       # macOS steps
       - name: Close File ICD tests
@@ -887,7 +860,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.image_fitting_icd_tests }}
+    if: ${{ github.event.inputs.close_files_image_fitting_icd_tests }}
     steps:
       # macOS steps
       - name: Image Fitting ICD tests
@@ -942,7 +915,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.vector_overlay_icd_tests }}
+    if: ${{ github.event.inputs.vector_overlay_resume_icd_tests }}
     steps:
       # macOS steps
       - name: Vector Overlay ICD tests
@@ -997,7 +970,7 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    if: ${{ github.event.inputs.resume_icd_tests }}
+    if: ${{ github.event.inputs.vector_overlay_resume_icd_tests }}
     steps:
       # macOS steps
       - name: Resume ICD tests
