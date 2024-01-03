@@ -14,94 +14,59 @@ on:
         description: 'Run Animator-ICD-Tests'
         required: false
         type: boolean
+      region_statistics_icd_tests:
+        description: 'Run Region-Statistics-ICD-Tests'
+        required: false
+        type: boolean 
+      region_manipulation_icd_tests:    
+        description: 'Run Region-Manipulation-ICD-Tests'
+        required: false
+        type: boolean
+      cube_histogram_icd_tests:    
+        description: 'Run Cube-Histogram-ICD-Tests'
+        required: false
+        type: boolean
+      pv_generator_icd_tests:    
+        description: 'Run PV-Generator-ICD-Tests'
+        required: false
+        type: boolean
+      raster_tiles_icd_tests:    
+        description: 'Run Raster-Tiles-ICD-Tests'
+        required: false
+        type: boolean
+      catalog_icd_tests:    
+        description: 'Run Catalog-ICD-Tests'
+        required: false
+        type: boolean
+      moment_icd_tests:    
+        description: 'Run Moment-ICD-Tests'
+        required: false
+        type: boolean
+      match_icd_tests:    
+        description: 'Run Match-ICD-Tests'
+        required: false
+        type: boolean
+      close_files_icd_tests:    
+        description: 'Run Close-File-ICD-Tests'
+        required: false
+        type: boolean
+      image_fitting_icd_tests:    
+        description: 'Run Image-Fitting-ICD-Tests'
+        required: false
+        type: boolean
+      vector_overlay_icd_tests:    
+        description: 'Run Vector-Overlay-ICD-Tests'
+        required: false
+        type: boolean
+      resume_icd_tests:   
+        description: 'Run Resume-ICD-Tests'
+        required: false
+        type: boolean
+
 env:
   CARTA_BACKEND_BRANCH_NAME: dev
 
 jobs:
-
-  Prepare-ICD-RxJS:
-    name: Prepare-ICD-RxJS ${{ matrix.os_version }}
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
-          - os_version: macOS-12
-            os: macos
-            runner: [macOS-12, ICD]
-          - os_version: macOS-13
-            os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
-          - os_version: ubuntu-22.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
-          - os_version: rhel-8
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD4]
-            image: /opt/apptainer/almalinux8-dec2023.sif
-            port: 9004
-          - os_version: rhel-9
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD5]
-            image: /opt/apptainer/almalinux9-dec2023.sif
-            port: 9005
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ICD-RxJS
-
-      - name: System information (macOS)
-        if: matrix.os == 'macos'
-        shell: bash
-        run: |
-          uname -a
-          sw_vers
-
-      - name: Prepare ICD-RxJS (macOS)
-        if: matrix.os == 'macos'
-        run: |
-          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
-          cd $ICD_DIR
-          ls && pwd
-          git submodule init && git submodule update && npm install
-          cd protobuf
-          ./build_proto.sh
-          cd ../src/test
-          perl -p -i -e 's/3002/5555/' config.json
-
-      - name: Prepare ICD-RxJS (Linux)
-        if: matrix.os == 'linux'
-        run: |
-          BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
-          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
-          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
-          cp -r $ICD_DIR $BUILD_DIR
-          apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "\
-            cd ICD-RxJS && \
-            ls && pwd && \
-            git submodule init && git submodule update && npm install && \
-            cd protobuf && \
-            ./build_proto.sh && \
-            cd ../src/test && \
-            perl -p -i -e 's/3002/${{ matrix.port }}/' config.json"
-
   Build:
     name: Build ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
@@ -110,15 +75,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
             runner: [macOS-12, ICD]
-          - os_version: macOS-13
-            os: macos
-            runner: macOS-13
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -144,7 +103,6 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: Prepare-ICD-RxJS
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -164,8 +122,6 @@ jobs:
         if: matrix.os == 'macos'
         shell: bash
         run: |
-          export PATH="/opt/intelbrew/bin:$PATH"
-          brew list
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
           cd $SRC_DIR && git submodule update --init --recursive
@@ -176,8 +132,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
             -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' \
-            -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' \
-            -DCMAKE_CXX_STANDARD_LIBRARIES='-L/opt/intelbrew/lib'
+            -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address'
           make -j 16
 
       - name: Build carta-backend (Linux)
@@ -186,7 +141,7 @@ jobs:
         run: |
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
-          #rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
+          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
             git submodule update --init --recursive && \
             ls && pwd && \
@@ -202,15 +157,9 @@ jobs:
 
       - name: Check backend runs (macOS)
         if: matrix.os == 'macos'
+        shell: bash
         run: |
           ./build/carta_backend --version
-
-      - name: Upload carta_backend executable (macOS)
-        if: matrix.os == 'macos'
-        uses: actions/upload-artifact@v4
-        with:
-          name: carta-backend-${{ matrix.os_version }}
-          path: ./build/carta_backend
 
       - name: Check backend runs (Linux)
         if: matrix.os == 'linux'
@@ -218,6 +167,84 @@ jobs:
         run: |
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "./carta_backend --version"
+
+  Prepare-ICD-RxJS:
+    name: Prepare-ICD-RxJS ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: Build              
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ICD-RxJS
+
+      - name: System information (macOS)
+        if: matrix.os == 'macos'
+        shell: bash
+        run: |
+          uname -a
+          sw_vers
+
+      - name: Prepare ICD-RxJS (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
+          cd $ICD_DIR          
+          ls && pwd
+          git submodule init && git submodule update && npm install
+          cd protobuf
+          ./build_proto.sh
+          cd ../src/test
+          perl -p -i -e 's/3002/5555/' config.json
+
+      - name: Prepare ICD-RxJS (Linux)
+        if: matrix.os == 'linux'
+        run: |
+          BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
+          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
+          cp -r $ICD_DIR $BUILD_DIR
+          apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "\
+            cd ICD-RxJS && \
+            ls && pwd && \
+            git submodule init && git submodule update && npm install && \
+            cd protobuf && \
+            ./build_proto.sh && \
+            cd ../src/test && \
+            perl -p -i -e 's/3002/${{ matrix.port }}/' config.json"
+
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
@@ -226,15 +253,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
             runner: [macOS-12, ICD]
-          - os_version: macOS-13
-            os: macos
-            runner: macOS-13
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -261,45 +282,14 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    # if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}
-    if: ${{ github.event.inputs.file_browser_icd_tests }}  
+    if: ${{ github.event.inputs.file_browser_icd_tests }}      
     steps:
       # macOS steps
-      - name: Checkout
-        if: matrix.os == 'macos'
-        uses: actions/checkout@v4
-        with:
-          path: ICD-RxJS
-      - name: Set a random port number
-        if: matrix.os == 'macos'
-        run: |
-          echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
-      - name: Prepare ICD-RxJS (macOS)
-        if: matrix.os == 'macos'
-        run: |
-          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
-          cd $ICD_DIR && \
-          git submodule init && git submodule update && npm install && \
-          ./protobuf/build_proto.sh
-      - name: Download carta_backend executable (macOS)
-        if: matrix.os == 'macos'
-        uses: actions/download-artifact@v4
-        with:
-          name: carta-backend-${{ matrix.os_version }}
-          path: ./build
-      - name: Rename carta_backend executable
-        if: matrix.os == 'macos'
-        run: |
-          cp ./build/carta_backend ./build/carta_backend_file_browser
-          echo "EXECUTABLE_NAME=carta_backend_file_browser" >> $GITHUB_ENV
-          chmod +x ./build/carta_backend_file_browser
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
-        uses: ./ICD-RxJS/.github/actions/run-macos
+        uses: ./source/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
-          executable_name: ${{ env.EXECUTABLE_NAME }}
-          port_number: ${{ env.PORT_NUMBER }}            
       # Linux steps    
       - name: File Browser ICD tests
         if: matrix.os == 'linux'
@@ -318,15 +308,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
             runner: [macOS-12, ICD]
-          - os_version: macOS-13
-            os: macos
-            runner: macOS-13
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -353,45 +337,14 @@ jobs:
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
     needs: [Build, Prepare-ICD-RxJS]
-    # if: ${{ github.event.inputs.job_name == 'Animator-ICD-Tests' }}
     if: ${{ github.event.inputs.animator_icd_tests }} 
     steps:
       # macOS steps
-      - name: Checkout
-        if: matrix.os == 'macos'
-        uses: actions/checkout@v4
-        with:
-          path: ICD-RxJS
-      - name: Set a random port number
-        if: matrix.os == 'macos'
-        run: |
-          echo "PORT_NUMBER=$((RANDOM%1000+8000))" >> $GITHUB_ENV
-      - name: Prepare ICD-RxJS (macOS)
-        if: matrix.os == 'macos'
-        run: |
-          ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS && \
-          cd $ICD_DIR && \
-          git submodule init && git submodule update && npm install && \
-          ./protobuf/build_proto.sh
-      - name: Download carta_backend executable (macOS)
-        if: matrix.os == 'macos'
-        uses: actions/download-artifact@v4
-        with:
-          name: carta-backend-${{ matrix.os_version }}
-          path: ./build
-      - name: Rename carta_backend executable
-        if: matrix.os == 'macos'
-        run: |
-          cp ./build/carta_backend ./build/carta_backend_animator
-          echo "EXECUTABLE_NAME=carta_backend_animator" >> $GITHUB_ENV
-          chmod +x ./build/carta_backend_animator
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: ./ICD-RxJS/.github/actions/run-macos
+        uses: ./source/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
-          executable_name: ${{ env.EXECUTABLE_NAME }}
-          port_number: ${{ env.PORT_NUMBER }}            
       # Linux steps
       - name: Animator ICD tests
         if: matrix.os == 'linux'
@@ -401,4 +354,664 @@ jobs:
           image: ${{ matrix.image }}
           port: ${{ matrix.port }}
           test_stage_name: 'animator'
+
+  Region-Statistics-ICD-Tests:
+    name: Region Statistics ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.region_statistics_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Region-Statistics ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'region_statistics'
+      # Linux steps
+      - name: Region-Statistics ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'region_statistics'
+
+  Region-Manipulation-ICD-Tests:
+    name: Region Manipulation ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.region_manipulation_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Region Manipulation ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'region_manipulation'
+      # Linux steps
+      - name: Region Manipulation ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'region_manipulation'
+
+  Cube-Histogram-ICD-Tests:
+    name: Cube Histogram ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.cube_histogram_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Cube Histogram ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'cube_histogram'
+      # Linux steps
+      - name: Cube Histogram ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'cube_histogram'
+
+  PV-Generator-ICD-Tests:
+    name: PV Generator ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.pv_generator_icd_tests }}
+    steps:
+      # macOS steps
+      - name: PV Generator ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'pv_generator'
+      # Linux steps
+      - name: PV Generator ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'pv_generator'
+
+  Raster-Tiles-ICD-Tests:
+    name: Raster Tiles ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.raster_tiles_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Raster Tiles ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'raster_tiles'
+      # Linux steps
+      - name: Raster Tiles ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'raster_tiles'
+
+  Catalog-ICD-Tests:
+    name: Catalog ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.catalog_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Catalog ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'catalog'
+      # Linux steps
+      - name: Catalog ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'catalog'
+
+  Moment-ICD-Tests:
+    name: Moment ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.moment_icd_tests }}              
+    steps:
+      # macOS steps
+      - name: Moment ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'moment'
+      # Linux steps
+      - name: Moment ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'moment'
+
+  Match-ICD-Tests:
+    name: Match ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.match_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Match ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'match'
+      # Linux steps
+      - name: Match ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'match'
+
+  Close-File-ICD-Tests:
+    name: Close File ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.close_file_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Close File ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'close_file'
+      # Linux steps
+      - name: Close File ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'close_file'
+
+  Image-Fitting-ICD-Tests:
+    name: Image Fitting ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.image_fitting_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Image Fitting ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'image_fitting'
+      # Linux steps
+      - name: Image Fitting ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'image_fitting'
+
+  Vector-Overlay-ICD-Tests:
+    name: Vector Overlay ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.vector_overlay_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Vector Overlay ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'vector_overlay'
+      # Linux steps
+      - name: Vector Overlay ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'vector_overlay'
+
+  Resume-ICD-Tests:
+    name: Resume ${{ matrix.os_version }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-dec2023.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-dec2023.sif
+            port: 9005
+    needs: [Build, Prepare-ICD-RxJS]
+    if: ${{ github.event.inputs.resume_icd_tests }}
+    steps:
+      # macOS steps
+      - name: Resume ICD tests
+        if: matrix.os == 'macos'
+        uses: ./source/.github/actions/run-macos
+        with:
+          test_stage_name: 'resume'
+      # Linux steps
+      - name: Resume ICD tests
+        if: matrix.os == 'linux'
+        uses: ./source/.github/actions/run-apptainer
+        with:
+          os_version: ${{ matrix.os_version }}
+          image: ${{ matrix.image }}
+          port: ${{ matrix.port }}
+          test_stage_name: 'resume'
 
