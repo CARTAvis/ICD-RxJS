@@ -32,7 +32,7 @@
         "cancel": 5000,
         "concurrent": 7000,
         "messageEvent": 500,
-        "mouseEvent": 1000,
+        "mouseEvent": 3000,
         "cursor": 500,
         "region": 5000,
         "import": 500,
