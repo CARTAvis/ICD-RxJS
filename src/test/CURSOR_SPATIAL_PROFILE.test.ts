@@ -172,7 +172,7 @@ describe("CURSOR_SPATIAL_PROFILE: if full resolution cursor spatial profiles are
     });
 
     let regionHistogramData = [];
-    test(`(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `, async () => {
+    test(`Check OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `, async () => {
         msgController.closeFile(-1);
         let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
         let regionHistogramDataPromise = new Promise((resolve)=>{
@@ -190,7 +190,7 @@ describe("CURSOR_SPATIAL_PROFILE: if full resolution cursor spatial profiles are
         expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
     }, openFileTimeout);
 
-    test(`(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `, async () => {
+    test(`Return RASTER_TILE_DATA(Stream) and check total length | `, async () => {
         msgController.addRequiredTiles(assertItem.initTilesReq);
         let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.initTilesReq.tiles.length + 2);
 
