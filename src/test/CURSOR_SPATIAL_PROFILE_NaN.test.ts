@@ -21,7 +21,6 @@ interface ISpatialProfileDataExt extends CARTA.ISpatialProfileData {
 }
 interface AssertItem {
     precisionDigits: number;
-    registerViewer: CARTA.IRegisterViewer;
     openFile: CARTA.IOpenFile;
     initTilesReq: CARTA.IAddRequiredTiles;
     initSetCursor: CARTA.ISetCursor;
@@ -31,10 +30,6 @@ interface AssertItem {
 }
 let assertItem: AssertItem = {
     precisionDigits: 4,
-    registerViewer: {
-        sessionId: 0,
-        clientFeatureFlags: 5,
-    },
     openFile:
     {
         directory: testSubdirectory,
