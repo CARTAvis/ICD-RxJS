@@ -47,7 +47,7 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -1000,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16777217],
@@ -59,7 +59,7 @@ let assertItem: AssertItem = {
             point: { x: 1, y: 1 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 175, y: 125 },
         },
     ],
@@ -70,7 +70,7 @@ let assertItem: AssertItem = {
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
         {
-            fileId: -1000,
+            fileId: 1,
             regionId: 0,
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
