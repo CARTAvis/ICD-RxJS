@@ -45,7 +45,7 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -1000,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16777217],
@@ -57,11 +57,11 @@ let assertItem: AssertItem = {
             point: { x: 1, y: 1 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 260, y: 11 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 64, y: 8 },
         },
     ],
@@ -72,7 +72,7 @@ let assertItem: AssertItem = {
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
         {
-            fileId: -1000,
+            fileId: 1,
             regionId: 0,
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
@@ -206,12 +206,12 @@ describe("PV_GENERATOR_NaN:Testing PV generator with a region covers NaN and non
             test(`(step 8): set cursor and check the return value`, async()=>{
                 msgController.setCursor(assertItem.setCursor[1].fileId, assertItem.setCursor[1].point.x, assertItem.setCursor[1].point.y);
                 let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-                expect(SpatialProfileDataResponse1[0].fileId).toEqual(-1000);
+                expect(SpatialProfileDataResponse1[0].fileId).toEqual(1);
                 expect(SpatialProfileDataResponse1[0].value).toEqual(NaN);
 
                 msgController.setCursor(assertItem.setCursor[2].fileId, assertItem.setCursor[2].point.x, assertItem.setCursor[2].point.y);
                 let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-                expect(SpatialProfileDataResponse2[0].fileId).toEqual(-1000);
+                expect(SpatialProfileDataResponse2[0].fileId).toEqual(1);
                 expect(SpatialProfileDataResponse2[0].value).toEqual(-0.0035615740343928337);
             });
         });
