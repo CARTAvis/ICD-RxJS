@@ -33,19 +33,21 @@ let assertItem: AssertItem = {
     momentRequest: [
         {
             fileId: 0,
-            regionId: 0,
+            regionId: -1,
             axis: CARTA.MomentAxis.SPECTRAL,
+            keep: false,
             mask: CARTA.MomentMask.Include,
-            moments: [0, 1, 2,],
+            moments: [1, 0, 2],
             pixelRange: { min: 0.1, max: 1.0 },
             spectralRange: { min: 73, max: 114 },
         },
         {
             fileId: 0,
-            regionId: 0,
+            regionId: -1,
             axis: CARTA.MomentAxis.SPECTRAL,
+            keep: false,
             mask: CARTA.MomentMask.Include,
-            moments: [0, 1,],
+            moments: [0, 1],
             pixelRange: { min: 0.1, max: 1.0 },
             spectralRange: { min: 73, max: 114 },
         },
@@ -84,6 +86,7 @@ describe("MOMENTS_GENERATOR_EXCEPTION: Testing moments generator for exception",
             }, readFileTimeout);
 
             let regionHistogramDataArray = [];
+            let RegionHistogramResponse: any = [];
             let momentResponse: any;
             test(`Request 3 moment images`, async () => {
                 await sleep(200);
@@ -96,13 +99,15 @@ describe("MOMENTS_GENERATOR_EXCEPTION: Testing moments generator for exception",
                     })
                 });
                 momentResponse = await msgController.requestMoment(assertItem.momentRequest[0]);
+                RegionHistogramResponse = await regionHistogramDataPromise;
+                expect(RegionHistogramResponse.length).toEqual(assertItem.momentRequest[0].moments.length);
             });
         });
 
         let FileId: number[] = [];
         describe(`Moment generator again`, () => {
             let regionHistogramDataArray = [];
-            let regionHistogramDataResponse: any;
+            let regionHistogramDataResponse: any = [];
             let momentResponse: any;
             let momentProgressArray = [];
             let momentProgressReponse: any;
@@ -126,6 +131,7 @@ describe("MOMENTS_GENERATOR_EXCEPTION: Testing moments generator for exception",
                 });
                 momentResponse = await msgController.requestMoment(assertItem.momentRequest[1]);
                 regionHistogramDataResponse = await regionHistogramDataPromise;
+                expect(regionHistogramDataResponse.length).toEqual(assertItem.momentRequest[1].moments.length);
                 momentProgressReponse = await momentProgressPromise;
                 FileId = regionHistogramDataResponse.map(data => data.fileId);
                 expect(momentProgressReponse.length).toBeGreaterThan(0);
@@ -154,7 +160,7 @@ describe("MOMENTS_GENERATOR_EXCEPTION: Testing moments generator for exception",
             let SpatialProfileData: any;
             test(`Receive the image data until RasterTileSync.endSync = true`, async () => {
                 msgController.addRequiredTiles({
-                    fileId: FileId[1] + 1,
+                    fileId: FileId[1],
                     tiles: [0],
                     compressionType: CARTA.CompressionType.ZFP,
                     compressionQuality: 11,
@@ -163,12 +169,12 @@ describe("MOMENTS_GENERATOR_EXCEPTION: Testing moments generator for exception",
             });
 
             test(`Receive SpatialProfileData`, async () => {
-                msgController.setCursor(FileId[1] + 1, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
-                SpatialProfileData = await Stream(CARTA.SpatialProfileData,1);
+                msgController.setCursor(FileId[1], assertItem.setCursor.point.x, assertItem.setCursor.point.y);
+                SpatialProfileData = await Stream(CARTA.SpatialProfileData, 1);
             });
 
             test(`Assert SpatialProfileData[0].value`, () => {
-                expect(SpatialProfileData[0].value).toBeCloseTo(7.8840599, assertItem.precisionDigit);
+                expect(SpatialProfileData[0].value).toBeCloseTo(1.8132938, assertItem.precisionDigit);
             });
 
             test(`Assert backend is still alive`, () => {

@@ -55,7 +55,7 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -1000,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16777217],
@@ -67,7 +67,7 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -3000,
+            fileId: 3,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16777217],
@@ -79,7 +79,7 @@ let assertItem: AssertItem = {
             point: { x: 1, y: 1 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 175, y: 125 },
         },
         {
@@ -87,11 +87,11 @@ let assertItem: AssertItem = {
             point: { x: 1, y: 1 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 177, y: 79 },
         },
         {
-            fileId: -3000,
+            fileId: 3,
             point: { x: 177, y: 79 },
         },
     ],

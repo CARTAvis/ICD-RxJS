@@ -40,7 +40,7 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -1000,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16777217],
@@ -52,7 +52,7 @@ let assertItem: AssertItem = {
             point: { x: 1, y: 1 },
         },
         {
-            fileId: -1000,
+            fileId: 1,
             point: { x: 175, y: 125 },
         },
     ],
@@ -63,7 +63,7 @@ let assertItem: AssertItem = {
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
         {
-            fileId: -1000,
+            fileId: 1,
             regionId: 0,
             spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
         },
@@ -158,10 +158,10 @@ describe("PV_GENERATOR_WIDE:Testing PV generator with wide (~all sky) image", ()
                 });
                 let PVresponse = await msgController.requestPV(assertItem.setPVRequest[0]);
                 let regionHistogramDataResponse = await regionHistogramDataPromise;
-                expect(regionHistogramDataResponse[0].fileId).toEqual(-1000);
+                expect(regionHistogramDataResponse[0].fileId).toEqual(1);
                 expect(regionHistogramDataResponse[0].progress).toEqual(1);
                 expect(regionHistogramDataResponse[0].regionId).toEqual(-1);
-                expect(PVresponse.openFileAck.fileId).toEqual(-1000);
+                expect(PVresponse.openFileAck.fileId).toEqual(1);
                 expect(PVresponse.openFileAck.fileInfoExtended.height).toEqual(16);
                 expect(PVresponse.openFileAck.fileInfoExtended.width).toEqual(182);
                 expect(PVresponse.openFileAck.fileInfo.name).toEqual("Gaussian-cutted_pv.fits");
@@ -185,10 +185,10 @@ describe("PV_GENERATOR_WIDE:Testing PV generator with wide (~all sky) image", ()
                 });
                 let finalPVResponse = await msgController.requestPV(assertItem.setPVRequest[1]);
                 let regionHistogramDataResponse = await regionHistogramDataPromise;
-                expect(regionHistogramDataResponse[0].fileId).toEqual(-1000);
+                expect(regionHistogramDataResponse[0].fileId).toEqual(1);
                 expect(regionHistogramDataResponse[0].progress).toEqual(1);
                 expect(regionHistogramDataResponse[0].regionId).toEqual(-1);
-                expect(finalPVResponse.openFileAck.fileId).toEqual(-1000);
+                expect(finalPVResponse.openFileAck.fileId).toEqual(2);
                 expect(finalPVResponse.openFileAck.fileInfoExtended.height).toEqual(16);
                 expect(finalPVResponse.openFileAck.fileInfoExtended.width).toEqual(94);
                 expect(finalPVResponse.openFileAck.fileInfo.name).toEqual("Gaussian-cutted_pv.fits");
