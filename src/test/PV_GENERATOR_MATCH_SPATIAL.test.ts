@@ -185,10 +185,10 @@ describe("PV_GENERATOR_MATCH_SPATIAL:Testing PV generator with two spatially mat
                 let PVresponse = await msgController.requestPV(assertItem.setPVRequest[0]);
                 let regionHistogramDataResponse = await regionHistogramDataPromise;
 
-                expect(regionHistogramDataResponse[0].fileId).toEqual(-1000);
+                expect(regionHistogramDataResponse[0].fileId).toEqual(2);
                 expect(regionHistogramDataResponse[0].regionId).toEqual(-1);
                 expect(regionHistogramDataResponse[0].progress).toEqual(1);
-                expect(PVresponse.openFileAck.fileId).toEqual(-1000);
+                expect(PVresponse.openFileAck.fileId).toEqual(2);
                 expect(PVresponse.openFileAck.fileInfo.name).toEqual("HD163296_CO_2_1_pv.fits");
                 expect(PVresponse.success).toEqual(true)
             }, PVTimeout);
@@ -205,10 +205,10 @@ describe("PV_GENERATOR_MATCH_SPATIAL:Testing PV generator with two spatially mat
                 });
                 let PVresponse = await msgController.requestPV(assertItem.setPVRequest[1]);
                 let regionHistogramDataResponse = await regionHistogramDataPromise2;
-                expect(regionHistogramDataResponse[0].fileId).toEqual(-2000);
+                expect(regionHistogramDataResponse[0].fileId).toEqual(3);
                 expect(regionHistogramDataResponse[0].regionId).toEqual(-1);
                 expect(regionHistogramDataResponse[0].progress).toEqual(1);
-                expect(PVresponse.openFileAck.fileId).toEqual(-2000);
+                expect(PVresponse.openFileAck.fileId).toEqual(3);
                 expect(PVresponse.openFileAck.fileInfo.name).toEqual("HD163296_CO_2_1_pv.image");
                 expect(PVresponse.success).toEqual(true)
             }, PVTimeout);

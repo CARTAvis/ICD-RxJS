@@ -53,43 +53,43 @@ let assertItem: AssertItem = {
             tiles: [0],
         },
         {
-            fileId: -999,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434, 33566721, 33566720, 33566722],
         },
         {
-            fileId: -999,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [33558529, 33558528, 33562625, 33554433, 33562624, 33554432],
         },
         {
-            fileId: -998,
+            fileId: 2,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [16777216, 16781312, 16777217, 16781313],
         },
         {
-            fileId: -999,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [0],
         },
         {
-            fileId: -998,
+            fileId: 2,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [0],
         },
         {
-            fileId: -999,
+            fileId: 1,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [0],
         },
         {
-            fileId: -998,
+            fileId: 2,
             compressionQuality: 11,
             compressionType: CARTA.CompressionType.ZFP,
             tiles: [0],
@@ -261,12 +261,27 @@ let assertItem: AssertItem = {
     precisionDigits: 2,
     regionHistogramResponses: [
         {
-            fileId: -999,
+            fileId: 1,
             progress: 1,
             regionId: -1,
         }, 
         {
-            fileId: -998,
+            fileId: 2,
+            progress: 1,
+            regionId: -1,
+        },
+        {
+            fileId: 3,
+            progress: 1,
+            regionId: -1,
+        },
+        {
+            fileId: 4,
+            progress: 1,
+            regionId: -1,
+        },
+        {
+            fileId: 5,
             progress: 1,
             regionId: -1,
         }
@@ -550,8 +565,8 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                     
                     let RegionHistogramDatafileID = [];
                     RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
-                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[2].fileId);
 
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.y, assertItem.precisionDigits);
@@ -623,15 +638,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                 test(`Send Image fitting request and match the result`, async()=>{
                     let imageFittingProgressArray4 = [];
                     let imageFittingProgressReponse4 : any;
-                    let RegionHistogramDataResponse2: CARTA.RegionHistogramData[] = [];
+                    let RegionHistogramDataResponse2: any;
+                    let iniRegionHistogramData: any = []
+                    let iniRegionHistogramDataPromise = new Promise((resolve) => {
+                        msgController.histogramStream.subscribe({
+                            next: (data) => {
+                                iniRegionHistogramData.push(data)
+                                if (iniRegionHistogramData.length === 2) {
+                                    resolve(iniRegionHistogramData)
+                                }
+                            }
+                        })
+                    });
                     let imageFittingProgressPromise4 = new Promise((resolve)=>{
                         msgController.fittingProgressStream.subscribe({
                             next: (data) => {
                                 imageFittingProgressArray4.push(data)
-                                if (Math.round(data.progress) > 0.99) {
-                                    msgController.histogramStream.pipe(take(2)).subscribe(data2 => {
-                                        RegionHistogramDataResponse2.push(data2)
-                                    })
+                                if (Math.round(data.progress) == 1) {
                                     resolve(imageFittingProgressArray4)
                                 }
                             }
@@ -640,6 +663,7 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
 
                     let response = await msgController.requestFitting(assertItem.fittingRequest[6]);
 
+                    RegionHistogramDataResponse2 = await iniRegionHistogramDataPromise;
                     imageFittingProgressReponse4 = await imageFittingProgressPromise4;
                     for (let i = 0; i < imageFittingProgressReponse4.length; i++) {
                         console.log('[Case 5] Image Fitting progress :', imageFittingProgressReponse4[i].progress);
@@ -647,8 +671,8 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                     
                     let RegionHistogramDatafileID = [];
                     RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
-                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
-                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[3].fileId);
+                    expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[4].fileId);
 
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[1].resultValues[0].center.y, assertItem.precisionDigits);
@@ -783,8 +807,6 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[1].file}":`, () =>
                     RegionHistogramDataResponse2.map(data => {RegionHistogramDatafileID.push(data.fileId)});
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[0].fileId);
                     expect(RegionHistogramDatafileID).toContain(assertItem.regionHistogramResponses[1].fileId);
-
-                    console.log(response)
 
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[2].resultValues[0].center.y, assertItem.precisionDigits);
