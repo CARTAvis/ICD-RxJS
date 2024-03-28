@@ -4,7 +4,7 @@ import { checkConnection } from './myClient';
 import {MessageController} from "./MessageController";
 
 let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.concat_stokes;
+let testSubdirectory: string = config.path.QA;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 let concatStokeTimeout = config.timeout.concatStokes;
