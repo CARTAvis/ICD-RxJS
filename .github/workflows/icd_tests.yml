@@ -48,9 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -149,9 +149,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -228,9 +228,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -283,9 +283,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -338,9 +338,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -393,9 +393,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -448,9 +448,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -503,9 +503,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -558,9 +558,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -613,9 +613,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -668,9 +668,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -723,9 +723,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -778,9 +778,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -833,9 +833,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -888,9 +888,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -943,9 +943,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
+          - os_version: macOS-14
             os: macos
-            runner: [macOS-12, ICD]
+            runner: [macOS-14-Intel]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
