@@ -38,30 +38,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -145,30 +135,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -230,27 +210,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
             runner: [self-hosted, Linux, Apptainer, ICD3]
             image: /opt/apptainer/centos7-dec2023.sif
             port: 9003
@@ -291,30 +264,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -352,30 +315,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -413,30 +366,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -474,30 +417,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -535,30 +468,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -596,30 +519,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -657,30 +570,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -718,30 +621,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -779,30 +672,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -840,30 +723,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -901,30 +774,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -962,30 +825,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -1023,30 +876,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-11
-            os: macos
-            runner: macOS-11
           - os_version: macOS-12
             os: macos
-            runner: [macOS-12, ICD]
+            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: macOS-13
-          - os_version: ubuntu-20.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD1]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
-            port: 9001
+            runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: macOS-14
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
-          - os_version: rhel-7
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD3]
-            image: /opt/apptainer/centos7-dec2023.sif
-            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
