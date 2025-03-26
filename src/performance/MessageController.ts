@@ -53,7 +53,7 @@ export class MessageController {
         return MessageController.staticInstance;
     }
 
-    private static readonly IcdVersion = 29;
+    private static readonly IcdVersion = 30;
     private static readonly DefaultFeatureFlags = CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
@@ -502,13 +502,10 @@ export class MessageController {
     }
 
     @action("set channels")
-    setChannels(input: CARTA.ISetImageChannels): boolean {
-        let fileId = input.fileId;
-        let channel = input.channel;
-        let stokes = input.stokes;
-        let requiredTiles = input.requiredTiles;
+    setChannels(fileId: number, channel: number | undefined, stokes: number, requiredTiles: CARTA.IAddRequiredTiles, channelMapEnabled?: boolean, _channelRange?: CARTA.IIntBounds | undefined, currentRange?: CARTA.IIntBounds): boolean {
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
-            const message = CARTA.SetImageChannels.create({fileId, channel, stokes, requiredTiles});
+            const channelRange: CARTA.IIntBounds | null = _channelRange || null;
+            const message = CARTA.SetImageChannels.create({fileId, channel, stokes, requiredTiles, channelMapEnabled, channelRange, currentRange});
             this.logEvent(CARTA.EventType.SET_IMAGE_CHANNELS, this.eventCounter, message, false);
             if (this.sendEvent(CARTA.EventType.SET_IMAGE_CHANNELS, CARTA.SetImageChannels.encode(message).finish())) {
                 return true;
