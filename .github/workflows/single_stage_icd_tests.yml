@@ -38,12 +38,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -145,12 +145,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -230,12 +230,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -291,12 +291,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -352,12 +352,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -413,12 +413,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -474,12 +474,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -535,12 +535,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -596,12 +596,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -657,12 +657,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -718,12 +718,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -779,12 +779,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -840,12 +840,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -901,12 +901,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -962,12 +962,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
@@ -1023,12 +1023,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-12
-            os: macos
-            runner: macOS-12
           - os_version: macOS-13
             os: macos
-            runner: [macOS-13, ICD]
+            runner: macOS-13
+          - os_version: macOS-12
+            os: macos
+            runner: [macOS-12, ICD]
           - os_version: macOS-15
             os: macos
             runner: macOS-15
