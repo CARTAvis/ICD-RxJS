@@ -27,12 +27,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -124,12 +134,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -199,12 +219,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -249,12 +279,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -299,12 +339,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -349,12 +399,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -399,12 +459,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -449,12 +519,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -499,12 +579,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -549,12 +639,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -599,12 +699,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -649,12 +759,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -699,12 +819,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -749,12 +879,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -799,12 +939,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -849,12 +999,22 @@ jobs:
             runner: macOS-13
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
+          - os_version: ubuntu-20.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD1]
+            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            port: 9001
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
+          - os_version: rhel-7
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD3]
+            image: /opt/apptainer/centos7-dec2023.sif
+            port: 9003
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]

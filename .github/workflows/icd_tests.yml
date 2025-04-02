@@ -50,7 +50,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -151,7 +151,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -230,7 +230,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -285,7 +285,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -340,7 +340,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -395,7 +395,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -450,7 +450,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -505,7 +505,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -560,7 +560,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -615,7 +615,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -670,7 +670,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -725,7 +725,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -780,7 +780,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -835,7 +835,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -890,7 +890,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
@@ -945,7 +945,7 @@ jobs:
         include:
           - os_version: macOS-15
             os: macos
-            runner: macOS-15
+            runner: [macOS-15, ICD]
           - os_version: ubuntu-20.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD1]
