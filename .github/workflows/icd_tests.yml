@@ -57,12 +57,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -156,12 +156,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -233,12 +233,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -286,12 +286,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -339,12 +339,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -392,12 +392,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -445,12 +445,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -498,12 +498,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -551,12 +551,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -604,12 +604,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -657,12 +657,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -710,12 +710,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -763,12 +763,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -816,12 +816,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -869,12 +869,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
@@ -922,12 +922,12 @@ jobs:
           - os_version: ubuntu-22.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2004-dec2023.sif
+            image: /opt/apptainer/ubuntu-2204-dec2023.sif
             port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2204-dec2023.sif
+            image: /opt/apptainer/ubuntu-2404-dec2023.sif
             port: 9006
           - os_version: rhel-8
             os: linux
