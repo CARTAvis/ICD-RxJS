@@ -254,28 +254,30 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 133.4184530167203, y: 280.52502826230335},
-                    amp: 0.25241074009104547,
-                    fwhm: {x: 0.24917287151474088, y: 0.20202155323899124},
-                    pa: 271.6573471021813
+                    center: {x: 116.31369946305503, y: 284.23462476726297},
+                    amp: 22.12829836659118,
+                    fwhm: {x: -2.4318180151342417, y: -0.004330957756786921},
+                    pa: 133.73792912297432
                 },
                 {
-                    center: {x: 324.35415486029046, y: 324.3493042512026},
-                    amp: 9.996523847544967,
-                    fwhm: {x: 29.402929410267397, y: 117.47664910355407},
-                    pa: 0.5456977999242042
+                    center: {x: 324.3524987938526, y: 324.34918203704683},
+                    amp: 9.997331578861056,
+                    fwhm: {x: 29.40216567491421, y: 117.4850448687386},
+                    pa: 0.5446955482204604
                 }
             ],
             resultErrors: [
                 {
-                    center: {},
-                    fwhm: {}
+                    center: {x: 4.533210775367607e-10, y: 4.337776576303122e-10},
+                    amp: 1.3444241712995317e-8,
+                    fwhm: {x: 1.4774723594129522e-9, y: 2.6313113627808072e-12},
+                    pa: 8.76758888577748e-11
                 },
                 {
-                    center: {x: 2.6461749462157237e-9, y: 6.626279656060306e-10},
-                    amp: 5.302815060054006e-10,
-                    fwhm: {x: 1.559404863135058e-9, y: 6.231507310104271e-9},
-                    pa: 1.1473533301969971e-9
+                    center: {x: 1.1714809697842197e-10, y: 2.933890362251915e-11},
+                    amp: 2.34753928031256e-11,
+                    fwhm: {x: 6.904116193771595e-11, y: 2.7587437257939583e-10},
+                    pa: 5.079872634449951e-11
                 }
             ],
             success: true,
@@ -592,8 +594,6 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS13Intel[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS13Intel[0].message);
                 } else if (Math.floor(MacOSNumber) === 15 && platformOS === 'macOS' && MacChipM1 === true) {
-                    const fs = require('fs');
-                    fs.writeFileSync('mac15_m1_fitting_result.json', JSON.stringify(response, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].amp, assertItem.precisionDigits);
