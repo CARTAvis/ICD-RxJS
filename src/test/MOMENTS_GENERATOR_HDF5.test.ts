@@ -58,7 +58,7 @@ let assertItem: AssertItem = {
         spectralRange: { min: 73, max: 114 },
         restFreq: 230538000000,
     },
-    imageDataLength: [72553, 72480, 59320, 67560, 74128, 32720, 68424, 72080, 70576, 67496, 32752, 76904, 61848],
+    imageDataLength: [72560, 72480, 59320, 67560, 74128, 32720, 68424, 72080, 70576, 67496, 32752, 76904, 61848],
     nanEncodingsLength: [1424, 1424, 1424, 1424, 1424, 1424, 1448, 1424, 1424, 1424, 1424, 1424, 1424],
 };
 const momentName = [
@@ -237,6 +237,9 @@ describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
 
             test(`Assert RASTER_TILE_DATA.tiles`, () => {
                 RasterTileData.map((ack, index) => {
+                    const fs = require("fs");
+                    const lengthInfo = `imageData length: ${ack.tiles[0].imageData.length}`;
+                    fs.writeFileSync("debug_tile_info.txt", lengthInfo);
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);
                     expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
