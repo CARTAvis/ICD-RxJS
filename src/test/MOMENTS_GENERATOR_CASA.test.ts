@@ -236,6 +236,17 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
             });
 
             test(`Assert RASTER_TILE_DATA.tiles`, () => {
+                const fs = require("fs");
+                const path = require("path");
+                const debugFilePath = path.join(__dirname, "..", "debug_tile_info.txt");
+
+                fs.writeFileSync(debugFilePath, "", "utf-8");
+
+                RasterTileData.map((ack, index) => {
+                    const lengthInfo = `ack[${index}].tiles[0].imageData.length = ${ack.tiles[0].imageData.length}\n`;
+                    fs.appendFileSync(debugFilePath, lengthInfo);
+                });
+
                 RasterTileData.map((ack, index) => {
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);

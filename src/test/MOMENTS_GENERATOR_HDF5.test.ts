@@ -237,9 +237,6 @@ describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
 
             test(`Assert RASTER_TILE_DATA.tiles`, () => {
                 RasterTileData.map((ack, index) => {
-                    const fs = require("fs");
-                    const lengthInfo = `imageData length: ${ack.tiles[0].imageData.length}`;
-                    fs.writeFileSync("debug_tile_info.txt", lengthInfo);
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);
                     expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
