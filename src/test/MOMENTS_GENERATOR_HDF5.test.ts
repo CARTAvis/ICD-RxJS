@@ -249,7 +249,7 @@ describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
                 RasterTileData.map((ack, index) => {
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);
-                    if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === true && isUbunutu2404 === true) {
+                    if (platformOS === 'Linux' && isUbunutu2404 === true) {
                         expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength_ubuntu2404[index]);
                     } else {
                         expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
