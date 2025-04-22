@@ -102,7 +102,7 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async ()=> {
-            await msgController.connect(testServerUrl);
+            let registerViewerAck = await msgController.connect(testServerUrl);
             platformOS = registerViewerAck.platformStrings.platform;
             if (platformOS === "Linux"){
                 let Response = String(execSync('lsb_release -a',{encoding: 'utf-8'}));
