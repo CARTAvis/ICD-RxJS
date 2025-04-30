@@ -54,6 +54,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -156,6 +159,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -236,6 +242,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -292,6 +301,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -348,6 +360,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -404,6 +419,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -460,6 +478,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -516,6 +537,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -572,6 +596,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -628,6 +655,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -684,6 +714,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -740,6 +773,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -796,6 +832,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -852,6 +891,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -908,6 +950,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -964,6 +1009,9 @@ jobs:
           - os_version: macOS-13
             os: macos
             runner: [macOS-13, ICD]
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
