@@ -104,6 +104,10 @@ jobs:
           cd $SRC_DIR && git submodule update --init --recursive
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd $BUILD_DIR
+
+          OMP_INC=$(brew --prefix libomp)/include
+          OMP_LIB=$(brew --prefix libomp)/lib
+
           cmake $SRC_DIR \
             -Dtest=on \
             -DCMAKE_BUILD_TYPE=Debug \
