@@ -105,12 +105,10 @@ jobs:
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd $BUILD_DIR
           OMP_PREFIX=$(brew --prefix libomp)
-          echo "OMP_PREFIX=$OMP_PREFIX"
           cmake $SRC_DIR \
             -Dtest=on \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
-            -DCMAKE_C_COMPILER=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc -DCMAKE_CXX_COMPILER=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ \
             -DCMAKE_CXX_FLAGS="-O0 -g -fsanitize=address -fno-omit-frame-pointer -Xpreprocessor -fopenmp -I${OMP_PREFIX}/include" \
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address -L${OMP_PREFIX}/lib -lomp"
           make -j 16
