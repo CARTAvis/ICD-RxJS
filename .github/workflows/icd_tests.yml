@@ -106,16 +106,14 @@ jobs:
           cd $BUILD_DIR
 
           OMP_PREFIX=$(brew --prefix libomp)
-          OMP_INC=$(brew --prefix libomp)/include
-          OMP_LIB=$(brew --prefix libomp)/lib
 
           cmake $SRC_DIR \
-            -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
             -Dtest=on \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
-            -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer -Xpreprocessor -fopenmp -I$OMP_INC' \
-            -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address -L$OMP_LIB -lomp'
+            -DCMAKE_C_COMPILER=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc -DCMAKE_CXX_COMPILER=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ \
+            -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer -Xpreprocessor -fopenmp -I$OMP_PREFIX/include' \
+            -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address -L$OMP_PREFIX/lib -lomp'
           make -j 16
 
       - name: Build carta-backend (macOS)
