@@ -110,6 +110,7 @@ jobs:
           OMP_LIB=$(brew --prefix libomp)/lib
 
           cmake $SRC_DIR \
+            -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
             -Dtest=on \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
