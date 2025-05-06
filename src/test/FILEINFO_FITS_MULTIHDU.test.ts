@@ -351,9 +351,6 @@ describe("FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
             test('Preparation:',async () => {
                 let FileListResponse = await msgController.getFileList('$BASE', 0);
                 basepath = FileListResponse.directory;
-                const outputPath = '/Users/acdc/Downloads/BASEPath.json';
-                fs.writeFileSync(outputPath, JSON.stringify(basepath, null, 2), 'utf-8');
-                console.log(`BASE Path written to ${outputPath}`);
             }, listFileTimeout);
         });
 
