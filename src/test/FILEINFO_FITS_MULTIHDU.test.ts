@@ -349,7 +349,7 @@ describe("FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
         checkConnection();
         describe(`Go to "${testSubdirectory}" folder`, () => {
             test('Preparation:',async () => {
-                const outputPath = './BASEPath.json';
+                const outputPath = '/Users/acdc/Downloads/BASEPath.json';
                 fs.writeFileSync(outputPath, JSON.stringify($BASE, null, 2), 'utf-8');
                 console.log(`BASE Path written to ${outputPath}`);
                 let FileListResponse = await msgController.getFileList('$BASE', 0);
