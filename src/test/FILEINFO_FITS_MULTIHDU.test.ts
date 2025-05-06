@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import * as fs from 'fs';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -348,6 +349,9 @@ describe("FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
         checkConnection();
         describe(`Go to "${testSubdirectory}" folder`, () => {
             test('Preparation:',async () => {
+                const outputPath = './BASEPath.json';
+                fs.writeFileSync(outputPath, JSON.stringify($BASE, null, 2), 'utf-8');
+                console.log(`BASE Path written to ${outputPath}`);
                 let FileListResponse = await msgController.getFileList('$BASE', 0);
                 basepath = FileListResponse.directory;
             }, listFileTimeout);
@@ -357,7 +361,6 @@ describe("FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
             let FileInfoResponse: any;
             test(`FILE_INFO_RESPONSE should arrive within ${openFileTimeout} ms".`, async () => {
                 FileInfoResponse = await msgController.getFileInfo(`${basepath}/` + testSubdirectory, assertItem.fileInfoRequest.file, assertItem.fileInfoRequest.hdu);
-                console.log("FileInfoResponse:", FileInfoResponse);
             }, openFileTimeout);
 
             test("FILE_INFO_RESPONSE.success = true", () => {
