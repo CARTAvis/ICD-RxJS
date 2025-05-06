@@ -356,7 +356,8 @@ describe("FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
         describe(`query the info of file : ${assertItem.fileInfoRequest.file}`, () => {
             let FileInfoResponse: any;
             test(`FILE_INFO_RESPONSE should arrive within ${openFileTimeout} ms".`, async () => {
-                FileInfoResponse = await msgController.getFileInfo(`${basepath}/` + testSubdirectory, assertItem.fileInfoRequest.file, assertItem.fileInfoRequest.hdu)
+                FileInfoResponse = await msgController.getFileInfo(`${basepath}/` + testSubdirectory, assertItem.fileInfoRequest.file, assertItem.fileInfoRequest.hdu);
+                console.log("FileInfoResponse:", FileInfoResponse);
             }, openFileTimeout);
 
             test("FILE_INFO_RESPONSE.success = true", () => {
