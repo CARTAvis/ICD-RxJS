@@ -100,7 +100,7 @@ jobs:
             -Dtest=on \
             -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
-            -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' -Xpreprocessor -fopenmp -I${OMP_PREFIX}/include' \
+            -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer -Xpreprocessor -fopenmp -I${OMP_PREFIX}/include' \
             -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address -L${OMP_PREFIX}/lib -lomp'
           make -j 16
 
