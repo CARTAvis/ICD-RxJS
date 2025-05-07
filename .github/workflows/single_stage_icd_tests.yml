@@ -85,7 +85,7 @@ jobs:
           uname -a
           sw_vers
 
-      - name: Build carta-backend (macOS)
+      - name: Build carta-backend (macOS-14)
         if: matrix.os_version == 'macOS-14'
         shell: bash
         run: |
@@ -104,7 +104,8 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address -L${OMP_PREFIX}/lib -lomp'
           make -j 16
 
-        if: matrix.os == 'macos'
+      - name: Build carta-backend (macOS)
+        if: matrix.os == 'macos' && matrix.os_version != 'macOS-14'
         shell: bash
         run: |
           SRC_DIR=$GITHUB_WORKSPACE/source
