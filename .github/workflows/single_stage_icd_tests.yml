@@ -86,6 +86,24 @@ jobs:
           sw_vers
 
       - name: Build carta-backend (macOS)
+        if: matrix.os_version == 'macOS-14'
+        shell: bash
+        run: |
+          export KMP_DUPLICATE_LIB_OK=TRUE
+          SRC_DIR=$GITHUB_WORKSPACE/source
+          BUILD_DIR=$GITHUB_WORKSPACE/build
+          cd $SRC_DIR && git submodule update --init --recursive
+          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
+          cd $BUILD_DIR
+          OMP_PREFIX=$(brew --prefix libomp)
+          cmake $SRC_DIR \
+            -Dtest=on \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDevSuppressExternalWarnings=ON \
+            -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer -Xpreprocessor -fopenmp -I${OMP_PREFIX}/include' \
+            -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address -L${OMP_PREFIX}/lib -lomp'
+          make -j 16
+
         if: matrix.os == 'macos'
         shell: bash
         run: |
