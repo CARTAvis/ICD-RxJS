@@ -201,6 +201,36 @@ describe("ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
         });
 
         describe(`Go to "${testSubdirectory}" folder and open images`, () => {
+            test(`Preparation 0, loadFile: ${assertItem.fileOpens[0]}`, async () => {
+                msgController.closeFile(-1);
+                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpens[0]);
+                expect(OpenFileResponse.success).toEqual(true);
+                console.log(`loadFile: ${assertItem.fileOpens[0]}`);
+
+                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
+                console.log(`Stream: ${CARTA.RegionHistogramData}`);
+
+                msgController.setChannels(assertItem.setImageChannels[0]);
+                console.log(`setChannels: ${assertItem.setImageChannels[0]}`);
+
+                let RasterTileData = await Stream(CARTA.RasterTileData,3);
+                console.log(`Stream: ${CARTA.RasterTileData}`);
+            });
+            test(`Preparation 1, loadFile: ${assertItem.fileOpens[1]}`, async () => {
+                msgController.closeFile(-1);
+                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpens[1]);
+                expect(OpenFileResponse.success).toEqual(true);
+                console.log(`loadFile: ${assertItem.fileOpens[1]}`);
+
+                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
+                console.log(`Stream: ${CARTA.RegionHistogramData}`);
+
+                msgController.setChannels(assertItem.setImageChannels[1]);
+                console.log(`setChannels: ${assertItem.setImageChannels[1]}`);
+
+                let RasterTileData = await Stream(CARTA.RasterTileData,3);
+                console.log(`Stream: ${CARTA.RasterTileData}`);
+            });
             test(`Preparation`, async () => {
                 msgController.closeFile(-1);
                 for (let i = 0; i < assertItem.fileOpens.length; i++) {
