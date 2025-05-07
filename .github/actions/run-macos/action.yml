@@ -7,6 +7,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Check backend dynamic linking
+      run: otool -L ./carta_backend
+      shell: bash
+
     - name: Start the carta-backend
       run: |
         export KMP_DUPLICATE_LIB_OK=TRUE
