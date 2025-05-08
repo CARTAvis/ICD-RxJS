@@ -29,7 +29,7 @@ let assertItem: AssertItem = {
     fileOpens: [
         {
             directory: testSubdirectory,
-            file: "HH211_IQU.hdf5",
+            file: "M17_SWex.hdf5",
             fileId: 0,
             hdu: "0",
             renderMode: CARTA.RenderMode.RASTER,
@@ -219,9 +219,6 @@ describe("ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
 
                     debugFile1.write(JSON.stringify(CARTA.RasterTileData, null, 2)+"\n");
                     let RasterTileData = await Stream(CARTA.RasterTileData,3);
-                } catch (error) {
-                    console.error("Error during test execution:", error);
-                    debugFile1.write("Error occurred:\n" + error.toString() + "\n");
                 } finally {
                     debugFile1.end();
                 }
@@ -243,9 +240,6 @@ describe("ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
 
                     debugFile2.write(JSON.stringify(CARTA.RasterTileData, null, 2)+"\n");
                     let RasterTileData = await Stream(CARTA.RasterTileData,3);
-                } catch (error) {
-                    console.error("Error during test execution:", error);
-                    debugFile2.write("Error occurred:\n" + error.toString() + "\n");
                 } finally {
                     debugFile2.end();
                 }
