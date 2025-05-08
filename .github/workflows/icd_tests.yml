@@ -99,6 +99,8 @@ jobs:
         if: matrix.os_version == 'macOS-14'
         shell: bash
         run: |
+          export CC="/Users/acdc/Homebrew/opt/llvm/bin/clang"
+          export CXX="/Users/acdc/Homebrew/opt/llvm/bin/clang++"
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
           cd $SRC_DIR && git submodule update --init --recursive
