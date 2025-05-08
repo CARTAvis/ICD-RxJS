@@ -3,7 +3,6 @@ import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
 import { take } from 'rxjs/operators';
-import * as fs from "fs";
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
 let connectTimeout = config.timeout.connection;
@@ -29,7 +28,7 @@ let assertItem: AssertItem = {
     fileOpens: [
         {
             directory: testSubdirectory,
-            file: "M17_SWex.hdf5",
+            file: "HH211_IQU.hdf5",
             fileId: 0,
             hdu: "0",
             renderMode: CARTA.RenderMode.RASTER,
@@ -202,48 +201,6 @@ describe("ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
         });
 
         describe(`Go to "${testSubdirectory}" folder and open images`, () => {
-            test(`Preparation 0, loadFile: ${assertItem.fileOpens[0]}`, async () => {
-                msgController.closeFile(-1);
-                const debugFile1 = fs.createWriteStream("debugFile1.txt");
-                try{
-                    debugFile1.write(JSON.stringify(assertItem.fileOpens[0], null, 2)+"\n");
-                    console.log(`loadFile: ${assertItem.fileOpens[0]}`);
-                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpens[0]);
-                    expect(OpenFileResponse.success).toEqual(true);
-
-                    debugFile1.write(JSON.stringify(CARTA.RegionHistogramData, null, 2)+"\n");
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
-
-                    debugFile1.write(JSON.stringify(assertItem.setImageChannels[0], null, 2)+"\n");
-                    msgController.setChannels(assertItem.setImageChannels[0]);
-
-                    debugFile1.write(JSON.stringify(CARTA.RasterTileData, null, 2)+"\n");
-                    let RasterTileData = await Stream(CARTA.RasterTileData,3);
-                } finally {
-                    debugFile1.end();
-                }
-            });
-            test(`Preparation 1, loadFile: ${assertItem.fileOpens[1]}`, async () => {
-                msgController.closeFile(-1);
-                const debugFile2 = fs.createWriteStream("debugFile2.txt");
-                try{
-                    debugFile2.write(JSON.stringify(assertItem.fileOpens[1], null, 2)+"\n");
-                    console.log(`loadFile: ${assertItem.fileOpens[1]}`);
-                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpens[1]);
-                    expect(OpenFileResponse.success).toEqual(true);
-
-                    debugFile2.write(JSON.stringify(CARTA.RegionHistogramData, null, 2)+"\n");
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
-
-                    debugFile2.write(JSON.stringify(assertItem.setImageChannels[1], null, 2)+"\n");
-                    msgController.setChannels(assertItem.setImageChannels[1]);
-
-                    debugFile2.write(JSON.stringify(CARTA.RasterTileData, null, 2)+"\n");
-                    let RasterTileData = await Stream(CARTA.RasterTileData,3);
-                } finally {
-                    debugFile2.end();
-                }
-            });
             test(`Preparation`, async () => {
                 msgController.closeFile(-1);
                 for (let i = 0; i < assertItem.fileOpens.length; i++) {
