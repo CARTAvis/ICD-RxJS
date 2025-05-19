@@ -274,10 +274,10 @@ let assertItem: AssertItem = {
                     fwhm: {},
                 },
                 {
-                    center: {x: 2.6465599150911108e-9, y: 6.626641860809681e-10},
-                    amp: 5.303216624960029e-10,
-                    fwhm: {x: 1.5595094809093706e-9, y: 6.232408985003761e-9},
-                    pa: 1.147460776442933e-9
+                    center: {x: 1.171602298962139e-10, y: 2.9342842620289634e-11},
+                    amp: 2.3475102491237048e-11,
+                    fwhm: {x: 6.905172707607601e-11, y: 2.7590262104734837e-10},
+                    pa: 5.080750134600514e-11
                 }
             ],
             success: true,
@@ -631,14 +631,6 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS13Intel[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS13Intel[0].message);
                 } else if (Math.floor(MacOSNumber) === 14 && platformOS === 'macOS' && MacChipM1 === false) {
-                    const result0 = response.resultValues[0];
-                    fs.writeFileSync('fit_result0_output.json', JSON.stringify(result0, null, 2));
-                    const result1 = response.resultValues[1];
-                    fs.writeFileSync('fit_result1_output.json', JSON.stringify(result1, null, 2));
-                    const error0 = response.resultErrors[0];
-                    fs.writeFileSync('fit_error0_output.json', JSON.stringify(error0, null, 2));
-                    const error1 = response.resultErrors[1];
-                    fs.writeFileSync('fit_error1_output.json', JSON.stringify(error1, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].amp, assertItem.precisionDigits);
@@ -667,6 +659,14 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS14Intel[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS14Intel[0].message);
                 } else if (Math.floor(MacOSNumber) === 15 && platformOS === 'macOS' && MacChipM1 === true) {
+                    const result0 = response.resultValues[0];
+                    fs.writeFileSync('fit_result0_output.json', JSON.stringify(result0, null, 2));
+                    const result1 = response.resultValues[1];
+                    fs.writeFileSync('fit_result1_output.json', JSON.stringify(result1, null, 2));
+                    const error0 = response.resultErrors[0];
+                    fs.writeFileSync('fit_error0_output.json', JSON.stringify(error0, null, 2));
+                    const error1 = response.resultErrors[1];
+                    fs.writeFileSync('fit_error1_output.json', JSON.stringify(error1, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].amp, assertItem.precisionDigits);
@@ -752,8 +752,6 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.log).toContain(assertItem.fittingResponseUbuntu2204[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseUbuntu2204[0].message);
                 } else if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === true && isUbunutu2404 === true) {
-                    const fs = require('fs');
-                    fs.writeFileSync('Ubuntu2404_fitting_result.json', JSON.stringify(response, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].amp, assertItem.precisionDigits);
