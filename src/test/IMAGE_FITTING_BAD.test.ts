@@ -661,14 +661,6 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS14Intel[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS14Intel[0].message);
                 } else if (Math.floor(MacOSNumber) === 15 && platformOS === 'macOS' && MacChipM1 === true) {
-                    const result0 = response.resultValues[0];
-                    fs.writeFileSync('fit_result0_output.json', JSON.stringify(result0, null, 2));
-                    const result1 = response.resultValues[1];
-                    fs.writeFileSync('fit_result1_output.json', JSON.stringify(result1, null, 2));
-                    const error0 = response.resultErrors[0];
-                    fs.writeFileSync('fit_error0_output.json', JSON.stringify(error0, null, 2));
-                    const error1 = response.resultErrors[1];
-                    fs.writeFileSync('fit_error1_output.json', JSON.stringify(error1, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].amp, assertItem.precisionDigits);
