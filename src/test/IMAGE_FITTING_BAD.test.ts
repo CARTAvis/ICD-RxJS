@@ -256,16 +256,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: {x: 136.76553013744936, y: 279.50635164812815}, 
-                    amp: 0.36574294260117873,
-                    fwhm: {x: 1.1387893241134832, y: 0.18890294966851637},
-                    pa: 270.8147167298713
+                    center: {x: 136.84138281858822, y: 279.57300964958677},
+                    amp: 0.25114240212361966,
+                    fwhm: { x: -0.37488865824181117, y: 0.004853001259932044},
+                    pa: 270.06219730832464
                 }, 
                 {
-                    center: {x: 324.34924142407914, y: 324.34970453785337}, 
-                    amp: 9.997706868406881,
-                    fwhm: {x: 29.3988719098713, y: 117.49522726645462},
-                    pa: 0.5372354225396865
+                    center: {x: 324.3459357936718, y: 324.3490270635637},
+                    amp: 9.99605497194563,
+                    fwhm: {x: 29.403273532795087, y: 117.48352399835869},
+                    pa: 0.537103997231709
                 }
             ],
             resultErrors: [
@@ -635,6 +635,10 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     fs.writeFileSync('fit_result0_output.json', JSON.stringify(result0, null, 2));
                     const result1 = response.resultValues[1];
                     fs.writeFileSync('fit_result1_output.json', JSON.stringify(result1, null, 2));
+                    const error0 = response.resultErrors[0];
+                    fs.writeFileSync('fit_error0_output.json', JSON.stringify(error0, null, 2));
+                    const error1 = response.resultErrors[1];
+                    fs.writeFileSync('fit_error1_output.json', JSON.stringify(error1, null, 2));
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].amp, assertItem.precisionDigits);
