@@ -13,7 +13,6 @@ runs:
 
     - name: Start the carta-backend
       run: |
-        export KMP_DUPLICATE_LIB_OK=TRUE
         SRC_DIR=$GITHUB_WORKSPACE/source
         BUILD_DIR=$GITHUB_WORKSPACE/build
         cd $BUILD_DIR
