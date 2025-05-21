@@ -63,7 +63,7 @@ let assertItem: AssertItem = {
             fovInfo: null,
             regionId: -1, 
             initialValues: [
-                {amp: 1, center: {x: 164, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}, 
+                {amp: 1, center: {x: 150, y: 280}, fwhm: {x: 100, y: 5}, pa: 270}, 
                 {amp: 1, center: {x: 220, y: 270}, fwhm: {x: 30, y: 100}, pa: 45}, 
             ],
             solver: 1,
