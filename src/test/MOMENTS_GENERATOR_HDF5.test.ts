@@ -2,6 +2,7 @@ import { CARTA } from "carta-protobuf";
 import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
+import { execSync } from "child_process";
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -18,6 +19,7 @@ interface AssertItem {
     setSpectralRequirements: CARTA.ISetSpectralRequirements;
     momentRequest: CARTA.IMomentRequest;
     imageDataLength: number[];
+    imageDataLength_ubuntu2404: number[];
     nanEncodingsLength: number[];
 };
 
@@ -59,6 +61,7 @@ let assertItem: AssertItem = {
         restFreq: 230538000000,
     },
     imageDataLength: [72560, 72480, 59320, 67560, 74128, 32720, 68424, 72080, 70576, 67496, 32752, 76904, 61848],
+    imageDataLength_ubuntu2404: [72553, 72476, 59320, 67554, 74127, 32719, 68420, 72076, 70573, 67495, 32746, 76902, 61846],
     nanEncodingsLength: [1424, 1424, 1424, 1424, 1424, 1424, 1448, 1424, 1424, 1424, 1424, 1424, 1424],
 };
 const momentName = [
@@ -91,6 +94,8 @@ const imageData30000 = [ // Testing the compressed imageData[30000] of each mome
 ];
 
 let basepath: string;
+let platformOS: String;
+let isUbunutu2404: boolean;
 describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region on a hdf5 image", () => {
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -98,7 +103,12 @@ describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async ()=> {
-            await msgController.connect(testServerUrl);
+            let registerViewerAck = await msgController.connect(testServerUrl);
+            platformOS = registerViewerAck.platformStrings.platform;
+            if (platformOS === "Linux"){
+                let Response = String(execSync('lsb_release -a',{encoding: 'utf-8'}));
+                isUbunutu2404 = Response.includes("24.04")
+            }
         }, connectTimeout);
 
         checkConnection();
@@ -239,7 +249,11 @@ describe("MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
                 RasterTileData.map((ack, index) => {
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);
-                    expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
+                    if (platformOS === 'Linux' && isUbunutu2404 === true) {
+                        expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength_ubuntu2404[index]);
+                    } else {
+                        expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
+                    }
                     expect(ack.tiles[0].nanEncodings.length).toEqual(assertItem.nanEncodingsLength[index]);
                 });
             });

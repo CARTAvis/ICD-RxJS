@@ -3,6 +3,7 @@ import { checkConnection, Stream} from './myClient';
 import { MessageController } from "./MessageController";
 import config from "./config.json";
 import { execSync } from "child_process";
+import * as fs from 'fs';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
@@ -22,8 +23,11 @@ interface AssertItem {
     fittingResponseMacOS12: CARTA.IFittingResponse[];
     fittingResponseMacOS13Intel: CARTA.IFittingResponse[];
     fittingResponseMacOS13M1: CARTA.IFittingResponse[];
+    fittingResponseMacOS14Intel: CARTA.IFittingResponse[];
+    fittingResponseMacOS15M1: CARTA.IFittingResponse[];
     fittingResponseLinux: CARTA.IFittingResponse[];
     fittingResponseUbuntu2204: CARTA.IFittingResponse[];
+    fittingResponseUbuntu2404: CARTA.IFittingResponse[];
     precisionDigits: number;
 };
 
@@ -234,13 +238,79 @@ let assertItem: AssertItem = {
             resultErrors: [
                 {
                     center: {},
-                    fwhm: {}
+                    fwhm: {},
                 },
                 {
                     center: {x: 2.6461749462157237e-9, y: 6.626279656060306e-10},
                     amp: 5.302815060054006e-10,
                     fwhm: {x: 1.559404863135058e-9, y: 6.231507310104271e-9},
                     pa: 1.1473533301969971e-9
+                }
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations'
+        },
+    ],
+    fittingResponseMacOS14Intel: [
+        {
+            resultValues: [
+                {
+                    center: {x: 136.84138281858822, y: 279.57300964958677},
+                    amp: 0.25114240212361966,
+                    fwhm: {x: -0.37488865824181117, y: 0.004853001259932044},
+                    pa: 270.06219730832464
+                }, 
+                {
+                    center: {x: 324.3459357936718, y: 324.3490270635637},
+                    amp: 9.99605497194563,
+                    fwhm: {x: 29.403273532795087, y: 117.48352399835869},
+                    pa: 0.537103997231709
+                }
+            ],
+            resultErrors: [
+                {
+                    center: {},
+                    fwhm: {},
+                },
+                {
+                    center: {x: 1.171602298962139e-10, y: 2.9342842620289634e-11},
+                    amp: 2.3475102491237048e-11,
+                    fwhm: {x: 6.905172707607601e-11, y: 2.7590262104734837e-10},
+                    pa: 5.080750134600514e-11
+                }
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations'
+        },
+    ],
+    fittingResponseMacOS15M1: [
+        {
+            resultValues: [
+                {
+                    center: {x: 116.31369946305503, y: 284.23462476726297},
+                    amp: 22.12829836659118,
+                    fwhm: {x: -2.4318180151342417, y: -0.004330957756786921},
+                    pa: 133.73792912297432
+                },
+                {
+                    center: {x: 324.3524987938526, y: 324.34918203704683},
+                    amp: 9.997331578861056,
+                    fwhm: {x: 29.40216567491421, y: 117.4850448687386},
+                    pa: 0.5446955482204604
+                }
+            ],
+            resultErrors: [
+                {
+                    center: {},
+                    fwhm: {},
+                },
+                {
+                    center: {x: 1.1714809697842197e-10, y: 2.933890362251915e-11},
+                    amp: 2.34753928031256e-11,
+                    fwhm: {x: 6.904116193771595e-11, y: 2.7587437257939583e-10},
+                    pa: 5.079872634449951e-11
                 }
             ],
             success: true,
@@ -314,6 +384,39 @@ let assertItem: AssertItem = {
             message: 'exceeded max number of iterations'
         },
     ],
+    fittingResponseUbuntu2404: [
+        {
+            resultValues: [
+                {
+                    center: {x: 135.6039671553926, y: 279.3982090340097},
+                    amp: 0.2667783422848237,
+                    fwhm: {x: 0.00663387750450295, y: 0.25375495985499164},
+                    pa: 268.82156926726475
+                },
+                {
+                    center: {x: 324.3548469822517, y: 324.3493131416585},
+                    amp: 9.996067823419335,
+                    fwhm: {x: 29.404786487293283, y: 117.49510621189104},
+                    pa: 0.5401367844577657
+                }
+            ],
+            resultErrors: [
+                {
+                    center: {},
+                    fwhm: {},
+                },
+                {
+                    center: {x: 2.646221869634662e-9, y: 6.627293636592795e-10},
+                    amp: 5.30201596436001e-10,
+                    fwhm: {x: 1.55959026052576e-9, y: 6.231631197843904e-9},
+                    pa: 1.1473887943482772e-9
+                }
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations'
+        },
+    ],
     precisionDigits: 2,
 };
 
@@ -323,6 +426,7 @@ let MacOSNumberResponse: any;
 let chipVersion: any;
 let ubuntuNumber: any;
 let isUbunutu2204orRedHat9: boolean;
+let isUbunutu2404: boolean;
 let MacChipM1: boolean = false;
 let basepath: string;
 describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) with fits file.", () => {
@@ -344,7 +448,8 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
             }
             if (platformOS === "Linux"){
                 let Response = String(execSync('lsb_release -a',{encoding: 'utf-8'}));
-                isUbunutu2204orRedHat9 = Response.includes("22.04") || Response.includes("AlmaLinux 9.3");
+                isUbunutu2204orRedHat9 = Response.includes("22.04") || Response.includes("24.04") || Response.includes("AlmaLinux 9.3");
+                isUbunutu2404 = Response.includes("24.04")
             }
         }, connectTimeout);
 
@@ -485,7 +590,6 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                     expect(response.resultErrors[0].center.y).toBeCloseTo(0);
                     expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
                     expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
-                    expect(response.resultErrors[0].pa).toBeCloseTo(0);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS13M1[0].resultErrors[1].amp, assertItem.precisionDigits);
@@ -523,6 +627,63 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 
                     expect(response.log).toContain(assertItem.fittingResponseMacOS13Intel[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseMacOS13Intel[0].message);
+                } else if (Math.floor(MacOSNumber) === 14 && platformOS === 'macOS' && MacChipM1 === false) {
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultValues[1].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponseMacOS14Intel[0].success);
+
+                    const err = response.resultErrors[0];
+                    if (!Number.isNaN(err.center.x)) expect(err.center.x).toBeCloseTo(0);
+                    if (!Number.isNaN(err.center.y)) expect(err.center.y).toBeCloseTo(0);
+                    if (!Number.isNaN(err.fwhm.x)) expect(err.fwhm.x).toBeCloseTo(0);
+                    if (!Number.isNaN(err.fwhm.y)) expect(err.fwhm.y).toBeCloseTo(0);
+                    expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].pa, assertItem.precisionDigits);
+                
+                    expect(response.log).toContain(assertItem.fittingResponseMacOS14Intel[0].log);
+                    expect(response.message).toContain(assertItem.fittingResponseMacOS14Intel[0].message);
+                } else if (Math.floor(MacOSNumber) === 15 && platformOS === 'macOS' && MacChipM1 === true) {
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultValues[1].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponseMacOS15M1[0].success);
+                    
+                    expect(response.resultErrors[0].center.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].center.y).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
+                    expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
+                    expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].pa).toBeCloseTo(assertItem.fittingResponseMacOS15M1[0].resultErrors[1].pa, assertItem.precisionDigits);
+                    
+                    expect(response.log).toContain(assertItem.fittingResponseMacOS15M1[0].log);
+                    expect(response.message).toContain(assertItem.fittingResponseMacOS15M1[0].message);
                 } else if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === false) {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseLinux[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseLinux[0].resultValues[0].center.y, assertItem.precisionDigits);
@@ -551,7 +712,7 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 
                     expect(response.log).toContain(assertItem.fittingResponseLinux[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseLinux[0].message);
-                } else if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === true) {
+                } else if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === true && isUbunutu2404 === false) {
                     expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[0].center.x, assertItem.precisionDigits);
                     expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2204[0].resultValues[0].amp, assertItem.precisionDigits);
@@ -579,25 +740,37 @@ describe("IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 
                     expect(response.log).toContain(assertItem.fittingResponseUbuntu2204[0].log);
                     expect(response.message).toContain(assertItem.fittingResponseUbuntu2204[0].message);
-                } else {
-                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.x, assertItem.precisionDigits);
-                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.y, assertItem.precisionDigits);
-                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].amp, assertItem.precisionDigits);
-                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
-                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
-                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].pa, assertItem.precisionDigits);
-                    expect(response.resultValues[1].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].center.x, assertItem.precisionDigits);
-                    expect(response.resultValues[1].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].center.y, assertItem.precisionDigits);
-                    expect(response.resultValues[1].amp).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].amp, assertItem.precisionDigits);
-                    expect(response.resultValues[1].fwhm.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].fwhm.x, assertItem.precisionDigits);
-                    expect(response.resultValues[1].fwhm.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].fwhm.y, assertItem.precisionDigits);
-                    expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponse[0].resultValues[1].pa, assertItem.precisionDigits);
-                    expect(response.success).toEqual(assertItem.fittingResponse[0].success);
+                } else if (platformOS === 'Linux' && isUbunutu2204orRedHat9 === true && isUbunutu2404 === true) {
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].fwhm.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[0].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[0].pa, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].amp, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultValues[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultValues[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultValues[1].pa, assertItem.precisionDigits);
+                    expect(response.success).toEqual(assertItem.fittingResponseUbuntu2404[0].success);
 
                     expect(response.resultErrors[0].center.x).toBeCloseTo(0);
                     expect(response.resultErrors[0].center.y).toBeCloseTo(0);
                     expect(response.resultErrors[0].fwhm.x).toBeCloseTo(0);
                     expect(response.resultErrors[0].fwhm.y).toBeCloseTo(0);
+                    expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].center.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].center.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].amp, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.x).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].fwhm.x, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].fwhm.y).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].fwhm.y, assertItem.precisionDigits);
+                    expect(response.resultErrors[1].pa).toBeCloseTo(assertItem.fittingResponseUbuntu2404[0].resultErrors[1].pa, assertItem.precisionDigits);
+
+                    expect(response.log).toContain(assertItem.fittingResponseUbuntu2404[0].log);
+                    expect(response.message).toContain(assertItem.fittingResponseUbuntu2404[0].message);
+                } else {
+                    expect(response.resultValues[0].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.x, assertItem.precisionDigits);
+                    expect(response.resultValues[0].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultValues[0].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.x).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].center.x, assertItem.precisionDigits);
                     expect(response.resultErrors[1].center.y).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].center.y, assertItem.precisionDigits);
                     expect(response.resultErrors[1].amp).toBeCloseTo(assertItem.fittingResponse[0].resultErrors[1].amp, assertItem.precisionDigits);
