@@ -105,7 +105,7 @@ jobs:
           export PKG_CONFIG_PATH="$PROTOBUF_ROOT/lib/pkgconfig:$PKG_CONFIG_PATH"
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
-          cd $SRC_DIR && git submodule update --init --recursive
+          cd $SRC_DIR && git submodule update --init
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd $BUILD_DIR
           cmake $SRC_DIR \
@@ -122,7 +122,7 @@ jobs:
         run: |
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
-          cd $SRC_DIR && git submodule update --init --recursive
+          cd $SRC_DIR && git submodule update --init
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd $BUILD_DIR
           cmake $SRC_DIR \
@@ -140,7 +140,7 @@ jobs:
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
-          cd source ; git submodule update --init --recursive
+          cd source ; git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
             ls && pwd && \
             cd $BUILD_DIR && \
