@@ -3,11 +3,11 @@ import {checkConnection, Stream, ChannelMapStream} from './myClient';
 import {MessageController} from "./MessageController";
 import config from "./config.json";
 
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+const testServerUrl: string = config.serverURL0;
+const testSubdirectory: string = config.path.QA;
+const connectTimeout: number = config.timeout.connection;
+const openFileTimeout: number = config.timeout.openFile;
+const readFileTimeout: number = config.timeout.readFile;
 
 interface AssertItem {
     fileList: CARTA.IFileListRequest;
@@ -18,7 +18,14 @@ interface AssertItem {
     rasterTileDataGroup: CARTA.IRasterTileData[];
 }
 
-let assertItem: AssertItem = {
+const requiredTiles =
+    [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434, 33566721, 33566720, 33566722];
+const tiles =
+    [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434];
+const currentTiles =
+    [33554432, 33558528, 33562624, 33554433, 33558529, 33562625, 33554434, 33558530, 33562626];
+
+const assertItem: AssertItem = {
     fileList: {directory: testSubdirectory},
     fileOpenGroup: [
         {
@@ -26,46 +33,46 @@ let assertItem: AssertItem = {
             file: "M17_SWex.fits",
             hdu: "",
             fileId: 0,
-            renderMode: CARTA.RenderMode.RASTER,
+            renderMode: CARTA.RenderMode.RASTER
         },
         {
             directory: testSubdirectory,
             file: "M17_SWex.image",
             hdu: "",
             fileId: 1,
-            renderMode: CARTA.RenderMode.RASTER,
+            renderMode: CARTA.RenderMode.RASTER
         },
         {
             directory: testSubdirectory,
             file: "M17_SWex.miriad",
             hdu: "",
             fileId: 2,
-            renderMode: CARTA.RenderMode.RASTER,
+            renderMode: CARTA.RenderMode.RASTER
         },
         {
             directory: testSubdirectory,
             file: "M17_SWex.hdf5",
             hdu: "",
             fileId: 3,
-            renderMode: CARTA.RenderMode.RASTER,
+            renderMode: CARTA.RenderMode.RASTER
         },
     ],
     fileOpenAckGroup: [
         {
             success: true,
-            fileId: 0,
+            fileId: 0
         },
         {
             success: true,
-            fileId: 1,
+            fileId: 1
         },
         {
             success: true,
-            fileId: 2,
+            fileId: 2
         },
         {
             success: true,
-            fileId: 3,
+            fileId: 3
         },
     ],
     setImageChannelGroup: [
@@ -75,28 +82,10 @@ let assertItem: AssertItem = {
             stokes: 0,
             requiredTiles: {
                 fileId: 0,
-                tiles: [
-                    33558529,
-                    33558528,
-                    33562625,
-                    33554433,
-                    33562624,
-                    33558530,
-                    33554432,
-                    33562626,
-                    33554434],
+                tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: [
-                    33554432,
-                    33558528,
-                    33562624,
-                    33554433,
-                    33558529,
-                    33562625,
-                    33554434,
-                    33558530,
-                    33562626]
+                currentTiles: currentTiles
             },
             channelRange: {min: 1, max: 3},
             currentRange: {min: 0, max: 3},
@@ -108,28 +97,10 @@ let assertItem: AssertItem = {
             stokes: 0,
             requiredTiles: {
                 fileId: 0,
-                tiles: [
-                    33558529,
-                    33558528,
-                    33562625,
-                    33554433,
-                    33562624,
-                    33558530,
-                    33554432,
-                    33562626,
-                    33554434],
+                tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: [
-                    33554432,
-                    33558528,
-                    33562624,
-                    33554433,
-                    33558529,
-                    33562625,
-                    33554434,
-                    33558530,
-                    33562626]
+                currentTiles: currentTiles
             },
             channelRange: {min: 1, max: 3},
             currentRange: {min: 0, max: 3},
@@ -141,28 +112,10 @@ let assertItem: AssertItem = {
             stokes: 0,
             requiredTiles: {
                 fileId: 0,
-                tiles: [
-                    33558529,
-                    33558528,
-                    33562625,
-                    33554433,
-                    33562624,
-                    33558530,
-                    33554432,
-                    33562626,
-                    33554434],
+                tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: [
-                    33554432,
-                    33558528,
-                    33562624,
-                    33554433,
-                    33558529,
-                    33562625,
-                    33554434,
-                    33558530,
-                    33562626]
+                currentTiles: currentTiles
             },
             channelRange: {min: 1, max: 3},
             currentRange: {min: 0, max: 3},
@@ -174,28 +127,10 @@ let assertItem: AssertItem = {
             stokes: 0,
             requiredTiles: {
                 fileId: 0,
-                tiles: [
-                    33558529,
-                    33558528,
-                    33562625,
-                    33554433,
-                    33562624,
-                    33558530,
-                    33554432,
-                    33562626,
-                    33554434],
+                tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: [
-                    33554432,
-                    33558528,
-                    33562624,
-                    33554433,
-                    33558529,
-                    33562625,
-                    33554434,
-                    33558530,
-                    33562626]
+                currentTiles: currentTiles
             },
             channelRange: {min: 1, max: 3},
             currentRange: {min: 0, max: 3},
@@ -205,104 +140,53 @@ let assertItem: AssertItem = {
     addRequiredTilesGroup: [
         {
             fileId: 0,
-            tiles: [
-                33558529,
-                33558528,
-                33562625,
-                33554433,
-                33562624,
-                33558530,
-                33554432,
-                33562626,
-                33554434,
-                33566721,
-                33566720,
-                33566722],
+            tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11,
+            compressionQuality: 11
         },
         {
             fileId: 1,
-            tiles: [
-                33558529,
-                33558528,
-                33562625,
-                33554433,
-                33562624,
-                33558530,
-                33554432,
-                33562626,
-                33554434,
-                33566721,
-                33566720,
-                33566722],
+            tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11,
+            compressionQuality: 11
         },
         {
             fileId: 2,
-            tiles: [
-                33558529,
-                33558528,
-                33562625,
-                33554433,
-                33562624,
-                33558530,
-                33554432,
-                33562626,
-                33554434,
-                33566721,
-                33566720,
-                33566722
-            ],
+            tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11,
+            compressionQuality: 11
         },
         {
             fileId: 3,
-            tiles: [
-                33558529,
-                33558528,
-                33562625,
-                33554433,
-                33562624,
-                33558530,
-                33554432,
-                33562626,
-                33554434,
-                33566721,
-                33566720,
-                33566722
-            ],
+            tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11,
+            compressionQuality: 11
         },
     ],
     rasterTileDataGroup: [
         {
             fileId: 0,
             channel: 0,
-            stokes: 0,
+            stokes: 0
         },
         {
             fileId: 1,
             channel: 0,
-            stokes: 0,
+            stokes: 0
         },
         {
             fileId: 2,
             channel: 0,
-            stokes: 0,
+            stokes: 0
         },
         {
             fileId: 3,
             channel: 0,
-            stokes: 0,
+            stokes: 0
         },
     ],
 }
 
-let basepath: string;
 describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by one without closing former ones", () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
@@ -313,7 +197,7 @@ describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by 
         checkConnection();
         test(`Get basepath`, async () => {
             let fileListResponse = await msgController.getFileList("$BASE", 0);
-            basepath = fileListResponse.directory;
+            let basepath = fileListResponse.directory;
             for (let i = 0; i < assertItem.fileOpenGroup.length; i++) {
                 assertItem.fileOpenGroup[i].directory = basepath + "/" + assertItem.fileOpenGroup[i].directory;
             }
@@ -323,10 +207,9 @@ describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by 
             assertItem.fileOpenGroup.map((input, index) => {
                 describe(`Open ${input.file}`, () => {
                     let OpenFileAck: any;
-                    let RegionHistogramData: any
                     test(`OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async () => {
                         OpenFileAck = await msgController.loadFile(input);
-                        RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
+                        let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
                     }, openFileTimeout);
 
                     test(`OPEN_FILE_ACK.file = ${assertItem.fileOpenGroup[index].file}`, () => {
