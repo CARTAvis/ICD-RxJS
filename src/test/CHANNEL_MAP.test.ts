@@ -187,7 +187,7 @@ const assertItem: AssertItem = {
     ],
 }
 
-describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by one without closing former ones", () => {
+describe("CHANNEL_MAP: Test loading multiple images and generating their channel maps", () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -195,7 +195,7 @@ describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by 
         }, connectTimeout);
 
         checkConnection();
-        test(`Get basepath`, async () => {
+        test(`Get the base path`, async () => {
             let fileListResponse = await msgController.getFileList("$BASE", 0);
             let basepath = fileListResponse.directory;
             for (let i = 0; i < assertItem.fileOpenGroup.length; i++) {
@@ -207,7 +207,7 @@ describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by 
             assertItem.fileOpenGroup.map((input, index) => {
                 describe(`Open ${input.file}`, () => {
                     let OpenFileAck: any;
-                    test(`OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async () => {
+                    test(`OPEN_FILE_ACK should arrive within ${openFileTimeout} ms`, async () => {
                         OpenFileAck = await msgController.loadFile(input);
                         let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
                     }, openFileTimeout);
@@ -223,8 +223,8 @@ describe("OPEN_IMAGE_APPEND: Testing the case of opening multiple images one by 
                     });
                 });
 
-                describe(`Set image channel for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
-                    test(`Return RASTER_TILE_DATA (Stream) and check total length`, async () => {
+                describe(`Add required tiles for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
+                    test(`Check RASTER_TILE_DATA (Stream) and check total length`, async () => {
                         msgController.addRequiredTiles(assertItem.addRequiredTilesGroup[index]);
                         let RasterTileDataResponse = await Stream(CARTA.RasterTileData, assertItem.addRequiredTilesGroup[index].tiles.length + 2);
                         // RasterTileSync: Start + End + # Tiles returned
