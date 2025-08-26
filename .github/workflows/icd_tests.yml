@@ -110,6 +110,7 @@ jobs:
           cd $BUILD_DIR
           cmake $SRC_DIR \
             -Dtest=on \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
             -DCMAKE_CXX_FLAGS="-O0 -g -fsanitize=address -fno-omit-frame-pointer" \
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
@@ -126,6 +127,7 @@ jobs:
           cd $BUILD_DIR
           cmake $SRC_DIR \
             -Dtest=on \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DDevSuppressExternalWarnings=ON \
             -DCMAKE_CXX_FLAGS="-O0 -g -fsanitize=address -fno-omit-frame-pointer" \
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
@@ -145,6 +147,7 @@ jobs:
             ls && pwd && \
             cmake $SRC_DIR \
               -Dtest=on \
+              -DCMAKE_BUILD_TYPE=Debug \
               -DDevSuppressExternalWarnings=ON \
               -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' \
               -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
