@@ -1,7 +1,7 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import { CARTA } from 'carta-protobuf';
 import { Subject, throwError } from 'rxjs';
-import { mapToObject } from './parsing';
+import { mapToObject } from './MyParsing';
 import IRegionInfo = CARTA.IRegionInfo;
 const WebSocket = require('ws');
 

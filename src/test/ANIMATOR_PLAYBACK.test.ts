@@ -2,7 +2,7 @@ import { CARTA } from 'carta-protobuf';
 import config from 'utilities/config.json';
 import * as Long from 'long';
 import { take } from 'rxjs/operators';
-import { checkConnection, Stream } from 'utilities/myClient';
+import { checkConnection, Stream } from 'utilities/MyClient';
 import { MessageController, ConnectionStatus } from 'utilities/MessageController';
 
 let testServerUrl: string = config.serverURL0;

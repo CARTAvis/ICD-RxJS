@@ -1,6 +1,6 @@
 import { CARTA } from 'carta-protobuf';
 import * as Long from 'long';
-import { checkConnection, Stream } from 'utilities/myClient';
+import { checkConnection, Stream } from 'utilities/MyClient';
 import { MessageController } from 'utilities/MessageController';
 import config from 'utilities/config.json';
 import { take } from 'rxjs/operators';

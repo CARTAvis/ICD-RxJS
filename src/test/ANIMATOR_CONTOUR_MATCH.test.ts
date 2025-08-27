@@ -1,5 +1,5 @@
 import { CARTA } from 'carta-protobuf';
-import { checkConnection, Stream } from 'utilities/myClient';
+import { checkConnection, Stream } from 'utilities/MyClient';
 import * as Long from 'long';
 import { MessageController } from 'utilities/MessageController';
 import config from 'utilities/config.json';

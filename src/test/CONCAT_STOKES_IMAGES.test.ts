@@ -1,6 +1,6 @@
 import { CARTA } from 'carta-protobuf';
 import config from 'utilities/config.json';
-import { checkConnection } from 'utilities/myClient';
+import { checkConnection } from 'utilities/MyClient';
 import { MessageController } from 'utilities/MessageController';
 
 let testServerUrl: string = config.serverURL0;
