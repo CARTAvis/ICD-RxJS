@@ -1,6 +1,6 @@
 import { CARTA } from 'carta-protobuf';
-import { BackendService } from './MessageController-concurrent';
-import config from './config.json';
+import { BackendService } from 'utilities/MessageController-concurrent';
+import config from 'utilities/config.json';
 
 let testServerUrl = config.serverURL0;
 let expectRootPath = config.path.root;

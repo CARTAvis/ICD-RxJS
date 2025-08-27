@@ -1,9 +1,9 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
+import config from 'utilities/config.json';
 import * as Long from 'long';
 import { take } from 'rxjs/operators';
-import { checkConnection, Stream } from './myClient';
-import { MessageController, ConnectionStatus } from './MessageController';
+import { checkConnection, Stream } from 'utilities/myClient';
+import { MessageController, ConnectionStatus } from 'utilities/MessageController';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;

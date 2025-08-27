@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
+import config from 'utilities/config.json';
 const WebSocket = require('ws');
-import { MessageController } from './MessageController';
+import { MessageController } from 'utilities/MessageController';
 
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;

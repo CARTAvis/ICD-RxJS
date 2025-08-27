@@ -1,8 +1,8 @@
 import { CARTA } from 'carta-protobuf';
 import * as Long from 'long';
-import { checkConnection, Stream } from './myClient';
-import { MessageController } from './MessageController';
-import config from './config.json';
+import { checkConnection, Stream } from 'utilities/myClient';
+import { MessageController } from 'utilities/MessageController';
+import config from 'utilities/config.json';
 import { take } from 'rxjs/operators';
 
 let connectTimeout = config.timeout.connection;
