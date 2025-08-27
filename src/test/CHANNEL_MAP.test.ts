@@ -224,12 +224,26 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
                 });
 
                 describe(`Add required tiles for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
+                    let RasterTileDataResponse: any;
                     test(`Check RASTER_TILE_DATA (Stream) and check total length`, async () => {
                         msgController.addRequiredTiles(assertItem.addRequiredTilesGroup[index]);
-                        let RasterTileDataResponse = await Stream(CARTA.RasterTileData, assertItem.addRequiredTilesGroup[index].tiles.length + 2);
+                        RasterTileDataResponse = await Stream(CARTA.RasterTileData, assertItem.addRequiredTilesGroup[index].tiles.length + 2);
                         // RasterTileSync: Start + End + # Tiles returned
                         expect(RasterTileDataResponse.length).toEqual(assertItem.addRequiredTilesGroup[index].tiles.length + 2);
                     }, readFileTimeout);
+
+                    // Check file Ids
+                    test(`RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
+                        expect(RasterTileDataResponse[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
+                    });
+                    // Check channels
+                    test(`RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel}`, () => {
+                        expect(RasterTileDataResponse[1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel);
+                    });
+                    // Check stokes
+                    test(`RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
+                        expect(RasterTileDataResponse[1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
+                    });
                 });
 
                 describe(`Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
@@ -245,7 +259,7 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
                         RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
                     }, readFileTimeout);
 
-                    // check file Ids
+                    // Check file Ids
                     test(`1st RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
                         expect(RasterTileDataTemp[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
                     });
