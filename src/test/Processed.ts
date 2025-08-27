@@ -1,7 +1,15 @@
 // import * as CARTACompute from "carta_computation";
-import {CARTA} from "carta-protobuf";
+import { CARTA } from 'carta-protobuf';
 
-export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
+export type TypedArray =
+    | Int8Array
+    | Uint8Array
+    | Int16Array
+    | Uint16Array
+    | Int32Array
+    | Uint32Array
+    | Float32Array
+    | Float64Array;
 export type ColumnArray = Array<string> | Array<boolean> | Array<number>;
 
 export interface ProcessedSpatialProfile extends CARTA.ISpatialProfile {
@@ -42,7 +50,7 @@ export class ProtobufProcessing {
                 end: profile.end,
                 mip: profile.mip,
                 values: new Float32Array(profile.rawValuesFp32.slice().buffer),
-                lineAxis: profile.lineAxis
+                lineAxis: profile.lineAxis,
             };
         }
 
@@ -52,7 +60,7 @@ export class ProtobufProcessing {
             end: profile.end,
             mip: profile.mip,
             values: null,
-            lineAxis: profile.lineAxis
+            lineAxis: profile.lineAxis,
         };
     }
 
@@ -62,14 +70,14 @@ export class ProtobufProcessing {
                 coordinate: profile.coordinate,
                 statsType: profile.statsType,
                 values: new Float64Array(profile.rawValuesFp64.slice().buffer),
-                progress
+                progress,
             };
         } else if (profile.rawValuesFp32 && profile.rawValuesFp32.length && profile.rawValuesFp32.length % 4 === 0) {
             return {
                 coordinate: profile.coordinate,
                 statsType: profile.statsType,
                 values: new Float32Array(profile.rawValuesFp32.slice().buffer),
-                progress
+                progress,
             };
         }
 
@@ -77,7 +85,7 @@ export class ProtobufProcessing {
             coordinate: profile.coordinate,
             statsType: profile.statsType,
             values: null,
-            progress: 0
+            progress: 0,
         };
     }
 
@@ -87,18 +95,27 @@ export class ProtobufProcessing {
         let floatCoordinates: Float32Array;
         if (isCompressed) {
             // Decode raw coordinates from Zstd-compressed binary to a float array
-            floatCoordinates = CARTACompute.Decode(contourSet.rawCoordinates, contourSet.uncompressedCoordinatesSize, contourSet.decimationFactor);
+            floatCoordinates = CARTACompute.Decode(
+                contourSet.rawCoordinates,
+                contourSet.uncompressedCoordinatesSize,
+                contourSet.decimationFactor
+            );
         } else {
             const u8Copy = contourSet.rawCoordinates.slice();
             floatCoordinates = new Float32Array(u8Copy.buffer);
         }
         // generate indices
-        const indexOffsets = new Int32Array(contourSet.rawStartIndices.buffer.slice(contourSet.rawStartIndices.byteOffset, contourSet.rawStartIndices.byteOffset + contourSet.rawStartIndices.byteLength));
+        const indexOffsets = new Int32Array(
+            contourSet.rawStartIndices.buffer.slice(
+                contourSet.rawStartIndices.byteOffset,
+                contourSet.rawStartIndices.byteOffset + contourSet.rawStartIndices.byteLength
+            )
+        );
 
         return {
             level: contourSet.level,
             indexOffsets,
-            coordinates: floatCoordinates
+            coordinates: floatCoordinates,
         };
     }
 
@@ -109,7 +126,9 @@ export class ProtobufProcessing {
             stokes: contourData.stokes,
             imageBounds: contourData.imageBounds,
             progress: contourData.progress,
-            contourSets: contourData.contourSets ? contourData.contourSets.map(contourSet => this.ProcessContourSet(contourSet)) : null
+            contourSets: contourData.contourSets
+                ? contourData.contourSets.map((contourSet) => this.ProcessContourSet(contourSet))
+                : null,
         };
     }
 
@@ -152,16 +171,16 @@ export class ProtobufProcessing {
                 for (let i = boolData.length - 1; i >= 0; i--) {
                     boolData[i] = array[i] !== 0;
                 }
-                return {dataType: column.dataType, data: boolData};
+                return { dataType: column.dataType, data: boolData };
             case CARTA.ColumnType.String:
-                return {dataType: column.dataType, data: column.stringData};
+                return { dataType: column.dataType, data: column.stringData };
             default:
-                return {dataType: CARTA.ColumnType.UnsupportedType, data: []};
+                return { dataType: CARTA.ColumnType.UnsupportedType, data: [] };
         }
-        return {dataType: column.dataType, data: data};
+        return { dataType: column.dataType, data: data };
     }
 
-    static ProcessCatalogData(catalogData: {[k: string]: CARTA.IColumnData}): Map<number, ProcessedColumnData> {
+    static ProcessCatalogData(catalogData: { [k: string]: CARTA.IColumnData }): Map<number, ProcessedColumnData> {
         const dataMap = new Map<number, ProcessedColumnData>();
         const originalMap = new Map(Object.entries(catalogData));
         originalMap.forEach((column, i) => {

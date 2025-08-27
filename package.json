@@ -13,6 +13,7 @@
     "@types/node": "^20.3.2",
     "jest-watch-typeahead": "^0.6.5",
     "mobx": "^6.9.0",
+    "prettier": "^3.6.2",
     "protobufjs": "7.2.6",
     "protobufjs-cli": "1.1.2",
     "rxjs": "^7.8.1",

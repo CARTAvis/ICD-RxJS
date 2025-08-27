@@ -1,14 +1,14 @@
-import {action, makeObservable, observable, runInAction} from "mobx";
-import {CARTA} from "carta-protobuf";
-import {Subject} from "rxjs";
-import config from "./config.json";
-const WebSocket = require("ws");
+import { action, makeObservable, observable, runInAction } from 'mobx';
+import { CARTA } from 'carta-protobuf';
+import { Subject } from 'rxjs';
+import config from './config.json';
+const WebSocket = require('ws');
 const icdVersion = config.icdVersion;
 
 export enum ConnectionStatus {
     CLOSED = 0,
     PENDING = 1,
-    ACTIVE = 2
+    ACTIVE = 2,
 }
 
 export const INVALID_ANIMATION_ID = -1;
@@ -54,7 +54,8 @@ export class BackendService {
     }
 
     private static readonly IcdVersion = icdVersion;
-    private static readonly DefaultFeatureFlags = CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
+    private static readonly DefaultFeatureFlags =
+        CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
 
@@ -86,7 +87,7 @@ export class BackendService {
     readonly listProgressStream: Subject<CARTA.ListProgress>;
     readonly pvProgressStream: Subject<CARTA.PvProgress>;
     readonly vectorTileStream: Subject<CARTA.VectorOverlayTileData>;
-    private readonly decoderMap: Map<CARTA.EventType, {messageClass: any; handler: HandlerFunction}>;
+    private readonly decoderMap: Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>;
 
     public constructor() {
         makeObservable(this);
@@ -114,9 +115,21 @@ export class BackendService {
         this.vectorTileStream = new Subject<CARTA.VectorOverlayTileData>();
 
         // Construct handler and decoder maps
-        this.decoderMap = new Map<CARTA.EventType, {messageClass: any; handler: HandlerFunction}>([
-            [CARTA.EventType.REGISTER_VIEWER_ACK, {messageClass: CARTA.RegisterViewerAck, handler: this.onRegisterViewerAck}],
-            [CARTA.EventType.FILE_LIST_RESPONSE, {messageClass: CARTA.FileListResponse, handler: this.onDeferredResponse}],
+        this.decoderMap = new Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>([
+            [
+                CARTA.EventType.REGISTER_VIEWER_ACK,
+                {
+                    messageClass: CARTA.RegisterViewerAck,
+                    handler: this.onRegisterViewerAck,
+                },
+            ],
+            [
+                CARTA.EventType.FILE_LIST_RESPONSE,
+                {
+                    messageClass: CARTA.FileListResponse,
+                    handler: this.onDeferredResponse,
+                },
+            ],
             // [CARTA.EventType.REGION_LIST_RESPONSE, {messageClass: CARTA.RegionListResponse, handler: this.onDeferredResponse}],
             // [CARTA.EventType.CATALOG_LIST_RESPONSE, {messageClass: CARTA.CatalogListResponse, handler: this.onDeferredResponse}],
             // [CARTA.EventType.FILE_LIST_PROGRESS, {messageClass: CARTA.ListProgress, handler: this.onStreamedListProgress}],
@@ -154,7 +167,7 @@ export class BackendService {
         // setInterval(this.sendPing, 5000);
     }
 
-    @action("connect")
+    @action('connect')
     async connect(url: string): Promise<CARTA.IRegisterViewerAck> {
         if (this.connection) {
             this.connection.onclose = null;
@@ -168,18 +181,22 @@ export class BackendService {
         this.connectionStatus = ConnectionStatus.PENDING;
         this.serverUrl = url;
         this.connection = new WebSocket(url);
-        this.connection.binaryType = "arraybuffer";
+        this.connection.binaryType = 'arraybuffer';
         this.connection.onmessage = this.messageHandler.bind(this);
         this.connection.onclose = (ev: CloseEvent) =>
             runInAction(() => {
                 // Only change to closed connection if the connection was originally active or this is a reconnection
-                if (this.connectionStatus === ConnectionStatus.ACTIVE || isReconnection || connectionAttempts >= BackendService.MaxConnectionAttempts) {
+                if (
+                    this.connectionStatus === ConnectionStatus.ACTIVE ||
+                    isReconnection ||
+                    connectionAttempts >= BackendService.MaxConnectionAttempts
+                ) {
                     this.connectionStatus = ConnectionStatus.CLOSED;
                 } else {
                     connectionAttempts++;
                     setTimeout(() => {
                         const newConnection = new WebSocket(url);
-                        newConnection.binaryType = "arraybuffer";
+                        newConnection.binaryType = 'arraybuffer';
                         newConnection.onopen = this.connection.onopen;
                         newConnection.onerror = this.connection.onerror;
                         newConnection.onclose = this.connection.onclose;
@@ -201,18 +218,21 @@ export class BackendService {
                 this.connectionDropped = true;
             }
             this.connectionStatus = ConnectionStatus.ACTIVE;
-            const message = CARTA.RegisterViewer.create({sessionId: this.sessionId, clientFeatureFlags: BackendService.DefaultFeatureFlags});
+            const message = CARTA.RegisterViewer.create({
+                sessionId: this.sessionId,
+                clientFeatureFlags: BackendService.DefaultFeatureFlags,
+            });
             // observer map is cleared, so that old subscriptions don't get incorrectly fired
 
             this.logEvent(CARTA.EventType.REGISTER_VIEWER, requestId, message, false);
             if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
                 this.deferredMap.set(requestId, deferredResponse);
             } else {
-                throw new Error("Could not send event");
+                throw new Error('Could not send event');
             }
         });
 
-        this.connection.onerror = ev => {
+        this.connection.onerror = (ev) => {
             // AppStore.Instance.logStore.addInfo(`Connecting to server ${url} failed.`, ["network"]);
             console.log(ev);
         };
@@ -220,18 +240,20 @@ export class BackendService {
         return await deferredResponse.promise;
     }
 
-
     @action closeConnection = () => {
         if (this.connection && this.connectionStatus !== ConnectionStatus.CLOSED) {
             this.connection.close();
         }
-    }
+    };
 
     async getFileList(directory: string, filterMode: CARTA.FileListFilterMode): Promise<CARTA.IFileListResponse> {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
-            throw new Error("Not connected");
+            throw new Error('Not connected');
         } else {
-            const message = CARTA.FileListRequest.create({directory, filterMode});
+            const message = CARTA.FileListRequest.create({
+                directory,
+                filterMode,
+            });
             const requestId = this.eventCounter;
             this.logEvent(CARTA.EventType.FILE_LIST_REQUEST, requestId, message, false);
             if (this.sendEvent(CARTA.EventType.FILE_LIST_REQUEST, CARTA.FileListRequest.encode(message).finish())) {
@@ -239,7 +261,7 @@ export class BackendService {
                 this.deferredMap.set(requestId, deferredResponse);
                 return await deferredResponse.promise;
             } else {
-                throw new Error("Could not send event");
+                throw new Error('Could not send event');
             }
         }
     }
@@ -803,12 +825,12 @@ export class BackendService {
     // }
 
     private messageHandler(event: MessageEvent) {
-        if (event.data === "PONG") {
+        if (event.data === 'PONG') {
             this.lastPongTime = performance.now();
             // this.updateEndToEndPing();
             return;
         } else if (event.data.byteLength < 8) {
-            console.log("Unknown event format");
+            console.log('Unknown event format');
             return;
         }
 
@@ -821,7 +843,9 @@ export class BackendService {
         const eventId = eventHeader32[0];
 
         if (eventIcdVersion !== BackendService.IcdVersion) {
-            console.log(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`);
+            console.log(
+                `Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`
+            );
         }
         try {
             const decoderEntry = this.decoderMap.get(eventType);
@@ -935,7 +959,7 @@ export class BackendService {
             this.eventCounter++;
             return true;
         } else {
-            console.log("Error sending event");
+            console.log('Error sending event');
             this.eventCounter++;
             return false;
         }

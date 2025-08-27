@@ -1,7 +1,7 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from './myClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -27,12 +27,12 @@ let assertItem: AssertItem = {
     },
     openFile: {
         directory: testSubdirectory,
-        file: "HD163296_CO_2_1.fits",
+        file: 'HD163296_CO_2_1.fits',
         fileId: 0,
-        hdu: "",
+        hdu: '',
         renderMode: CARTA.RenderMode.RASTER,
     },
-        
+
     addTilesReq: {
         fileId: 0,
         compressionQuality: 11,
@@ -45,18 +45,24 @@ let assertItem: AssertItem = {
             regionId: -1,
             regionInfo: {
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 210, y: 220 }, { x: 50, y: 50 }],
+                controlPoints: [
+                    { x: 210, y: 220 },
+                    { x: 50, y: 50 },
+                ],
                 rotation: 0.0,
-            }
+            },
         },
         {
             fileId: 0,
             regionId: -1,
             regionInfo: {
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 150, y: 170 }, { x: 35, y: 35 }],
+                controlPoints: [
+                    { x: 150, y: 170 },
+                    { x: 35, y: 35 },
+                ],
                 rotation: 0.0,
-            }
+            },
         },
     ],
     setSpectralRequirements: [
@@ -65,11 +71,9 @@ let assertItem: AssertItem = {
             regionId: 2,
             spectralProfiles: [
                 {
-                    coordinate: "z",
-                    statsTypes: [
-                        CARTA.StatsType.Mean,
-                    ],
-                }
+                    coordinate: 'z',
+                    statsTypes: [CARTA.StatsType.Mean],
+                },
             ],
         },
         {
@@ -77,11 +81,9 @@ let assertItem: AssertItem = {
             regionId: 1,
             spectralProfiles: [
                 {
-                    coordinate: "z",
-                    statsTypes: [
-                        CARTA.StatsType.Mean,
-                    ],
-                }
+                    coordinate: 'z',
+                    statsTypes: [CARTA.StatsType.Mean],
+                },
             ],
         },
     ],
@@ -91,60 +93,75 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe("MULTI-SPECTRAL-PROFILE-REGION: Test plotting the multi-spectral profiles with two regions in one image", () => {
+describe('MULTI-SPECTRAL-PROFILE-REGION: Test plotting the multi-spectral profiles with two regions in one image', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
         test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
             msgController.closeFile(-1);
-            assertItem.openFile.directory = basepath + "/" + assertItem.openFile.directory;
+            assertItem.openFile.directory = basepath + '/' + assertItem.openFile.directory;
         });
 
         describe(`Prepare the image`, () => {
-            test(`Should open image ${assertItem.openFile.file}:`, async () => {
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
+            test(
+                `Should open image ${assertItem.openFile.file}:`,
+                async () => {
+                    let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                    let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
 
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
-            }, openFileTimeout);
+                    expect(OpenFileResponse.success).toBe(true);
+                    expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                },
+                openFileTimeout
+            );
 
-            test(`return RASTER_TILE_DATA(Stream) and check total length`, async()=>{
+            test(`return RASTER_TILE_DATA(Stream) and check total length`, async () => {
                 msgController.addRequiredTiles(assertItem.addTilesReq);
-                let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.addTilesReq.tiles.length + 2);
-                
+                let RasterTileDataResponse = await Stream(
+                    CARTA.RasterTileData,
+                    assertItem.addTilesReq.tiles.length + 2
+                );
+
                 expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
-            })
+            });
         });
 
-        describe(`Plot multi regions in the spectral profiler:`,() => {
-            test(`Set two Regions in the images`, async()=>{
-                let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[0].fileId, assertItem.setRegion[0].regionId, assertItem.setRegion[0].regionInfo);
+        describe(`Plot multi regions in the spectral profiler:`, () => {
+            test(`Set two Regions in the images`, async () => {
+                let setRegionAckResponse = await msgController.setRegion(
+                    assertItem.setRegion[0].fileId,
+                    assertItem.setRegion[0].regionId,
+                    assertItem.setRegion[0].regionInfo
+                );
                 expect(setRegionAckResponse.regionId).toEqual(1);
                 expect(setRegionAckResponse.success).toEqual(true);
-    
-                let setRegionAckResponse2 = await msgController.setRegion(assertItem.setRegion[1].fileId, assertItem.setRegion[1].regionId, assertItem.setRegion[1].regionInfo);
+
+                let setRegionAckResponse2 = await msgController.setRegion(
+                    assertItem.setRegion[1].fileId,
+                    assertItem.setRegion[1].regionId,
+                    assertItem.setRegion[1].regionInfo
+                );
                 expect(setRegionAckResponse2.regionId).toEqual(2);
                 expect(setRegionAckResponse2.success).toEqual(true);
             });
 
             test(`Plot the frist region's spectral profiles data and check the values`, async () => {
                 let spectralProfileProgressArray = [];
-                let spectralProfileProgressPromise = new Promise((resolve)=>{
+                let spectralProfileProgressPromise = new Promise((resolve) => {
                     msgController.spectralProfileStream.subscribe({
-                         next: (data) => {
-                            spectralProfileProgressArray.push(data)
+                        next: (data) => {
+                            spectralProfileProgressArray.push(data);
                             if (Math.round(data.progress) == 1) {
-                                resolve(spectralProfileProgressArray)
+                                resolve(spectralProfileProgressArray);
                             }
-                        }
-                    })
+                        },
+                    });
                 });
 
                 msgController.setSpectralRequirements(assertItem.setSpectralRequirements[0]);
@@ -153,21 +170,23 @@ describe("MULTI-SPECTRAL-PROFILE-REGION: Test plotting the multi-spectral profil
                 expect(SecondRegionSpectralProfile.regionId).toEqual(2);
                 expect(SecondRegionSpectralProfile.progress).toEqual(1);
                 assertItem.ReturnSpectralProfileRawValuesFp64Index.map((inputIndex, index) => {
-                    expect(SecondRegionSpectralProfile.profiles[0].rawValuesFp64[inputIndex]).toEqual(assertItem.ReturnSpectralProfileRawValuesFp64Number1[index]);
+                    expect(SecondRegionSpectralProfile.profiles[0].rawValuesFp64[inputIndex]).toEqual(
+                        assertItem.ReturnSpectralProfileRawValuesFp64Number1[index]
+                    );
                 });
             });
 
             test(`Plot the second region's spectral profiles data and check the values`, async () => {
                 let spectralProfileProgressArray2 = [];
-                let spectralProfileProgressPromise2 = new Promise((resolve)=>{
+                let spectralProfileProgressPromise2 = new Promise((resolve) => {
                     msgController.spectralProfileStream.subscribe({
-                         next: (data) => {
-                            spectralProfileProgressArray2.push(data)
+                        next: (data) => {
+                            spectralProfileProgressArray2.push(data);
                             if (Math.round(data.progress) == 1) {
-                                resolve(spectralProfileProgressArray2)
+                                resolve(spectralProfileProgressArray2);
                             }
-                        }
-                    })
+                        },
+                    });
                 });
 
                 msgController.setSpectralRequirements(assertItem.setSpectralRequirements[1]);
@@ -176,7 +195,9 @@ describe("MULTI-SPECTRAL-PROFILE-REGION: Test plotting the multi-spectral profil
                 expect(FirstRegionSpectralProfile.regionId).toEqual(1);
                 expect(FirstRegionSpectralProfile.progress).toEqual(1);
                 assertItem.ReturnSpectralProfileRawValuesFp64Index.map((inputIndex, index) => {
-                    expect(FirstRegionSpectralProfile.profiles[0].rawValuesFp64[inputIndex]).toEqual(assertItem.ReturnSpectralProfileRawValuesFp64Number2[index]);
+                    expect(FirstRegionSpectralProfile.profiles[0].rawValuesFp64[inputIndex]).toEqual(
+                        assertItem.ReturnSpectralProfileRawValuesFp64Number2[index]
+                    );
                 });
             });
         });
