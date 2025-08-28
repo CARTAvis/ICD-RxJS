@@ -3,7 +3,7 @@ import { CARTA } from 'carta-protobuf';
 import { Subject, throwError } from 'rxjs';
 import { mapToObject } from './MyParsing';
 import IRegionInfo = CARTA.IRegionInfo;
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 export enum ConnectionStatus {
     CLOSED = 0,

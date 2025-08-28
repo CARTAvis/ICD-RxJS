@@ -2,7 +2,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import { CARTA } from 'carta-protobuf';
 import config from './config.json';
 
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 const icdVersion = config.icdVersion;
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;

@@ -1,6 +1,5 @@
 import { CARTA } from 'carta-protobuf';
 import config from './config.json';
-const WebSocket = require('ws');
 import { MessageController } from './MessageController';
 
 let testServerUrl = config.serverURL0;

@@ -2,7 +2,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import { CARTA } from 'carta-protobuf';
 import { Subject } from 'rxjs';
 import config from './config.json';
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 const icdVersion = config.icdVersion;
 
 export enum ConnectionStatus {

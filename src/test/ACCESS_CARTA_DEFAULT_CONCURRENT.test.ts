@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
-import { BackendService } from './MessageController-concurrent';
+import { BackendService } from './MessageControllerConcurrent';
 import config from './config.json';
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;

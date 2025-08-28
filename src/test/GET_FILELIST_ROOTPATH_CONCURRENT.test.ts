@@ -1,5 +1,5 @@
 import { CARTA } from 'carta-protobuf';
-import { BackendService } from './MessageController-concurrent';
+import { BackendService } from './MessageControllerConcurrent';
 import config from './config.json';
 
 let testServerUrl = config.serverURL0;

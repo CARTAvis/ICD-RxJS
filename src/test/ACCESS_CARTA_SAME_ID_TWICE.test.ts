@@ -4,7 +4,7 @@ import { CARTA } from 'carta-protobuf';
 import config from './config.json';
 
 const icdVersion = config.icdVersion;
-const WebSocket = require('ws');
+import WebSocket from 'ws';
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;
 
