@@ -1,6 +1,6 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import { CARTA } from 'carta-protobuf';
-import config from 'utilities/config.json';
+import config from './config.json';
 
 const WebSocket = require('ws');
 const icdVersion = config.icdVersion;

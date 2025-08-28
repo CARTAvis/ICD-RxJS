@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
-import { Stream } from 'utilities/MyClient';
-import { MessageController, ConnectionStatus } from 'utilities/MessageController';
-import config from 'utilities/config.json';
+import { Stream } from './MyClient';
+import { MessageController, ConnectionStatus } from './MessageController';
+import config from './config.json';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.catalogLarge;

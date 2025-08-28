@@ -1,4 +1,4 @@
-import config from 'utilities/config.json';
+import config from './config.json';
 const WebSocket = require('ws');
 
 let testServerUrl = config.serverURL0;
