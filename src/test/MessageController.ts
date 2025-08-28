@@ -4,6 +4,8 @@ import { Subject, throwError } from 'rxjs';
 import { mapToObject } from './MyParsing';
 import IRegionInfo = CARTA.IRegionInfo;
 import WebSocket from 'ws';
+import config from './config.json';
+const icdVersion = config.icdVersion;
 
 export enum ConnectionStatus {
     CLOSED = 0,
@@ -53,7 +55,7 @@ export class MessageController {
         return MessageController.staticInstance;
     }
 
-    private static readonly IcdVersion = 30;
+    private static readonly IcdVersion = icdVersion;
     private static readonly DefaultFeatureFlags =
         CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
