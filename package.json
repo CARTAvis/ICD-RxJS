@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "react-scripts": "^0.0.0",
+    "react-scripts": "^5.0.1",
     "ws": "^8.13.0"
   },
   "devDependencies": {
