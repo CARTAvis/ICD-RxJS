@@ -297,12 +297,12 @@ describe('CHECK_RASTER_TILE_DATA: Testing data values at different layers in RAS
             });
 
             test(`RASTER_TILE_DATA.tiles[0].image_data${JSON.stringify(assertItem.rasterTileData.assert.index)} = ${assertItem.rasterTileData.assert.value}`, () => {
-                const _x = assertItem.rasterTileData.assert.index.x;
-                const _y = assertItem.rasterTileData.assert.index.y;
-                const _dataView = new DataView(
-                    RasterTileDataTemp.tiles[0].imageData.slice((_x * _y - 1) * 4, _x * _y * 4).buffer
+                const x = assertItem.rasterTileData.assert.index.x;
+                const y = assertItem.rasterTileData.assert.index.y;
+                const dataView = new DataView(
+                    RasterTileDataTemp.tiles[0].imageData.slice((x * y - 1) * 4, x * y * 4).buffer
                 );
-                expect(_dataView.getFloat32(0, true)).toBeCloseTo(
+                expect(dataView.getFloat32(0, true)).toBeCloseTo(
                     assertItem.rasterTileData.assert.value,
                     assertItem.precisionDigit
                 );

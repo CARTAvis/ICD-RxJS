@@ -741,25 +741,25 @@ describe('REGION_SPECTRAL_PROFILE_RECTANGLE: Testing spectral profiler with rect
                     });
 
                     test('Assert SPECTRAL_PROFILE_DATA.profiles of CARTA.StatsType.Mean', () => {
-                        let _meanProfile = SpectralProfileData.profiles.find(
+                        let meanProfile = SpectralProfileData.profiles.find(
                             (f) => f.statsType === CARTA.StatsType.Mean
                         );
-                        let _assertProfile = assertItem.spectralProfileData[index].profile.find(
+                        let assertProfile = assertItem.spectralProfileData[index].profile.find(
                             (f) => f.statsType === CARTA.StatsType.Mean
                         );
-                        let _assertProfileHdf5 = assertItem.spectralProfileDataHdf5[index].profile.find(
+                        let assertProfileHdf5 = assertItem.spectralProfileDataHdf5[index].profile.find(
                             (f) => f.statsType === CARTA.StatsType.Mean
                         );
                         if (openFile.file.includes('image')) {
                             assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                expect(_meanProfile.rawValuesFp64[input]).toEqual(
-                                    _assertProfile.selectedRawValue64[inputIndex]
+                                expect(meanProfile.rawValuesFp64[input]).toEqual(
+                                    assertProfile.selectedRawValue64[inputIndex]
                                 );
                             });
                         } else if (openFile.file.includes('hdf5')) {
                             assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                expect(_meanProfile.rawValuesFp64[input]).toEqual(
-                                    _assertProfileHdf5.selectedRawValue64[inputIndex]
+                                expect(meanProfile.rawValuesFp64[input]).toEqual(
+                                    assertProfileHdf5.selectedRawValue64[inputIndex]
                                 );
                             });
                         }
@@ -768,22 +768,22 @@ describe('REGION_SPECTRAL_PROFILE_RECTANGLE: Testing spectral profiler with rect
                     test('Assert other SPECTRAL_PROFILE_DATA.profiles', () => {
                         if (openFile.file.includes('image')) {
                             assertItem.spectralProfileData[index].profile.map((profile) => {
-                                let _returnedProfile = SpectralProfileData.profiles.find(
+                                let returnedProfile = SpectralProfileData.profiles.find(
                                     (f) => f.statsType === profile.statsType
                                 );
                                 assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                    expect(_returnedProfile.rawValuesFp64[input]).toEqual(
+                                    expect(returnedProfile.rawValuesFp64[input]).toEqual(
                                         profile.selectedRawValue64[inputIndex]
                                     );
                                 });
                             });
                         } else if (openFile.file.includes('hdf5')) {
                             assertItem.spectralProfileDataHdf5[index].profile.map((profile) => {
-                                let _returnedProfile = SpectralProfileData.profiles.find(
+                                let returnedProfile = SpectralProfileData.profiles.find(
                                     (f) => f.statsType === profile.statsType
                                 );
                                 assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                    expect(_returnedProfile.rawValuesFp64[input]).toEqual(
+                                    expect(returnedProfile.rawValuesFp64[input]).toEqual(
                                         profile.selectedRawValue64[inputIndex]
                                     );
                                 });

@@ -12,15 +12,15 @@ function checkConnection() {
 function Stream(cartaType: any, InputNum?: number) {
     return new Promise<any>((resolve, reject) => {
         const msgController = MessageController.Instance;
-        let _count = 0;
+        let count = 0;
         switch (cartaType) {
             case CARTA.RegionHistogramData:
                 let RegionHistogramData: CARTA.RegionHistogramData[] = [];
                 let resRegionHistogramData = msgController.histogramStream.pipe(take(InputNum));
                 resRegionHistogramData.subscribe((data) => {
                     RegionHistogramData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(RegionHistogramData);
                     }
                 });
@@ -30,8 +30,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resSpatialProfileData = msgController.spatialProfileStream.pipe(take(InputNum));
                 resSpatialProfileData.subscribe((data) => {
                     SpatialProfileData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(SpatialProfileData);
                     }
                 });
@@ -40,15 +40,15 @@ function Stream(cartaType: any, InputNum?: number) {
                 let ack: any[] = [];
                 let ex1 = msgController.rasterSyncStream.pipe(take(2));
                 ex1.subscribe((data) => {
-                    _count++;
+                    count++;
                     ack.push(data);
-                    if (data.endSync && _count === InputNum) {
+                    if (data.endSync && count === InputNum) {
                         resolve(ack);
                     }
                 });
                 let ex2 = msgController.rasterTileStream.pipe(take(InputNum - 2));
                 ex2.subscribe((data) => {
-                    _count++;
+                    count++;
                     ack.push(data);
                 });
                 break;
@@ -57,8 +57,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resListProgressData = msgController.listProgressStream.pipe(take(InputNum));
                 resListProgressData.subscribe((data) => {
                     ListProgressData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(ListProgressData);
                     }
                 });
@@ -68,8 +68,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resMomentProgressData = msgController.momentProgressStream.pipe(take(InputNum));
                 resMomentProgressData.subscribe((data) => {
                     MomentProgressData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(MomentProgressData);
                     }
                 });
@@ -79,8 +79,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resErrorData = msgController.errorStream.pipe(take(InputNum));
                 resErrorData.subscribe((data) => {
                     ErrorData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(ErrorData);
                     }
                 });
@@ -90,8 +90,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resContourImageData = msgController.contourStream.pipe(take(InputNum));
                 resContourImageData.subscribe((data) => {
                     ContourImageData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(ContourImageData);
                     }
                 });
@@ -101,8 +101,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resErrorStreamData = msgController.errorStream.pipe(take(InputNum));
                 resErrorStreamData.subscribe((data) => {
                     ErrorStreamData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(ErrorStreamData);
                     }
                 });
@@ -112,8 +112,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resRegionStatsData = msgController.statsStream.pipe(take(InputNum));
                 resRegionStatsData.subscribe((data) => {
                     RegionStatsData.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(RegionStatsData);
                     }
                 });
@@ -145,8 +145,8 @@ function Stream(cartaType: any, InputNum?: number) {
                 let resPvPreviewStream = msgController.pvPreviewStream.pipe(take(InputNum));
                 resPvPreviewStream.subscribe((data) => {
                     pvPreviewStream.push(data);
-                    _count++;
-                    if (_count === InputNum) {
+                    count++;
+                    if (count === InputNum) {
                         resolve(pvPreviewStream);
                     }
                 });

@@ -122,7 +122,7 @@ describe('GET_FILELIST_UNKNOWN_PATH tests: Testing error handle of file list gen
 
         let FileListResponseTemp: any;
         describe(`access folder "/unknown/path"`, () => {
-            let _message: any;
+            let message: any;
             test(
                 `should get "FILE_LIST_RESPONSE" within ${fileListTimeout} ms.`,
                 async () => {
@@ -132,14 +132,14 @@ describe('GET_FILELIST_UNKNOWN_PATH tests: Testing error handle of file list gen
                             assertItem.errorFileList.filterMode
                         );
                     } catch (err) {
-                        _message = err;
+                        message = err;
                     }
                 },
                 fileListTimeout
             );
 
             test('FILE_LIST_RESPONSE.message is an error message', () => {
-                expect(_message).toContain(assertItem.errorFileListResponse);
+                expect(message).toContain(assertItem.errorFileListResponse);
             });
         });
 

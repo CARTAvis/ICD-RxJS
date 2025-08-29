@@ -305,15 +305,15 @@ describe('REGION_SPECTRAL_PROFILE_STOKES: Testing spectral profiler with regions
                     });
 
                     test('Assert SPECTRAL_PROFILE_DATA.profiles of CARTA.StatsType.Mean', () => {
-                        let _meanProfile = SpectralProfileData.profiles.find(
+                        let meanProfile = SpectralProfileData.profiles.find(
                             (f) => f.statsType === CARTA.StatsType.Mean
                         );
-                        let _assertProfile = assertItem.spectralProfileData[index].profile.find(
+                        let assertProfile = assertItem.spectralProfileData[index].profile.find(
                             (f) => f.statsType === CARTA.StatsType.Mean
                         );
                         assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                            expect(_meanProfile.rawValuesFp64[input]).toEqual(
-                                _assertProfile.selectedRawValue64[inputIndex]
+                            expect(meanProfile.rawValuesFp64[input]).toEqual(
+                                assertProfile.selectedRawValue64[inputIndex]
                             );
                         });
                     });
@@ -334,15 +334,15 @@ describe('REGION_SPECTRAL_PROFILE_STOKES: Testing spectral profiler with regions
                         });
 
                         test('Assert SPECTRAL_PROFILE_DATA.profiles of CARTA.StatsType.Mean', () => {
-                            let _meanProfile = SpectralProfileData[0].profiles.find(
+                            let meanProfile = SpectralProfileData[0].profiles.find(
                                 (f) => f.statsType === CARTA.StatsType.Mean
                             );
-                            let _assertProfile = assertItem.spectralProfileData[1].profile.find(
+                            let assertProfile = assertItem.spectralProfileData[1].profile.find(
                                 (f) => f.statsType === CARTA.StatsType.Mean
                             );
                             assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                expect(_meanProfile.rawValuesFp64[input]).toEqual(
-                                    _assertProfile.selectedRawValue64[inputIndex]
+                                expect(meanProfile.rawValuesFp64[input]).toEqual(
+                                    assertProfile.selectedRawValue64[inputIndex]
                                 );
                             });
                         });
@@ -361,15 +361,15 @@ describe('REGION_SPECTRAL_PROFILE_STOKES: Testing spectral profiler with regions
                         });
 
                         test('Assert SPECTRAL_PROFILE_DATA.profiles of CARTA.StatsType.Mean', () => {
-                            let _meanProfile = SpectralProfileData[0].profiles.find(
+                            let meanProfile = SpectralProfileData[0].profiles.find(
                                 (f) => f.statsType === CARTA.StatsType.Mean
                             );
-                            let _assertProfile = assertItem.spectralProfileData[2].profile.find(
+                            let assertProfile = assertItem.spectralProfileData[2].profile.find(
                                 (f) => f.statsType === CARTA.StatsType.Mean
                             );
                             assertItem.rawValue64CheckValuesIndex.map((input, inputIndex) => {
-                                expect(_meanProfile.rawValuesFp64[input]).toEqual(
-                                    _assertProfile.selectedRawValue64[inputIndex]
+                                expect(meanProfile.rawValuesFp64[input]).toEqual(
+                                    assertProfile.selectedRawValue64[inputIndex]
                                 );
                             });
                         });

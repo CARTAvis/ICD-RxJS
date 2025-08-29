@@ -959,18 +959,18 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
 
                     let RasterTileDataResponse: any = await RasterTileDataPromise;
                     let RasterTileSyncResponse = await RasterTileSyncPromise;
-                    let _countFileID999 = 0;
-                    let _countFileID998 = 0;
+                    let countFileID999 = 0;
+                    let countFileID998 = 0;
 
                     RasterTileDataResponse.forEach((element) => {
                         if (element.fileId == assertItem.addTilesReq[2].fileId) {
-                            _countFileID999++;
+                            countFileID999++;
                         } else if (element.fileId == assertItem.addTilesReq[3].fileId) {
-                            _countFileID998++;
+                            countFileID998++;
                         }
                     });
-                    expect(_countFileID999).toEqual(assertItem.addTilesReq[2].tiles.length);
-                    expect(_countFileID998).toEqual(assertItem.addTilesReq[3].tiles.length);
+                    expect(countFileID999).toEqual(assertItem.addTilesReq[2].tiles.length);
+                    expect(countFileID998).toEqual(assertItem.addTilesReq[3].tiles.length);
                 });
             });
 
@@ -1113,18 +1113,18 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
 
                     let RasterTileDataResponse: any = await RasterTileDataPromise;
                     let RasterTileSyncResponse = await RasterTileSyncPromise;
-                    let _countFileID999 = 0;
-                    let _countFileID998 = 0;
+                    let countFileID999 = 0;
+                    let countFileID998 = 0;
 
                     RasterTileDataResponse.forEach((element) => {
                         if (element.fileId == assertItem.addTilesReq[4].fileId) {
-                            _countFileID999++;
+                            countFileID999++;
                         } else if (element.fileId == assertItem.addTilesReq[5].fileId) {
-                            _countFileID998++;
+                            countFileID998++;
                         }
                     });
-                    expect(_countFileID999).toEqual(assertItem.addTilesReq[4].tiles.length);
-                    expect(_countFileID998).toEqual(assertItem.addTilesReq[5].tiles.length);
+                    expect(countFileID999).toEqual(assertItem.addTilesReq[4].tiles.length);
+                    expect(countFileID998).toEqual(assertItem.addTilesReq[5].tiles.length);
                 });
             });
         });
@@ -1313,18 +1313,18 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[1].file}":`, () =>
                     });
 
                     let RasterTileDataResponse: any = await RasterTileDataPromise;
-                    let _countFileID999 = 0;
-                    let _countFileID998 = 0;
+                    let countFileID999 = 0;
+                    let countFileID998 = 0;
 
                     RasterTileDataResponse.forEach((element) => {
                         if (element.fileId == assertItem.addTilesReq[6].fileId) {
-                            _countFileID999++;
+                            countFileID999++;
                         } else if (element.fileId == assertItem.addTilesReq[7].fileId) {
-                            _countFileID998++;
+                            countFileID998++;
                         }
                     });
-                    expect(_countFileID999).toEqual(assertItem.addTilesReq[6].tiles.length);
-                    expect(_countFileID998).toEqual(assertItem.addTilesReq[7].tiles.length);
+                    expect(countFileID999).toEqual(assertItem.addTilesReq[6].tiles.length);
+                    expect(countFileID998).toEqual(assertItem.addTilesReq[7].tiles.length);
                 });
             });
         });
