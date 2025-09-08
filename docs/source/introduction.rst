@@ -37,8 +37,8 @@ By systematically exercising the WebSocket-based backend through these ICD tests
 with the defined interface contract, minimize integration risks, and provide confidence in the backend’s 
 readiness for deployment in production environments.
 
-Build Process
-=============
+Build Tests
+===========
 
 The ICD test project relies heavily on **Node.js** and **npm**, so ensure that both are properly 
 installed and accessible in your environment before proceeding.
@@ -58,14 +58,14 @@ installed and accessible in your environment before proceeding.
 
    ::
 
-     cd carta-backend-ICD-rxjs/protobuf
+     cd ICD-rxjs/protobuf
      ./build_proto.sh
 
 This process ensures that all dependencies are properly set up and that the protocol buffer definitions 
 are correctly compiled before running the ICD tests.
 
-Run It
-======
+Run Tests
+=========
 
 For local testing, configure the ``src/test/config.json`` file by setting:
 
@@ -81,8 +81,8 @@ For server-side testing, update the same configuration file with:
 
    "serverURL": "wss://carta.asiaa.sinica.edu.tw/socketdev"
 
-Run Tests One at a Time
------------------------
+Run One Test at a Time
+----------------------
 
 To minimize side effects such as concurrency issues or heavy I/O traffic, 
 it is recommended to run tests individually. A basic connectivity test is always 
