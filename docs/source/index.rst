@@ -8,7 +8,8 @@ CARTA ICD Tests Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
 
    introduction
+   test_cases
 

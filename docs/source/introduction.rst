@@ -43,10 +43,17 @@ Build Tests
 The ICD test project relies heavily on **Node.js** and **npm**, so ensure that both are properly 
 installed and accessible in your environment before proceeding.
 
+0. **Clone the source code from the ICD-RxJS GitHub repository**
+
+   ::
+
+     git clone https://github.com/CARTAvis/ICD-RxJS.git
+
 1. **Initialize submodules and install dependencies**
 
    ::
 
+     cd ICD-RxJS
      git submodule update --init --recursive
      npm install
 
