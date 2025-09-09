@@ -17,6 +17,23 @@ Region Statistics
         participant Backend
     end box
 
+    User -> Frontend: Open a new image
+    activate Frontend
+    Frontend -> Backend : CLOSE_FILE
+    activate Backend
+    Frontend -> Backend : OPEN_FILE
+    Frontend <-- Backend : OPEN_FILE_ACK
+    Frontend -> Backend : ADD_REQUIRED_TILES
+    Frontend -> Backend : SET_CURSOR
+    Frontend <-- Backend : REGION_HISTOGRAM_DATA
+    Frontend <-- Backend : SPATIAL_PROFILE_DATA
+    Frontend <-- Backend : RASTER_TILE_SYNC
+    Frontend <-- Backend : RASTER_TILE_DATA
+    Frontend <-- Backend : RASTER_TILE_SYNC
+    deactivate Backend
+    User <-- Frontend: Displays image, histogram, \nand spatial profile
+    deactivate Frontend
+
     User -> Frontend: Draws new region
     activate Frontend
     Frontend -> Backend : SET_REGION
@@ -76,9 +93,9 @@ REGION_STATISTICS_RECTANGLE
 
    **REGION_HISTOGRAM_DATA**
 
-   **RASTER_TILE_SYNC**
-
    **SPATIAL_PROFILE_DATA**
+
+   **RASTER_TILE_SYNC**
 
    **RASTER_TILE_DATA**
 
@@ -356,9 +373,9 @@ REGION_STATISTICS_ELLIPSE
 
    **REGION_HISTOGRAM_DATA**
 
-   **RASTER_TILE_SYNC**
-
    **SPATIAL_PROFILE_DATA**
+
+   **RASTER_TILE_SYNC**
 
    **RASTER_TILE_DATA**
 
@@ -557,9 +574,9 @@ REGION_STATISTICS_POLYGON
 
    **REGION_HISTOGRAM_DATA**
 
-   **RASTER_TILE_SYNC**
-
    **SPATIAL_PROFILE_DATA**
+
+   **RASTER_TILE_SYNC**
 
    **RASTER_TILE_DATA**
 
