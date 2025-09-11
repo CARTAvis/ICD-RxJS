@@ -1,10 +1,10 @@
-import {action, makeObservable, observable, runInAction} from "mobx";
-import {Subject, throwError} from "rxjs";
-import {CARTA} from "carta-protobuf";
-import config from "./config.json";
+import { action, makeObservable, observable, runInAction } from 'mobx';
+import { Subject, throwError } from 'rxjs';
+import { CARTA } from 'carta-protobuf';
+import config from './config.json';
 
 const icdVersion = config.icdVersion;
-const WebSocket = require("ws");
+import WebSocket from 'ws';
 let testServerUrl = config.serverURL0;
 let connectTimeout = config.timeout.connection;
 
@@ -15,12 +15,12 @@ let assertItem: AssertItem = {
     register: {
         sessionId: 9999,
     },
-}
+};
 
 export enum ConnectionStatus {
     CLOSED = 0,
     PENDING = 1,
-    ACTIVE = 2
+    ACTIVE = 2,
 }
 
 export const INVALID_ANIMATION_ID = -1;
@@ -66,7 +66,8 @@ export class BackendService {
     }
 
     private static readonly IcdVersion = icdVersion;
-    private static readonly DefaultFeatureFlags = CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
+    private static readonly DefaultFeatureFlags =
+        CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
 
@@ -84,7 +85,7 @@ export class BackendService {
     private deferredMap: Map<number, Deferred<IBackendResponse>>;
     private eventCounter: number;
 
-    private readonly decoderMap: Map<CARTA.EventType, {messageClass: any; handler: HandlerFunction}>;
+    private readonly decoderMap: Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>;
 
     public constructor() {
         makeObservable(this);
@@ -97,13 +98,18 @@ export class BackendService {
         this.connectionStatus = ConnectionStatus.CLOSED;
 
         // Construct handler and decoder maps
-        this.decoderMap = new Map<CARTA.EventType, {messageClass: any; handler: HandlerFunction}>([
-            [CARTA.EventType.REGISTER_VIEWER_ACK, {messageClass: CARTA.RegisterViewerAck, handler: this.onRegisterViewerAck}],
+        this.decoderMap = new Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>([
+            [
+                CARTA.EventType.REGISTER_VIEWER_ACK,
+                {
+                    messageClass: CARTA.RegisterViewerAck,
+                    handler: this.onRegisterViewerAck,
+                },
+            ],
         ]);
-
     }
 
-    @action("connect")
+    @action('connect')
     async connect(url: string, sessionid: number): Promise<any> {
         if (this.connection) {
             this.connection.onclose = null;
@@ -117,18 +123,22 @@ export class BackendService {
         this.connectionStatus = ConnectionStatus.PENDING;
         this.serverUrl = url;
         this.connection = new WebSocket(url);
-        this.connection.binaryType = "arraybuffer";
+        this.connection.binaryType = 'arraybuffer';
         this.connection.onmessage = this.messageHandler.bind(this);
         this.connection.onclose = (ev: CloseEvent) =>
             runInAction(() => {
                 // Only change to closed connection if the connection was originally active or this is a reconnection
-                if (this.connectionStatus === ConnectionStatus.ACTIVE || isReconnection || connectionAttempts >= BackendService.MaxConnectionAttempts) {
+                if (
+                    this.connectionStatus === ConnectionStatus.ACTIVE ||
+                    isReconnection ||
+                    connectionAttempts >= BackendService.MaxConnectionAttempts
+                ) {
                     this.connectionStatus = ConnectionStatus.CLOSED;
                 } else {
                     connectionAttempts++;
                     setTimeout(() => {
                         const newConnection = new WebSocket(url);
-                        newConnection.binaryType = "arraybuffer";
+                        newConnection.binaryType = 'arraybuffer';
                         newConnection.onopen = this.connection.onopen;
                         newConnection.onerror = this.connection.onerror;
                         newConnection.onclose = this.connection.onclose;
@@ -150,17 +160,20 @@ export class BackendService {
                 this.connectionDropped = true;
             }
             this.connectionStatus = ConnectionStatus.ACTIVE;
-            const message = CARTA.RegisterViewer.create({sessionId: sessionid, clientFeatureFlags: BackendService.DefaultFeatureFlags});
+            const message = CARTA.RegisterViewer.create({
+                sessionId: sessionid,
+                clientFeatureFlags: BackendService.DefaultFeatureFlags,
+            });
             // observer map is cleared, so that old subscriptions don't get incorrectly fired
 
             if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
                 this.deferredMap.set(requestId, deferredResponse);
             } else {
-                throw new Error("Could not send event");
+                throw new Error('Could not send event');
             }
         });
 
-        this.connection.onerror = ev => {
+        this.connection.onerror = (ev) => {
             // AppStore.Instance.logStore.addInfo(`Connecting to server ${url} failed.`, ["network"]);
             console.log(ev);
         };
@@ -168,15 +181,13 @@ export class BackendService {
         return await deferredResponse.promise;
     }
 
-
     @action closeConnection = () => {
         if (this.connection && this.connectionStatus !== ConnectionStatus.CLOSED) {
             this.connection.close();
         }
-    }
+    };
 
     private messageHandler(event: MessageEvent) {
-
         const eventHeader16 = new Uint16Array(event.data, 0, 2);
         const eventHeader32 = new Uint32Array(event.data, 4, 1);
         const eventData = new Uint8Array(event.data, 8);
@@ -186,7 +197,9 @@ export class BackendService {
         const eventId = eventHeader32[0];
 
         if (eventIcdVersion !== BackendService.IcdVersion) {
-            console.warn(`Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`);
+            console.warn(
+                `Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`
+            );
         }
         try {
             const decoderEntry = this.decoderMap.get(eventType);
@@ -237,7 +250,7 @@ export class BackendService {
             this.eventCounter++;
             return true;
         } else {
-            console.log("Error sending event");
+            console.log('Error sending event');
             this.eventCounter++;
             return false;
         }
@@ -245,30 +258,37 @@ export class BackendService {
 
     async getRegisterViewerAck(sessionid: number): Promise<CARTA.IRegisterViewerAck> {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
-            throw new Error("Not connected");
+            throw new Error('Not connected');
         } else {
-            const message = CARTA.RegisterViewer.create({sessionId: sessionid, clientFeatureFlags: BackendService.DefaultFeatureFlags});
+            const message = CARTA.RegisterViewer.create({
+                sessionId: sessionid,
+                clientFeatureFlags: BackendService.DefaultFeatureFlags,
+            });
             const requestId = this.eventCounter;
             if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
                 const deferredResponse = new Deferred<CARTA.IRegisterViewerAck>();
                 this.deferredMap.set(requestId, deferredResponse);
                 return await deferredResponse.promise;
             } else {
-                throw new Error("Could not send event");
+                throw new Error('Could not send event');
             }
         }
     }
 }
 
-describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing backend connection with default parameters`,()=>{
-    let client = new BackendService;
-    let RegisterViewerAckTemp : CARTA.IRegisterViewerAck;
-    test(`send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and receive "REGISTER_VIEWER_ACK"x2 within ${connectTimeout} ms`, async()=>{
-        await client.connect(testServerUrl, assertItem.register.sessionId);
-        RegisterViewerAckTemp = await client.getRegisterViewerAck(assertItem.register.sessionId);
-    }, connectTimeout)
+describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing backend connection with default parameters`, () => {
+    let client = new BackendService();
+    let RegisterViewerAckTemp: CARTA.IRegisterViewerAck;
+    test(
+        `send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and receive "REGISTER_VIEWER_ACK"x2 within ${connectTimeout} ms`,
+        async () => {
+            await client.connect(testServerUrl, assertItem.register.sessionId);
+            RegisterViewerAckTemp = await client.getRegisterViewerAck(assertItem.register.sessionId);
+        },
+        connectTimeout
+    );
 
-    test("REGISTER_VIEWER_ACK.success = True", () => {
+    test('REGISTER_VIEWER_ACK.success = True', () => {
         expect(RegisterViewerAckTemp.success).toBe(true);
     });
 
@@ -280,16 +300,15 @@ describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing backend connection with defa
         expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.RESUMED);
     });
 
-    test("REGISTER_VIEWER_ACK.user_preferences = None", () => {
+    test('REGISTER_VIEWER_ACK.user_preferences = None', () => {
         expect(RegisterViewerAckTemp.userPreferences).toMatchObject({});
     });
 
-    test("REGISTER_VIEWER_ACK.user_layouts = None", () => {
+    test('REGISTER_VIEWER_ACK.user_layouts = None', () => {
         expect(RegisterViewerAckTemp.userLayouts).toMatchObject({});
     });
 
     afterAll(async () => {
         await client.closeConnection();
     });
-
 });

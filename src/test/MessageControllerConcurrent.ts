@@ -1,21 +1,9 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import { CARTA } from 'carta-protobuf';
+import { Subject } from 'rxjs';
 import config from './config.json';
-
 import WebSocket from 'ws';
 const icdVersion = config.icdVersion;
-let testServerUrl = config.serverURL0;
-let connectTimeout = config.timeout.connection;
-
-interface AssertItem {
-    register: CARTA.IRegisterViewer;
-}
-let assertItem: AssertItem = {
-    register: {
-        sessionId: 0,
-        clientFeatureFlags: 0,
-    },
-};
 
 export enum ConnectionStatus {
     CLOSED = 0,
@@ -28,8 +16,8 @@ export const INVALID_ANIMATION_ID = -1;
 type HandlerFunction = (eventId: number, parsedMessage: any) => void;
 
 interface IBackendResponse {
-    success?: boolean;
-    message?: string;
+    success?: boolean | null;
+    message?: string | null;
 }
 
 // Deferred class adapted from https://stackoverflow.com/a/58610922/1727322
@@ -66,6 +54,8 @@ export class BackendService {
     }
 
     private static readonly IcdVersion = icdVersion;
+    private static readonly DefaultFeatureFlags =
+        CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
     private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
 
@@ -83,6 +73,20 @@ export class BackendService {
     private deferredMap: Map<number, Deferred<IBackendResponse>>;
     private eventCounter: number;
 
+    readonly rasterTileStream: Subject<CARTA.RasterTileData>;
+    readonly rasterSyncStream: Subject<CARTA.RasterTileSync>;
+    readonly histogramStream: Subject<CARTA.RegionHistogramData>;
+    readonly errorStream: Subject<CARTA.ErrorData>;
+    readonly spatialProfileStream: Subject<CARTA.SpatialProfileData>;
+    readonly spectralProfileStream: Subject<CARTA.SpectralProfileData>;
+    readonly statsStream: Subject<CARTA.RegionStatsData>;
+    readonly contourStream: Subject<CARTA.ContourImageData>;
+    readonly catalogStream: Subject<CARTA.CatalogFilterResponse>;
+    readonly momentProgressStream: Subject<CARTA.MomentProgress>;
+    readonly scriptingStream: Subject<CARTA.ScriptingRequest>;
+    readonly listProgressStream: Subject<CARTA.ListProgress>;
+    readonly pvProgressStream: Subject<CARTA.PvProgress>;
+    readonly vectorTileStream: Subject<CARTA.VectorOverlayTileData>;
     private readonly decoderMap: Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>;
 
     public constructor() {
@@ -91,9 +95,24 @@ export class BackendService {
         this.deferredMap = new Map<number, Deferred<IBackendResponse>>();
 
         this.eventCounter = 1;
+        this.sessionId = 0;
         this.endToEndPing = NaN;
         this.animationId = INVALID_ANIMATION_ID;
         this.connectionStatus = ConnectionStatus.CLOSED;
+        this.rasterTileStream = new Subject<CARTA.RasterTileData>();
+        this.rasterSyncStream = new Subject<CARTA.RasterTileSync>();
+        this.histogramStream = new Subject<CARTA.RegionHistogramData>();
+        this.errorStream = new Subject<CARTA.ErrorData>();
+        this.spatialProfileStream = new Subject<CARTA.SpatialProfileData>();
+        this.spectralProfileStream = new Subject<CARTA.SpectralProfileData>();
+        this.statsStream = new Subject<CARTA.RegionStatsData>();
+        this.contourStream = new Subject<CARTA.ContourImageData>();
+        this.scriptingStream = new Subject<CARTA.ScriptingRequest>();
+        this.catalogStream = new Subject<CARTA.CatalogFilterResponse>();
+        this.momentProgressStream = new Subject<CARTA.MomentProgress>();
+        this.listProgressStream = new Subject<CARTA.ListProgress>();
+        this.pvProgressStream = new Subject<CARTA.PvProgress>();
+        this.vectorTileStream = new Subject<CARTA.VectorOverlayTileData>();
 
         // Construct handler and decoder maps
         this.decoderMap = new Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>([
@@ -104,11 +123,21 @@ export class BackendService {
                     handler: this.onRegisterViewerAck,
                 },
             ],
+            [
+                CARTA.EventType.FILE_LIST_RESPONSE,
+                {
+                    messageClass: CARTA.FileListResponse,
+                    handler: this.onDeferredResponse,
+                },
+            ],
         ]);
+
+        // check ping every 5 seconds
+        // setInterval(this.sendPing, 5000);
     }
 
     @action('connect')
-    async connect(url: string, sessionid: number, clientfeatureflags: number): Promise<CARTA.IRegisterViewerAck> {
+    async connect(url: string): Promise<CARTA.IRegisterViewerAck> {
         if (this.connection) {
             this.connection.onclose = null;
             this.connection.close();
@@ -159,11 +188,12 @@ export class BackendService {
             }
             this.connectionStatus = ConnectionStatus.ACTIVE;
             const message = CARTA.RegisterViewer.create({
-                sessionId: sessionid,
-                clientFeatureFlags: clientfeatureflags,
+                sessionId: this.sessionId,
+                clientFeatureFlags: BackendService.DefaultFeatureFlags,
             });
             // observer map is cleared, so that old subscriptions don't get incorrectly fired
 
+            this.logEvent(CARTA.EventType.REGISTER_VIEWER, requestId, message, false);
             if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
                 this.deferredMap.set(requestId, deferredResponse);
             } else {
@@ -185,7 +215,34 @@ export class BackendService {
         }
     };
 
+    async getFileList(directory: string, filterMode: CARTA.FileListFilterMode): Promise<CARTA.IFileListResponse> {
+        if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
+            throw new Error('Not connected');
+        } else {
+            const message = CARTA.FileListRequest.create({
+                directory,
+                filterMode,
+            });
+            const requestId = this.eventCounter;
+            this.logEvent(CARTA.EventType.FILE_LIST_REQUEST, requestId, message, false);
+            if (this.sendEvent(CARTA.EventType.FILE_LIST_REQUEST, CARTA.FileListRequest.encode(message).finish())) {
+                const deferredResponse = new Deferred<CARTA.IFileListResponse>();
+                this.deferredMap.set(requestId, deferredResponse);
+                return await deferredResponse.promise;
+            } else {
+                throw new Error('Could not send event');
+            }
+        }
+    }
+
     private messageHandler(event: MessageEvent) {
+        if (event.data === 'PONG') {
+            return;
+        } else if (event.data.byteLength < 8) {
+            console.log('Unknown event format');
+            return;
+        }
+
         const eventHeader16 = new Uint16Array(event.data, 0, 2);
         const eventHeader32 = new Uint32Array(event.data, 4, 1);
         const eventData = new Uint8Array(event.data, 8);
@@ -195,7 +252,7 @@ export class BackendService {
         const eventId = eventHeader32[0];
 
         if (eventIcdVersion !== BackendService.IcdVersion) {
-            console.warn(
+            console.log(
                 `Server event has ICD version ${eventIcdVersion}, which differs from frontend version ${BackendService.IcdVersion}. Errors may occur`
             );
         }
@@ -204,6 +261,7 @@ export class BackendService {
             if (decoderEntry) {
                 const parsedMessage = decoderEntry.messageClass.decode(eventData);
                 if (parsedMessage) {
+                    this.logEvent(eventType, eventId, parsedMessage);
                     decoderEntry.handler.call(this, eventId, parsedMessage);
                 } else {
                     console.log(`Unsupported event response ${eventType}`);
@@ -231,6 +289,7 @@ export class BackendService {
         this.sessionId = ack.sessionId;
         this.serverFeatureFlags = ack.serverFeatureFlags;
 
+        // TelemetryService.Instance.addTelemetryEntry(TelemetryAction.Connection, {serverFeatureFlags: ack.serverFeatureFlags, platformInfo: ack.platformStrings});
         this.onDeferredResponse(eventId, ack);
     }
 
@@ -253,45 +312,21 @@ export class BackendService {
             return false;
         }
     }
+
+    private logEvent(eventType: CARTA.EventType, eventId: number, message: any, incoming: boolean = true) {
+        const eventName = CARTA.EventType[eventType];
+        if (this.loggingEnabled) {
+            if (incoming) {
+                if (eventId === 0) {
+                    // console.log(`<== ${eventName} [Stream]`);
+                } else {
+                    // console.log(`<== ${eventName} [${eventId}]`);
+                }
+            } else {
+                // console.log(`${eventName} [${eventId}] ==>`);
+            }
+            // console.log(message);
+            // console.log("\n");
+        }
+    }
 }
-
-describe(`ACCESS_CARTA_NO_CLIENT_FEATURE tests: Testing backend connection without any client feature`, () => {
-    let client = new BackendService();
-    let RegisterViewerAckTemp: CARTA.IRegisterViewerAck;
-    test(
-        `send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and client_feature_flags="${assertItem.register.clientFeatureFlags}, then receive "REGISTER_VIEWER_ACK" `,
-        async () => {
-            RegisterViewerAckTemp = await client.connect(
-                testServerUrl,
-                assertItem.register.sessionId,
-                assertItem.register.clientFeatureFlags
-            );
-        },
-        connectTimeout
-    );
-
-    test('REGISTER_VIEWER_ACK.success = True', () => {
-        expect(RegisterViewerAckTemp.success).toBe(true);
-    });
-
-    test('REGISTER_VIEWER_ACK.session_id is non-empty string', () => {
-        expect(RegisterViewerAckTemp.sessionId).toBeDefined();
-        console.log(`Registered session ID is ${RegisterViewerAckTemp.sessionId} @${new Date()}`);
-    });
-
-    test(`REGISTER_VIEWER_ACK.session_type = "CARTA.SessionType.NEW"`, () => {
-        expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.NEW);
-    });
-
-    test('REGISTER_VIEWER_ACK.user_preferences = None', () => {
-        expect(RegisterViewerAckTemp.userPreferences).toMatchObject({});
-    });
-
-    test('REGISTER_VIEWER_ACK.user_layouts = None', () => {
-        expect(RegisterViewerAckTemp.userLayouts).toMatchObject({});
-    });
-
-    afterAll(async () => {
-        await client.closeConnection();
-    });
-});

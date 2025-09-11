@@ -1,7 +1,7 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from './MyClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -25,23 +25,22 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    openFile:
-        [
-            {
-                directory: testSubdirectory,
-                file: "M17_SWex.image",
-                fileId: 0,
-                hdu: "0",
-                renderMode: CARTA.RenderMode.RASTER,
-            },
-            {
-                directory: testSubdirectory,
-                file: "M17_SWex.hdf5",
-                fileId: 0,
-                hdu: "0",
-                renderMode: CARTA.RenderMode.RASTER,
-            },
-        ],
+    openFile: [
+        {
+            directory: testSubdirectory,
+            file: 'M17_SWex.image',
+            fileId: 0,
+            hdu: '0',
+            renderMode: CARTA.RenderMode.RASTER,
+        },
+        {
+            directory: testSubdirectory,
+            file: 'M17_SWex.hdf5',
+            fileId: 0,
+            hdu: '0',
+            renderMode: CARTA.RenderMode.RASTER,
+        },
+    ],
     addRequiredTiles: {
         fileId: 0,
         compressionQuality: 11,
@@ -59,7 +58,10 @@ let assertItem: AssertItem = {
             regionInfo: {
                 // regionName: "rectangle_1",
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 212, y: 464 }, { x: 10, y: 10 }],
+                controlPoints: [
+                    { x: 212, y: 464 },
+                    { x: 10, y: 10 },
+                ],
                 rotation: 0.0,
             },
         },
@@ -69,7 +71,10 @@ let assertItem: AssertItem = {
             regionInfo: {
                 // regionName: "rectangle_2",
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 103, y: 549 }, { x: 5, y: 7 }],
+                controlPoints: [
+                    { x: 103, y: 549 },
+                    { x: 5, y: 7 },
+                ],
                 rotation: 0.0,
             },
         },
@@ -79,9 +84,12 @@ let assertItem: AssertItem = {
             regionInfo: {
                 // regionName: "rectangle_3",
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 115, y: 544 }, { x: 5, y: 7 }],
+                controlPoints: [
+                    { x: 115, y: 544 },
+                    { x: 5, y: 7 },
+                ],
                 rotation: 300.0,
-            }
+            },
         },
         {
             fileId: 0,
@@ -89,9 +97,12 @@ let assertItem: AssertItem = {
             regionInfo: {
                 // regionName: "rectangle_4",
                 regionType: CARTA.RegionType.RECTANGLE,
-                controlPoints: [{ x: 0, y: 544 }, { x: 5, y: 7 }],
+                controlPoints: [
+                    { x: 0, y: 544 },
+                    { x: 5, y: 7 },
+                ],
                 rotation: 300.0,
-            }
+            },
         },
     ],
     regionAck: [
@@ -120,91 +131,106 @@ let assertItem: AssertItem = {
         {
             fileId: 0,
             regionId: 1,
-            statsConfigs:[
-                {coordinate:"z", statsTypes:[
-                    CARTA.StatsType.NumPixels,
-                    CARTA.StatsType.Sum,
-                    CARTA.StatsType.FluxDensity,
-                    CARTA.StatsType.Mean,
-                    CARTA.StatsType.RMS,
-                    CARTA.StatsType.Sigma,
-                    CARTA.StatsType.SumSq,
-                    CARTA.StatsType.Min,
-                    CARTA.StatsType.Max,
-                    CARTA.StatsType.Extrema
-                ]}
+            statsConfigs: [
+                {
+                    coordinate: 'z',
+                    statsTypes: [
+                        CARTA.StatsType.NumPixels,
+                        CARTA.StatsType.Sum,
+                        CARTA.StatsType.FluxDensity,
+                        CARTA.StatsType.Mean,
+                        CARTA.StatsType.RMS,
+                        CARTA.StatsType.Sigma,
+                        CARTA.StatsType.SumSq,
+                        CARTA.StatsType.Min,
+                        CARTA.StatsType.Max,
+                        CARTA.StatsType.Extrema,
+                    ],
+                },
             ],
         },
         {
             fileId: 0,
             regionId: 2,
-            statsConfigs:[
-                {coordinate:"z", statsTypes:[
-                    CARTA.StatsType.NumPixels,
-                    CARTA.StatsType.Sum,
-                    CARTA.StatsType.FluxDensity,
-                    CARTA.StatsType.Mean,
-                    CARTA.StatsType.RMS,
-                    CARTA.StatsType.Sigma,
-                    CARTA.StatsType.SumSq,
-                    CARTA.StatsType.Min,
-                    CARTA.StatsType.Max,
-                    CARTA.StatsType.Extrema
-                ]}
+            statsConfigs: [
+                {
+                    coordinate: 'z',
+                    statsTypes: [
+                        CARTA.StatsType.NumPixels,
+                        CARTA.StatsType.Sum,
+                        CARTA.StatsType.FluxDensity,
+                        CARTA.StatsType.Mean,
+                        CARTA.StatsType.RMS,
+                        CARTA.StatsType.Sigma,
+                        CARTA.StatsType.SumSq,
+                        CARTA.StatsType.Min,
+                        CARTA.StatsType.Max,
+                        CARTA.StatsType.Extrema,
+                    ],
+                },
             ],
         },
         {
             fileId: 0,
             regionId: 3,
-            statsConfigs:[
-                {coordinate:"z", statsTypes:[
-                    CARTA.StatsType.NumPixels,
-                    CARTA.StatsType.Sum,
-                    CARTA.StatsType.FluxDensity,
-                    CARTA.StatsType.Mean,
-                    CARTA.StatsType.RMS,
-                    CARTA.StatsType.Sigma,
-                    CARTA.StatsType.SumSq,
-                    CARTA.StatsType.Min,
-                    CARTA.StatsType.Max,
-                    CARTA.StatsType.Extrema
-                ]}
+            statsConfigs: [
+                {
+                    coordinate: 'z',
+                    statsTypes: [
+                        CARTA.StatsType.NumPixels,
+                        CARTA.StatsType.Sum,
+                        CARTA.StatsType.FluxDensity,
+                        CARTA.StatsType.Mean,
+                        CARTA.StatsType.RMS,
+                        CARTA.StatsType.Sigma,
+                        CARTA.StatsType.SumSq,
+                        CARTA.StatsType.Min,
+                        CARTA.StatsType.Max,
+                        CARTA.StatsType.Extrema,
+                    ],
+                },
             ],
         },
         {
             fileId: 0,
             regionId: 4,
-            statsConfigs:[
-                {coordinate:"z", statsTypes:[
-                    CARTA.StatsType.NumPixels,
-                    CARTA.StatsType.Sum,
-                    CARTA.StatsType.FluxDensity,
-                    CARTA.StatsType.Mean,
-                    CARTA.StatsType.RMS,
-                    CARTA.StatsType.Sigma,
-                    CARTA.StatsType.SumSq,
-                    CARTA.StatsType.Min,
-                    CARTA.StatsType.Max,
-                    CARTA.StatsType.Extrema
-                ]}
+            statsConfigs: [
+                {
+                    coordinate: 'z',
+                    statsTypes: [
+                        CARTA.StatsType.NumPixels,
+                        CARTA.StatsType.Sum,
+                        CARTA.StatsType.FluxDensity,
+                        CARTA.StatsType.Mean,
+                        CARTA.StatsType.RMS,
+                        CARTA.StatsType.Sigma,
+                        CARTA.StatsType.SumSq,
+                        CARTA.StatsType.Min,
+                        CARTA.StatsType.Max,
+                        CARTA.StatsType.Extrema,
+                    ],
+                },
             ],
         },
         {
             fileId: 0,
             regionId: -1,
-            statsConfigs:[
-                {coordinate:"z", statsTypes:[
-                    CARTA.StatsType.NumPixels,
-                    CARTA.StatsType.Sum,
-                    CARTA.StatsType.FluxDensity,
-                    CARTA.StatsType.Mean,
-                    CARTA.StatsType.RMS,
-                    CARTA.StatsType.Sigma,
-                    CARTA.StatsType.SumSq,
-                    CARTA.StatsType.Min,
-                    CARTA.StatsType.Max,
-                    CARTA.StatsType.Extrema
-                ]}
+            statsConfigs: [
+                {
+                    coordinate: 'z',
+                    statsTypes: [
+                        CARTA.StatsType.NumPixels,
+                        CARTA.StatsType.Sum,
+                        CARTA.StatsType.FluxDensity,
+                        CARTA.StatsType.Mean,
+                        CARTA.StatsType.RMS,
+                        CARTA.StatsType.Sigma,
+                        CARTA.StatsType.SumSq,
+                        CARTA.StatsType.Min,
+                        CARTA.StatsType.Max,
+                        CARTA.StatsType.Extrema,
+                    ],
+                },
             ],
         },
     ],
@@ -222,7 +248,7 @@ let assertItem: AssertItem = {
                 { statsType: CARTA.StatsType.Min, value: -0.00358113 },
                 { statsType: CARTA.StatsType.Max, value: 0.00793927 },
                 { statsType: CARTA.StatsType.Extrema, value: 0.00793926 },
-            ]
+            ],
         },
         {
             regionId: 2,
@@ -237,7 +263,7 @@ let assertItem: AssertItem = {
                 { statsType: CARTA.StatsType.Min, value: -0.0095625 },
                 { statsType: CARTA.StatsType.Max, value: 0.00694707 },
                 { statsType: CARTA.StatsType.Extrema, value: -0.00956249 },
-            ]
+            ],
         },
         {
             regionId: 3,
@@ -252,7 +278,7 @@ let assertItem: AssertItem = {
                 { statsType: CARTA.StatsType.Min, value: -0.01768329 },
                 { statsType: CARTA.StatsType.Max, value: 0.02505673 },
                 { statsType: CARTA.StatsType.Extrema, value: 0.02505672 },
-            ]
+            ],
         },
         {
             regionId: 4,
@@ -267,7 +293,7 @@ let assertItem: AssertItem = {
                 { statsType: CARTA.StatsType.Min, value: NaN },
                 { statsType: CARTA.StatsType.Max, value: NaN },
                 { statsType: CARTA.StatsType.Extrema, value: NaN },
-            ]
+            ],
         },
         {
             regionId: -1,
@@ -275,87 +301,109 @@ let assertItem: AssertItem = {
                 { statsType: CARTA.StatsType.NumPixels, value: 216248 },
                 { statsType: CARTA.StatsType.Sum, value: -7.6253559 },
                 { statsType: CARTA.StatsType.FluxDensity, value: -0.35032758 },
-                { statsType: CARTA.StatsType.Mean, value: -3.52620875e-05 },
+                { statsType: CARTA.StatsType.Mean, value: -3.52620875e-5 },
                 { statsType: CARTA.StatsType.RMS, value: 0.00473442 },
                 { statsType: CARTA.StatsType.Sigma, value: 0.0047343 },
                 { statsType: CARTA.StatsType.SumSq, value: 4.84713562 },
                 { statsType: CARTA.StatsType.Min, value: -0.03958673 },
                 { statsType: CARTA.StatsType.Max, value: 0.04523611 },
                 { statsType: CARTA.StatsType.Extrema, value: 0.04523611 },
-            ]
+            ],
         },
     ],
     precisionDigits: 4,
 };
 
 let basepath: string;
-describe("REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions", () => {
+describe('REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
         test(`Get basepath`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.openFile[0].directory = basepath + "/" + assertItem.openFile[0].directory;
-            assertItem.openFile[1].directory = basepath + "/" + assertItem.openFile[1].directory;
+            assertItem.openFile[0].directory = basepath + '/' + assertItem.openFile[0].directory;
+            assertItem.openFile[1].directory = basepath + '/' + assertItem.openFile[1].directory;
         });
 
-        assertItem.openFile.map(openFile => {
+        assertItem.openFile.map((openFile) => {
             describe(`Open image "${openFile.file}" to set image view`, () => {
-                test(`Preparation: Open image`,async () => {
+                test(`Preparation: Open image`, async () => {
                     msgController.closeFile(-1);
                     let OpenFileResponse = await msgController.loadFile(openFile);
                     expect(OpenFileResponse.success).toEqual(true);
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
+                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
 
                     msgController.addRequiredTiles(assertItem.addRequiredTiles);
-                    let RasterTileDataResponse = await Stream(CARTA.RasterTileData,3);
-                    msgController.setCursor(assertItem.setCursor.fileId, assertItem.setCursor.point.x, assertItem.setCursor.point.y);
-                    let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData,1);
+                    let RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
+                    msgController.setCursor(
+                        assertItem.setCursor.fileId,
+                        assertItem.setCursor.point.x,
+                        assertItem.setCursor.point.y
+                    );
+                    let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData, 1);
                 });
 
                 assertItem.setRegion.map((region, index) => {
                     if (region.regionId) {
-                        describe(`${region.regionId < 0 ? "Creating" : "Modify"} ${CARTA.RegionType[region.regionInfo.regionType]} region #${assertItem.regionAck[index].regionId} on ${JSON.stringify(region.regionInfo.controlPoints)}`, () => {
+                        describe(`${region.regionId < 0 ? 'Creating' : 'Modify'} ${CARTA.RegionType[region.regionInfo.regionType]} region #${assertItem.regionAck[index].regionId} on ${JSON.stringify(region.regionInfo.controlPoints)}`, () => {
                             let SetRegionAck: any;
-                            test(`SET_REGION_ACK should return within ${regionTimeout} ms`, async () => {
-                                SetRegionAck = await msgController.setRegion(region.fileId, region.regionId, region.regionInfo);
-                                // await Connection.send(CARTA.SetRegion, region);
-                                // SetRegionAck = await Connection.receive(CARTA.SetRegionAck);
-                            }, regionTimeout);
-    
+                            test(
+                                `SET_REGION_ACK should return within ${regionTimeout} ms`,
+                                async () => {
+                                    SetRegionAck = await msgController.setRegion(
+                                        region.fileId,
+                                        region.regionId,
+                                        region.regionInfo
+                                    );
+                                    // await Connection.send(CARTA.SetRegion, region);
+                                    // SetRegionAck = await Connection.receive(CARTA.SetRegionAck);
+                                },
+                                regionTimeout
+                            );
+
                             test(`SET_REGION_ACK.success = ${assertItem.regionAck[index].success}`, () => {
                                 expect(SetRegionAck.success).toBe(assertItem.regionAck[index].success);
                             });
-    
+
                             test(`SET_REGION_ACK.region_id = ${assertItem.regionAck[index].regionId}`, () => {
                                 expect(SetRegionAck.regionId).toEqual(assertItem.regionAck[index].regionId);
                             });
-    
                         });
-                    };
-    
+                    }
+
                     describe(`SET STATS REQUIREMENTS on ${CARTA.RegionType[region.regionInfo.regionType]} region #${assertItem.regionAck[index].regionId}`, () => {
                         let RegionStatsData: any;
-                        test(`REGION_STATS_DATA should return within ${regionTimeout} ms`, async () => {
-                            await msgController.setStatsRequirements(assertItem.setStatsRequirements[index]);
-                            RegionStatsData = await Stream(CARTA.RegionStatsData,1);
-                        }, regionTimeout);
-    
+                        test(
+                            `REGION_STATS_DATA should return within ${regionTimeout} ms`,
+                            async () => {
+                                await msgController.setStatsRequirements(assertItem.setStatsRequirements[index]);
+                                RegionStatsData = await Stream(CARTA.RegionStatsData, 1);
+                            },
+                            regionTimeout
+                        );
+
                         test(`REGION_STATS_DATA.region_id = ${assertItem.regionStatsData[index].regionId}`, () => {
                             expect(RegionStatsData[0].regionId).toEqual(assertItem.regionStatsData[index].regionId);
                         });
-    
-                        test("Assert & Check REGION_STATS_DATA.statistics", () => {
-                            assertItem.regionStatsData[index].statistics.map(stats => {
+
+                        test('Assert & Check REGION_STATS_DATA.statistics', () => {
+                            assertItem.regionStatsData[index].statistics.map((stats) => {
                                 if (isNaN(stats.value)) {
-                                    expect(isNaN(RegionStatsData[0].statistics.find(f => f.statsType === stats.statsType).value)).toBe(true);
+                                    expect(
+                                        isNaN(
+                                            RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType)
+                                                .value
+                                        )
+                                    ).toBe(true);
                                 } else {
-                                    expect(RegionStatsData[0].statistics.find(f => f.statsType === stats.statsType).value).toBeCloseTo(stats.value, assertItem.precisionDigits);
+                                    expect(
+                                        RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value
+                                    ).toBeCloseTo(stats.value, assertItem.precisionDigits);
                                 }
                             });
                         });
@@ -366,25 +414,33 @@ describe("REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions
 
         describe(`SET STATS REQUIREMENTS on region #-1`, () => {
             let RegionStatsData: any;
-            test(`REGION_STATS_DATA should return within ${regionTimeout} ms`, async () => {
-                await msgController.setStatsRequirements(assertItem.setStatsRequirements[4]);
-                RegionStatsData = await Stream(CARTA.RegionStatsData,1);
-            }, regionTimeout);
+            test(
+                `REGION_STATS_DATA should return within ${regionTimeout} ms`,
+                async () => {
+                    await msgController.setStatsRequirements(assertItem.setStatsRequirements[4]);
+                    RegionStatsData = await Stream(CARTA.RegionStatsData, 1);
+                },
+                regionTimeout
+            );
 
             test(`REGION_STATS_DATA.region_id = ${assertItem.regionStatsData[4].regionId}`, () => {
                 expect(RegionStatsData[0].regionId).toEqual(assertItem.regionStatsData[4].regionId);
             });
 
-            test("Assert & Check REGION_STATS_DATA.statistics", () => {
-                assertItem.regionStatsData[4].statistics.map(stats => {
+            test('Assert & Check REGION_STATS_DATA.statistics', () => {
+                assertItem.regionStatsData[4].statistics.map((stats) => {
                     if (isNaN(stats.value)) {
-                        expect(isNaN(RegionStatsData[0].statistics.find(f => f.statsType === stats.statsType).value)).toBe(true);
+                        expect(
+                            isNaN(RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value)
+                        ).toBe(true);
                     } else {
-                        expect(RegionStatsData[0].statistics.find(f => f.statsType === stats.statsType).value).toBeCloseTo(stats.value, assertItem.precisionDigits);
+                        expect(
+                            RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value
+                        ).toBeCloseTo(stats.value, assertItem.precisionDigits);
                     }
                 });
             });
         });
         afterAll(() => msgController.closeConnection());
     });
-})
+});
