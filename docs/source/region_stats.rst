@@ -19,35 +19,35 @@ Region Statistics
 
     User -> Frontend: Open a new image
     activate Frontend
-    Frontend -> Backend : CLOSE_FILE
+    Frontend -> Backend : 1. CLOSE_FILE
     activate Backend
-    Frontend -> Backend : OPEN_FILE
-    Frontend <-- Backend : OPEN_FILE_ACK
-    Frontend -> Backend : ADD_REQUIRED_TILES
-    Frontend -> Backend : SET_CURSOR
-    Frontend <-- Backend : REGION_HISTOGRAM_DATA
-    Frontend <-- Backend : SPATIAL_PROFILE_DATA
-    Frontend <-- Backend : RASTER_TILE_SYNC
-    Frontend <-- Backend : RASTER_TILE_DATA
-    Frontend <-- Backend : RASTER_TILE_SYNC
+    Frontend -> Backend : 2. OPEN_FILE
+    Frontend <-- Backend : 3. OPEN_FILE_ACK
+    Frontend -> Backend : 4. ADD_REQUIRED_TILES
+    Frontend -> Backend : 5. SET_CURSOR
+    Frontend <-- Backend : 6. REGION_HISTOGRAM_DATA
+    Frontend <-- Backend : 6. SPATIAL_PROFILE_DATA
+    Frontend <-- Backend : 6. RASTER_TILE_SYNC
+    Frontend <-- Backend : 6. RASTER_TILE_DATA
+    Frontend <-- Backend : 6. RASTER_TILE_SYNC
     deactivate Backend
     User <-- Frontend: Displays image, histogram, \nand spatial profile
     deactivate Frontend
 
     User -> Frontend: Draws new region
     activate Frontend
-    Frontend -> Backend : SET_REGION
+    Frontend -> Backend : 7. SET_REGION
     activate Backend
-    Frontend <--[#red] Backend : <font color="red">SET_REGION_ACK [Check 1]</font>
+    Frontend <--[#red] Backend : <font color="red">8. SET_REGION_ACK [Check 1]</font>
     deactivate Backend
     User <-- Frontend: Displays region overlay
     deactivate Frontend
 
     User -> Frontend: Set region stats requirements
     activate Frontend
-    Frontend -> Backend : SET_STATS_REQUIREMENTS
+    Frontend -> Backend : 9. SET_STATS_REQUIREMENTS
     activate Backend
-    Frontend <--[#red] Backend : <font color="red">REGION_STATS_DATA [Check 2]</font>
+    Frontend <--[#red] Backend : <font color="red">10. REGION_STATS_DATA [Check 2]</font>
     deactivate Backend
     User <-- Frontend: Displays region stats data
     deactivate Frontend

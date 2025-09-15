@@ -21,8 +21,8 @@ Session
     Frontend -> Backend : Connects to backend (WS)
     activate Backend
     Frontend <-- Backend : Connection response (WS)
-    Frontend -> Backend : REGISTER_VIEWER
-    Frontend <--[#red] Backend : <font color="red">REGISTER_VIEWER_ACK [Check 1]</font>
+    Frontend -> Backend : 1. REGISTER_VIEWER
+    Frontend <--[#red] Backend : <font color="red">2. REGISTER_VIEWER_ACK [Check 1]</font>
     deactivate Backend
     User <-- Frontend : Connection info updated
     deactivate Frontend
