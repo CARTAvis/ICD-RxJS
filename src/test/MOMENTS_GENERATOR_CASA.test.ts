@@ -1,8 +1,8 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
-import { execSync } from "child_process";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from './MyClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
+import { execSync } from 'child_process';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -21,7 +21,7 @@ interface AssertItem {
     imageDataLength: number[];
     imageDataLength_ubuntu2404: number[];
     nanEncodingsLength: number[];
-};
+}
 
 let assertItem: AssertItem = {
     precisionDigit: 4,
@@ -31,8 +31,8 @@ let assertItem: AssertItem = {
     },
     openFile: {
         directory: testSubdirectory,
-        file: "HD163296_CO_2_1.image",
-        hdu: "",
+        file: 'HD163296_CO_2_1.image',
+        hdu: '',
         fileId: setFileId,
         renderMode: CARTA.RenderMode.RASTER,
     },
@@ -41,14 +41,17 @@ let assertItem: AssertItem = {
         regionId: -1,
         regionInfo: {
             regionType: CARTA.RegionType.RECTANGLE,
-            controlPoints: [{ x: 218, y: 218.0 }, { x: 200.0, y: 200.0 }],
+            controlPoints: [
+                { x: 218, y: 218.0 },
+                { x: 200.0, y: 200.0 },
+            ],
             rotation: 0,
         },
     },
     setSpectralRequirements: {
         fileId: setFileId,
         regionId: 1,
-        spectralProfiles: [{ coordinate: "z", statsTypes: [CARTA.StatsType.Sum] }],
+        spectralProfiles: [{ coordinate: 'z', statsTypes: [CARTA.StatsType.Sum] }],
     },
     momentRequest: {
         fileId: setFileId,
@@ -61,78 +64,98 @@ let assertItem: AssertItem = {
         restFreq: 230538000000,
     },
     imageDataLength: [72560, 72480, 59320, 67560, 74128, 32720, 68424, 72080, 70576, 67496, 32752, 76904, 61848],
-    imageDataLength_ubuntu2404: [72553, 72476, 59320, 67554, 74127, 32719, 68420, 72076, 70573, 67495, 32746, 76902, 61846],
+    imageDataLength_ubuntu2404: [
+        72553, 72476, 59320, 67554, 74127, 32719, 68420, 72076, 70573, 67495, 32746, 76902, 61846,
+    ],
     nanEncodingsLength: [1424, 1424, 1424, 1424, 1424, 1424, 1448, 1424, 1424, 1424, 1424, 1424, 1424],
 };
 const momentName = [
-    "average", "integrated", "weighted_coord", "weighted_dispersion_coord",
-    "median", "median_coord", "standard_deviation", "rms", "abs_mean_dev",
-    "maximum", "maximum_coord", "minimum", "minimum_coord",
+    'average',
+    'integrated',
+    'weighted_coord',
+    'weighted_dispersion_coord',
+    'median',
+    'median_coord',
+    'standard_deviation',
+    'rms',
+    'abs_mean_dev',
+    'maximum',
+    'maximum_coord',
+    'minimum',
+    'minimum_coord',
 ];
-const imageData5000 = [ // Testing the compressed imageData[5000] of each moment image
-109, 213, 248, 83,
-124, 15, 0, 99, 31,
-97, 0, 175, 26,
-];
-
-const imageData10000 = [ // Testing the compressed imageData[10000] of each moment image
-124, 177, 5, 42,
-229, 1, 121, 15, 8,
-228, 21, 92, 199,
-];
-
-const imageData20000 = [ // Testing the compressed imageData[20000] of each moment image
-174, 31, 4, 12,
-151, 82, 226, 141, 131,
-101, 60, 103, 0,
+const imageData5000 = [
+    // Testing the compressed imageData[5000] of each moment image
+    109, 213, 248, 83, 124, 15, 0, 99, 31, 97, 0, 175, 26,
 ];
 
-const imageData30000 = [ // Testing the compressed imageData[30000] of each moment image
-23, 44, 145, 127,
-180, 64, 63, 51, 202,
-67, 160, 25, 227,
+const imageData10000 = [
+    // Testing the compressed imageData[10000] of each moment image
+    124, 177, 5, 42, 229, 1, 121, 15, 8, 228, 21, 92, 199,
+];
+
+const imageData20000 = [
+    // Testing the compressed imageData[20000] of each moment image
+    174, 31, 4, 12, 151, 82, 226, 141, 131, 101, 60, 103, 0,
+];
+
+const imageData30000 = [
+    // Testing the compressed imageData[30000] of each moment image
+    23, 44, 145, 127, 180, 64, 63, 51, 202, 67, 160, 25, 227,
 ];
 
 let basepath: string;
 let platformOS: String;
 let isUbunutu2404: boolean;
-describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region on a casa image", () => {
+describe('MOMENTS_GENERATOR_CASA: Testing moments generator for a given region on a casa image', () => {
     function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             let registerViewerAck = await msgController.connect(testServerUrl);
             platformOS = registerViewerAck.platformStrings.platform;
-            if (platformOS === "Linux"){
-                let Response = String(execSync('lsb_release -a',{encoding: 'utf-8'}));
-                isUbunutu2404 = Response.includes("24.04")
+            if (platformOS === 'Linux') {
+                let Response = String(execSync('lsb_release -a', { encoding: 'utf-8' }));
+                isUbunutu2404 = Response.includes('24.04');
             }
         }, connectTimeout);
 
         checkConnection();
         test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.openFile.directory = basepath + "/" + assertItem.openFile.directory;
+            assertItem.openFile.directory = basepath + '/' + assertItem.openFile.directory;
         });
 
         describe(`Preparation`, () => {
-            test(`Open image`, async () => {
-                msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
+            test(
+                `Open image`,
+                async () => {
+                    msgController.closeFile(-1);
+                    let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                    let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
 
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
-            }, readFileTimeout);
-    
-            test(`Set region`, async () => {
-                let SetRegionAck = await msgController.setRegion(assertItem.setRegion.fileId, assertItem.setRegion.regionId, assertItem.setRegion.regionInfo)
-                msgController.setSpectralRequirements(assertItem.setSpectralRequirements);
-                let spectralProfileDataResponse = await Stream(CARTA.SpectralProfileData, 1);
-            }, regionTimeout);
+                    expect(OpenFileResponse.success).toBe(true);
+                    expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                },
+                readFileTimeout
+            );
+
+            test(
+                `Set region`,
+                async () => {
+                    let SetRegionAck = await msgController.setRegion(
+                        assertItem.setRegion.fileId,
+                        assertItem.setRegion.regionId,
+                        assertItem.setRegion.regionInfo
+                    );
+                    msgController.setSpectralRequirements(assertItem.setSpectralRequirements);
+                    let spectralProfileDataResponse = await Stream(CARTA.SpectralProfileData, 1);
+                },
+                regionTimeout
+            );
         });
 
         let FileId: number[] = [];
@@ -140,20 +163,24 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
         let momentResponse: any;
         let regionHistogramDataResponse: any;
         describe(`Moment generator`, () => {
-            test(`Receive a series of moment progress`, async () => {
-                await sleep(200);
-                let regionHistogramDataPromise = new Promise((resolve)=>{
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data)
-                            resolve(regionHistogramDataArray)
-                        }
-                    })
-                });
-                momentResponse = await msgController.requestMoment(assertItem.momentRequest);
-                regionHistogramDataResponse = await regionHistogramDataPromise;
-                FileId = regionHistogramDataResponse.map(data => data.fileId);
-            }, momentTimeout);
+            test(
+                `Receive a series of moment progress`,
+                async () => {
+                    await sleep(200);
+                    let regionHistogramDataPromise = new Promise((resolve) => {
+                        msgController.histogramStream.subscribe({
+                            next: (data) => {
+                                regionHistogramDataArray.push(data);
+                                resolve(regionHistogramDataArray);
+                            },
+                        });
+                    });
+                    momentResponse = await msgController.requestMoment(assertItem.momentRequest);
+                    regionHistogramDataResponse = await regionHistogramDataPromise;
+                    FileId = regionHistogramDataResponse.map((data) => data.fileId);
+                },
+                momentTimeout
+            );
 
             test(`Receive ${assertItem.momentRequest.moments.length} REGION_HISTOGRAM_DATA`, () => {
                 expect(regionHistogramDataResponse.length).toEqual(assertItem.momentRequest.moments.length);
@@ -168,25 +195,25 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
             });
 
             test(`Assert all MomentResponse.openFileAcks[].success = true`, () => {
-                momentResponse.openFileAcks.map(ack => {
+                momentResponse.openFileAcks.map((ack) => {
                     expect(ack.success).toBe(true);
                 });
             });
 
             test(`Assert all openFileAcks[].fileId > 0`, () => {
-                momentResponse.openFileAcks.map(ack => {
+                momentResponse.openFileAcks.map((ack) => {
                     expect(ack.fileId).toBeGreaterThan(0);
                 });
             });
 
             test(`Assert openFileAcks[].fileInfo.name`, () => {
                 momentResponse.openFileAcks.map((ack, index) => {
-                    expect(ack.fileInfo.name).toEqual(assertItem.openFile.file + ".moment." + momentName[index]);
+                    expect(ack.fileInfo.name).toEqual(assertItem.openFile.file + '.moment.' + momentName[index]);
                 });
             });
 
             test(`Assert openFileAcks[].fileInfoExtended`, () => {
-                momentResponse.openFileAcks.map(ack => {
+                momentResponse.openFileAcks.map((ack) => {
                     const coord = assertItem.setRegion.regionInfo.controlPoints;
                     expect(ack.fileInfoExtended.height).toEqual(coord[1].y + 1);
                     expect(ack.fileInfoExtended.width).toEqual(coord[1].x + 1);
@@ -212,22 +239,26 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
         describe(`Requset moment image`, () => {
             let RasterTileSync: CARTA.RasterTileSync[] = [];
             let RasterTileData: CARTA.RasterTileData[] = [];
-            test(`Receive all image data until RasterTileSync.endSync = true`, async () => {
-                for (let idx = 0; idx < FileId.length; idx++) {
-                    msgController.addRequiredTiles({
-                        fileId: FileId[idx],
-                        tiles: [0],
-                        compressionType: CARTA.CompressionType.ZFP,
-                        compressionQuality: 0,
-                    })
-                    let RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
-                    RasterTileSync.push(RasterTileDataResponse[2]);
-                    RasterTileData.push(RasterTileDataResponse[1]);
-                }
-                RasterTileSync.map(ack => {
-                    expect(ack.endSync).toBe(true);
-                });
-            }, readFileTimeout * FileId.length);
+            test(
+                `Receive all image data until RasterTileSync.endSync = true`,
+                async () => {
+                    for (let idx = 0; idx < FileId.length; idx++) {
+                        msgController.addRequiredTiles({
+                            fileId: FileId[idx],
+                            tiles: [0],
+                            compressionType: CARTA.CompressionType.ZFP,
+                            compressionQuality: 0,
+                        });
+                        let RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
+                        RasterTileSync.push(RasterTileDataResponse[2]);
+                        RasterTileData.push(RasterTileDataResponse[1]);
+                    }
+                    RasterTileSync.map((ack) => {
+                        expect(ack.endSync).toBe(true);
+                    });
+                },
+                readFileTimeout * FileId.length
+            );
 
             test(`Assert RASTER_TILE_SYNC.fileId`, () => {
                 RasterTileSync.map((ack, index) => {
@@ -238,7 +269,7 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
             test(`Receive RASTER_TILE_DATA`, () => {
                 expect(RasterTileData.length).toEqual(FileId.length);
             });
-    
+
             test(`Assert RASTER_TILE_DATA.fileId`, () => {
                 RasterTileData.map((ack, index) => {
                     expect(ack.fileId).toEqual(FileId[index]);
@@ -257,7 +288,7 @@ describe("MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
                     expect(ack.tiles[0].nanEncodings.length).toEqual(assertItem.nanEncodingsLength[index]);
                 });
             });
-    
+
             test(`Assert RASTER_TILE_DATA.tiles[0].imageData[5000], imageData[10000], imageData[20000], and imageData[30000]`, () => {
                 RasterTileData.map((ack, index) => {
                     expect(ack.tiles[0].imageData[5000]).toEqual(imageData5000[index]);

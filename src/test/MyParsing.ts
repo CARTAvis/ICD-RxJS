@@ -1,22 +1,22 @@
-import * as _ from "lodash";
-import {CARTA} from "carta-protobuf";
+import * as _ from 'lodash';
+import { CARTA } from 'carta-protobuf';
 
 // order matters, since ... and .. both having .. (same for < and <=, > and >=)
 export enum ComparisonOperator {
-    Equal = "==",
-    NotEqual = "!=",
-    LessorOrEqual = "<=",
-    Lesser = "<",
-    GreaterOrEqual = ">=",
-    Greater = ">",
-    RangeClosed = "...",
-    RangeOpen = ".."
+    Equal = '==',
+    NotEqual = '!=',
+    LessorOrEqual = '<=',
+    Lesser = '<',
+    GreaterOrEqual = '>=',
+    Greater = '>',
+    RangeClosed = '...',
+    RangeOpen = '..',
 }
 
 export function parseBoolean(value: string, defaultValue: boolean): boolean {
-    if (value === "true") {
+    if (value === 'true') {
         return true;
-    } else if (value === "false") {
+    } else if (value === 'false') {
         return false;
     } else {
         return defaultValue;
@@ -33,19 +33,19 @@ export function parseNumber(val: number, initVal: number): number {
 
 export function trimFitsComment(val: string): string {
     if (!val) {
-        return "";
+        return '';
     }
 
     // replace standard Fits header comments
-    return val.replace(/\s\/\s?.*$/, "");
+    return val.replace(/\s\/\s?.*$/, '');
 }
 
 export function mapToObject<K, T>(map: Map<K, T>) {
-    const obj: {[k: string]: T} = {};
+    const obj: { [k: string]: T } = {};
     map.forEach((value, key) => {
         obj[key.toString()] = value;
     });
-    console.log(obj)
+    console.log(obj);
     return obj;
 }
 
@@ -54,24 +54,27 @@ export function findDeep(obj: any, pred: (obj: any) => boolean) {
         return [obj];
     }
     return _.flatten(
-        _.map(obj, child => {
-            return typeof child === "object" ? findDeep(child, pred) : [];
+        _.map(obj, (child) => {
+            return typeof child === 'object' ? findDeep(child, pred) : [];
         })
     );
 }
 
 // parsing filter string for TableComponent filter function
 function getNumberFromFilterString(filterString: string): number {
-    const n = filterString.replace(/[^0-9.+-.]+/g, "");
-    if (n !== "") {
+    const n = filterString.replace(/[^0-9.+-.]+/g, '');
+    if (n !== '') {
         return Number(n);
     }
     return undefined;
 }
 
-export function getComparisonOperatorAndValue(filterString: string): {operator: CARTA.ComparisonOperator; values: number[]} {
-    const filter = filterString.replace(/\s/g, "");
-    let result = {operator: -1, values: []};
+export function getComparisonOperatorAndValue(filterString: string): {
+    operator: CARTA.ComparisonOperator;
+    values: number[];
+} {
+    const filter = filterString.replace(/\s/g, '');
+    let result = { operator: -1, values: [] };
     // order matters, since ... and .. both include .. (same for < and <=, > and >=)
     for (const key of Object.keys(ComparisonOperator)) {
         const operator = ComparisonOperator[key];
@@ -121,7 +124,7 @@ export function getComparisonOperatorAndValue(filterString: string): {operator: 
                 return result;
             } else if (operator === ComparisonOperator.RangeOpen) {
                 const fromTo = filter.split(ComparisonOperator.RangeOpen, 2);
-                if (fromTo[0] !== "" && fromTo[1] !== "") {
+                if (fromTo[0] !== '' && fromTo[1] !== '') {
                     result.values.push(Number(fromTo[0]));
                     result.values.push(Number(fromTo[1]));
                     result.operator = CARTA.ComparisonOperator.RangeOpen;
@@ -129,7 +132,7 @@ export function getComparisonOperatorAndValue(filterString: string): {operator: 
                 return result;
             } else if (operator === ComparisonOperator.RangeClosed) {
                 const betweenAnd = filter.split(ComparisonOperator.RangeClosed, 2);
-                if (betweenAnd[0] !== "" && betweenAnd[1] !== "") {
+                if (betweenAnd[0] !== '' && betweenAnd[1] !== '') {
                     result.values.push(Number(betweenAnd[0]));
                     result.values.push(Number(betweenAnd[1]));
                     result.operator = CARTA.ComparisonOperator.RangeClosed;

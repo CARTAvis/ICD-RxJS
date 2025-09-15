@@ -1,7 +1,7 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from './MyClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -17,7 +17,7 @@ interface AssertItem {
     openFile: CARTA.IOpenFile;
     momentRequest: CARTA.IMomentRequest;
     saveFile: CARTA.ISaveFile[][];
-};
+}
 
 let assertItem: AssertItem = {
     precisionDigit: 4,
@@ -27,8 +27,8 @@ let assertItem: AssertItem = {
     },
     openFile: {
         directory: testSubdirectory,
-        file: "HD163296_CO_2_1.fits",
-        hdu: "",
+        file: 'HD163296_CO_2_1.fits',
+        hdu: '',
         fileId: 0,
         renderMode: CARTA.RenderMode.RASTER,
     },
@@ -37,7 +37,7 @@ let assertItem: AssertItem = {
         regionId: 0,
         axis: CARTA.MomentAxis.SPECTRAL,
         mask: CARTA.MomentMask.Include,
-        moments: [0, 1,],
+        moments: [0, 1],
         pixelRange: { min: 0.1, max: 1.0 },
         spectralRange: { min: 73, max: 114 },
         restFreq: 230538000000,
@@ -71,32 +71,36 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe("MOMENTS_GENERATOR_FITS: Testing moments generator for a given region on a fits image", () => {
+describe('MOMENTS_GENERATOR_FITS: Testing moments generator for a given region on a fits image', () => {
     function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
         test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.openFile.directory = basepath + "/" + assertItem.openFile.directory;
+            assertItem.openFile.directory = basepath + '/' + assertItem.openFile.directory;
         });
 
         describe(`Preparation`, () => {
-            test(`Open image`, async () => {
-                msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData,1);
+            test(
+                `Open image`,
+                async () => {
+                    msgController.closeFile(-1);
+                    let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                    let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
 
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
-            }, readFileTimeout);
+                    expect(OpenFileResponse.success).toBe(true);
+                    expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                },
+                readFileTimeout
+            );
         });
 
         let FileId: number[] = [];
@@ -104,20 +108,24 @@ describe("MOMENTS_GENERATOR_FITS: Testing moments generator for a given region o
         let momentResponse: any;
         let regionHistogramDataResponse: any;
         describe(`Moment generator`, () => {
-            test(`Receive a series of moment progress`, async () => {
-                await sleep(200);
-                let regionHistogramDataPromise = new Promise((resolve)=>{
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data)
-                            resolve(regionHistogramDataArray)
-                        }
-                    })
-                });
-                momentResponse = await msgController.requestMoment(assertItem.momentRequest);
-                regionHistogramDataResponse = await regionHistogramDataPromise;
-                FileId = regionHistogramDataResponse.map(data => data.fileId);
-            }, momentTimeout);
+            test(
+                `Receive a series of moment progress`,
+                async () => {
+                    await sleep(200);
+                    let regionHistogramDataPromise = new Promise((resolve) => {
+                        msgController.histogramStream.subscribe({
+                            next: (data) => {
+                                regionHistogramDataArray.push(data);
+                                resolve(regionHistogramDataArray);
+                            },
+                        });
+                    });
+                    momentResponse = await msgController.requestMoment(assertItem.momentRequest);
+                    regionHistogramDataResponse = await regionHistogramDataPromise;
+                    FileId = regionHistogramDataResponse.map((data) => data.fileId);
+                },
+                momentTimeout
+            );
 
             test(`Receive ${assertItem.momentRequest.moments.length} REGION_HISTOGRAM_DATA`, () => {
                 expect(regionHistogramDataResponse.length).toEqual(assertItem.momentRequest.moments.length);
@@ -132,7 +140,7 @@ describe("MOMENTS_GENERATOR_FITS: Testing moments generator for a given region o
             });
 
             test(`Assert all MomentResponse.openFileAcks[].success = true`, () => {
-                momentResponse.openFileAcks.map(ack => {
+                momentResponse.openFileAcks.map((ack) => {
                     expect(ack.success).toBe(true);
                 });
             });
@@ -142,16 +150,25 @@ describe("MOMENTS_GENERATOR_FITS: Testing moments generator for a given region o
             let saveFileAck: any[] = [];
             for (let i = 0; i < assertItem.saveFile.length; i++) {
                 for (let j = 0; j < assertItem.saveFile[i].length; j++) {
-                    test(`Save moment generated image ${assertItem.saveFile[i][j].outputFileName}`, async () => {
-                        assertItem.saveFile[i][j].outputFileDirectory = saveSubdirectory;
-                        let saveFileResponse = await msgController.saveFile(FileId[j], assertItem.saveFile[i][j].outputFileDirectory, assertItem.saveFile[i][j].outputFileName, assertItem.saveFile[i][j].outputFileType);
-                        saveFileAck.push(saveFileResponse);
-                        await sleep(200);
-                        expect(saveFileAck.slice(-1)[0].fileId).toEqual(FileId[j]);
-                    }, saveFileTimeout);
+                    test(
+                        `Save moment generated image ${assertItem.saveFile[i][j].outputFileName}`,
+                        async () => {
+                            assertItem.saveFile[i][j].outputFileDirectory = saveSubdirectory;
+                            let saveFileResponse = await msgController.saveFile(
+                                FileId[j],
+                                assertItem.saveFile[i][j].outputFileDirectory,
+                                assertItem.saveFile[i][j].outputFileName,
+                                assertItem.saveFile[i][j].outputFileType
+                            );
+                            saveFileAck.push(saveFileResponse);
+                            await sleep(200);
+                            expect(saveFileAck.slice(-1)[0].fileId).toEqual(FileId[j]);
+                        },
+                        saveFileTimeout
+                    );
                 }
             }
-    
+
             test(`Assert all message.success = true`, () => {
                 saveFileAck.map((ack, index) => {
                     expect(ack.success).toBe(true);

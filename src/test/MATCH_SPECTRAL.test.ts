@@ -1,7 +1,7 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from './MyClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.QA;
@@ -26,30 +26,30 @@ let assertItem: AssertItem = {
     openFile: [
         {
             directory: testSubdirectory,
-            file: "HD163296_CO_2_1.fits",
+            file: 'HD163296_CO_2_1.fits',
             fileId: 100,
-            hdu: "",
+            hdu: '',
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "HD163296_13CO_2-1.fits",
+            file: 'HD163296_13CO_2-1.fits',
             fileId: 101,
-            hdu: "",
+            hdu: '',
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "HD163296_C18O_2-1.fits",
+            file: 'HD163296_C18O_2-1.fits',
             fileId: 102,
-            hdu: "",
+            hdu: '',
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "HD163296_CO_2_1.image",
+            file: 'HD163296_CO_2_1.image',
             fileId: 103,
-            hdu: "",
+            hdu: '',
             renderMode: CARTA.RenderMode.RASTER,
         },
     ],
@@ -101,44 +101,56 @@ let assertItem: AssertItem = {
         {
             fileId: 100,
             regionId: 0,
-            spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
+            spatialProfiles: [
+                { coordinate: 'x', mip: 1 },
+                { coordinate: 'y', mip: 1 },
+            ],
         },
         {
             fileId: 101,
             regionId: 0,
-            spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
+            spatialProfiles: [
+                { coordinate: 'x', mip: 1 },
+                { coordinate: 'y', mip: 1 },
+            ],
         },
         {
             fileId: 102,
             regionId: 0,
-            spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
+            spatialProfiles: [
+                { coordinate: 'x', mip: 1 },
+                { coordinate: 'y', mip: 1 },
+            ],
         },
         {
             fileId: 103,
             regionId: 0,
-            spatialProfiles: [{coordinate:"x", mip:1}, {coordinate:"y", mip:1}]
+            spatialProfiles: [
+                { coordinate: 'x', mip: 1 },
+                { coordinate: 'y', mip: 1 },
+            ],
         },
     ],
     setSpectralRequirements: [
         {
             fileId: 100,
             regionId: 1,
-            spectralProfiles: [{ coordinate: "z", statsTypes: [2] }],
+            spectralProfiles: [{ coordinate: 'z', statsTypes: [2] }],
         },
         {
             fileId: 101,
             regionId: 1,
-            spectralProfiles: [{ coordinate: "z", statsTypes: [2] }],
+            spectralProfiles: [{ coordinate: 'z', statsTypes: [2] }],
         },
         {
             fileId: 102,
             regionId: 1,
-            spectralProfiles: [{ coordinate: "z", statsTypes: [2] }],
+            spectralProfiles: [{ coordinate: 'z', statsTypes: [2] }],
         },
         {
             fileId: 103,
             regionId: 1,
-            spectralProfiles: [{ coordinate: "z", statsTypes: [2] }],
+            spectralProfiles: [{ coordinate: 'z', statsTypes: [2] }],
         },
     ],
     setRegion: [
@@ -148,7 +160,10 @@ let assertItem: AssertItem = {
             regionInfo: {
                 regionType: 3,
                 rotation: 0,
-                controlPoints: [{ x: 200, y: 200 }, { x: 200, y: 200 }],
+                controlPoints: [
+                    { x: 200, y: 200 },
+                    { x: 200, y: 200 },
+                ],
             },
         },
         {
@@ -157,111 +172,151 @@ let assertItem: AssertItem = {
             regionInfo: {
                 regionType: 3,
                 rotation: 30,
-                controlPoints: [{ x: 200, y: 200 }, { x: 200, y: 200 }],
+                controlPoints: [
+                    { x: 200, y: 200 },
+                    { x: 200, y: 200 },
+                ],
             },
         },
     ],
 };
 
 let basepath: string;
-describe("MATCH_SPECTRAL: Test region spectral profile with spatially and spectrally matched images", () => {
+describe('MATCH_SPECTRAL: Test region spectral profile with spatially and spectrally matched images', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
         test(`Get basepath`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
             for (let index = 0; index < assertItem.openFile.length; index++) {
-                assertItem.openFile[index].directory = basepath + "/" + assertItem.openFile[index].directory;
+                assertItem.openFile[index].directory = basepath + '/' + assertItem.openFile[index].directory;
             }
         });
 
         describe(`Prepare images`, () => {
             msgController.closeFile(-1);
             for (const file of assertItem.openFile) {
-                test(`Should open image ${file.file} as file_id: ${file.fileId}`, async () => {
-                    let OpenFileResponse = await msgController.loadFile(file);
-                    expect(OpenFileResponse.success).toEqual(true);
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
-                }, openFileTimeout);
-            };
+                test(
+                    `Should open image ${file.file} as file_id: ${file.fileId}`,
+                    async () => {
+                        let OpenFileResponse = await msgController.loadFile(file);
+                        expect(OpenFileResponse.success).toEqual(true);
+                        let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                    },
+                    openFileTimeout
+                );
+            }
             for (const [index, cursor] of assertItem.setCursor.entries()) {
-                test(`Prepare image ${index}`, async () => {
-                    msgController.addRequiredTiles(assertItem.addTilesReq[index]);
-                    let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.addTilesReq[index].tiles.length + 2);
+                test(
+                    `Prepare image ${index}`,
+                    async () => {
+                        msgController.addRequiredTiles(assertItem.addTilesReq[index]);
+                        let RasterTileDataResponse = await Stream(
+                            CARTA.RasterTileData,
+                            assertItem.addTilesReq[index].tiles.length + 2
+                        );
 
-                    msgController.setCursor(cursor.fileId, cursor.point.x, cursor.point.y);
-                    let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
+                        msgController.setCursor(cursor.fileId, cursor.point.x, cursor.point.y);
+                        let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
 
-                    msgController.setSpatialRequirements(assertItem.setSpatialReq[index]);
-                    let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData,1);
-                }, cursorTimeout);
-            };
-            test(`Should set region 1`, async () => {
-                let setRegionAckResponse = await msgController.setRegion(assertItem.setRegion[0].fileId, assertItem.setRegion[0].regionId, assertItem.setRegion[0].regionInfo);
-                expect(setRegionAckResponse.success).toEqual(true);
-            }, regionTimeout);
+                        msgController.setSpatialRequirements(assertItem.setSpatialReq[index]);
+                        let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
+                    },
+                    cursorTimeout
+                );
+            }
+            test(
+                `Should set region 1`,
+                async () => {
+                    let setRegionAckResponse = await msgController.setRegion(
+                        assertItem.setRegion[0].fileId,
+                        assertItem.setRegion[0].regionId,
+                        assertItem.setRegion[0].regionInfo
+                    );
+                    expect(setRegionAckResponse.success).toEqual(true);
+                },
+                regionTimeout
+            );
         });
 
         describe(`Test acquire all spectral profiles`, () => {
             let SpectralProfileData: CARTA.SpectralProfileData[] = [];
-            test(`Should receive 4 spectral_requirements`, async () => {
-                for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
-                    await msgController.setSpectralRequirements(spectralRequirement);
-                    let SpectralProfileDataResponse = await Stream(CARTA.SpectralProfileData, 1);
-                    SpectralProfileData.push(SpectralProfileDataResponse[0]);                    
-                }
-            }, profileTimeout * 3);
-    
+            test(
+                `Should receive 4 spectral_requirements`,
+                async () => {
+                    for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
+                        await msgController.setSpectralRequirements(spectralRequirement);
+                        let SpectralProfileDataResponse = await Stream(CARTA.SpectralProfileData, 1);
+                        SpectralProfileData.push(SpectralProfileDataResponse[0]);
+                    }
+                },
+                profileTimeout * 3
+            );
+
             test(`Assert all region_id equal to ${assertItem.setSpectralRequirements[0].regionId}`, () => {
                 for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
-                    expect(SpectralProfileData.find(data => data.fileId == spectralRequirement.fileId).regionId).toEqual(spectralRequirement.regionId);
+                    expect(
+                        SpectralProfileData.find((data) => data.fileId == spectralRequirement.fileId).regionId
+                    ).toEqual(spectralRequirement.regionId);
                 }
             });
-    
+
             test(`Assert the first profile equal to the last profile`, () => {
-                expect(SpectralProfileData.find(data => data.fileId == assertItem.openFile[0].fileId).profiles).toEqual(SpectralProfileData.find(data => data.fileId == assertItem.openFile[3].fileId).profiles);
+                expect(
+                    SpectralProfileData.find((data) => data.fileId == assertItem.openFile[0].fileId).profiles
+                ).toEqual(SpectralProfileData.find((data) => data.fileId == assertItem.openFile[3].fileId).profiles);
             });
         });
 
         describe(`Test acquire all spectral profiles after enlarge region`, () => {
             let SpectralProfileData: any[] = [];
-            test(`Should rotate region 1`, async () => {
-                await msgController.setRegion(assertItem.setRegion[1].fileId, assertItem.setRegion[1].regionId, assertItem.setRegion[1].regionInfo);
-                for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
-                    let SpectralProfileDataStreamPromise = new Promise((resolve) => {
-                        msgController.spectralProfileStream.subscribe({
-                            next: (data) => {
-                                if (data.progress === 1) {
-                                    resolve(data)
-                                }
-                            }
-                        })
-                    })
-                    let SpectralProfileDataResponse = await SpectralProfileDataStreamPromise;
-                    SpectralProfileData.push(SpectralProfileDataResponse);             
-                };
-            }, profileTimeout * 3);
-    
+            test(
+                `Should rotate region 1`,
+                async () => {
+                    await msgController.setRegion(
+                        assertItem.setRegion[1].fileId,
+                        assertItem.setRegion[1].regionId,
+                        assertItem.setRegion[1].regionInfo
+                    );
+                    for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
+                        let SpectralProfileDataStreamPromise = new Promise((resolve) => {
+                            msgController.spectralProfileStream.subscribe({
+                                next: (data) => {
+                                    if (data.progress === 1) {
+                                        resolve(data);
+                                    }
+                                },
+                            });
+                        });
+                        let SpectralProfileDataResponse = await SpectralProfileDataStreamPromise;
+                        SpectralProfileData.push(SpectralProfileDataResponse);
+                    }
+                },
+                profileTimeout * 3
+            );
+
             test(`Assert all region_id`, () => {
                 for (const [index, spectralRequirement] of assertItem.setSpectralRequirements.entries()) {
-                    expect(SpectralProfileData.find(data => data.fileId == spectralRequirement.fileId).regionId).toEqual(spectralRequirement.regionId);
+                    expect(
+                        SpectralProfileData.find((data) => data.fileId == spectralRequirement.fileId).regionId
+                    ).toEqual(spectralRequirement.regionId);
                 }
             });
-    
+
             test(`Assert the first profile equal to the last profile`, () => {
-                let p0 = SpectralProfileData.find(data => data.fileId == assertItem.openFile[0].fileId).profiles;
-                let p3 = SpectralProfileData.find(data => data.fileId == assertItem.openFile[3].fileId).profiles;
+                let p0 = SpectralProfileData.find((data) => data.fileId == assertItem.openFile[0].fileId).profiles;
+                let p3 = SpectralProfileData.find((data) => data.fileId == assertItem.openFile[3].fileId).profiles;
                 for (let index = 0; index < p0[0].rawValuesFp64.length; index++) {
-                    expect(p0[0].rawValuesFp64[index]).toEqual(p3[0].rawValuesFp64[index])
+                    expect(p0[0].rawValuesFp64[index]).toEqual(p3[0].rawValuesFp64[index]);
                 }
             });
         });
 
         afterAll(() => msgController.closeConnection());
     });
-})
+});
