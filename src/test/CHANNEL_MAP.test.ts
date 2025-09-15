@@ -1,7 +1,7 @@
-import {CARTA} from "carta-protobuf";
-import {checkConnection, Stream, ChannelMapStream} from './myClient';
-import {MessageController} from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream, ChannelMapStream } from './MyClient';
+import { MessageController } from './MessageController';
+import config from './config.json';
 
 const testServerUrl: string = config.serverURL0;
 const testSubdirectory: string = config.path.QA;
@@ -18,61 +18,61 @@ interface AssertItem {
     rasterTileDataGroup: CARTA.IRasterTileData[];
 }
 
-const requiredTiles =
-    [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434, 33566721, 33566720, 33566722];
-const tiles =
-    [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434];
-const currentTiles =
-    [33554432, 33558528, 33562624, 33554433, 33558529, 33562625, 33554434, 33558530, 33562626];
+const requiredTiles = [
+    33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434, 33566721, 33566720,
+    33566722,
+];
+const tiles = [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434];
+const currentTiles = [33554432, 33558528, 33562624, 33554433, 33558529, 33562625, 33554434, 33558530, 33562626];
 
 const assertItem: AssertItem = {
-    fileList: {directory: testSubdirectory},
+    fileList: { directory: testSubdirectory },
     fileOpenGroup: [
         {
             directory: testSubdirectory,
-            file: "M17_SWex.fits",
-            hdu: "",
+            file: 'M17_SWex.fits',
+            hdu: '',
             fileId: 0,
-            renderMode: CARTA.RenderMode.RASTER
+            renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "M17_SWex.image",
-            hdu: "",
+            file: 'M17_SWex.image',
+            hdu: '',
             fileId: 1,
-            renderMode: CARTA.RenderMode.RASTER
+            renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "M17_SWex.miriad",
-            hdu: "",
+            file: 'M17_SWex.miriad',
+            hdu: '',
             fileId: 2,
-            renderMode: CARTA.RenderMode.RASTER
+            renderMode: CARTA.RenderMode.RASTER,
         },
         {
             directory: testSubdirectory,
-            file: "M17_SWex.hdf5",
-            hdu: "",
+            file: 'M17_SWex.hdf5',
+            hdu: '',
             fileId: 3,
-            renderMode: CARTA.RenderMode.RASTER
+            renderMode: CARTA.RenderMode.RASTER,
         },
     ],
     fileOpenAckGroup: [
         {
             success: true,
-            fileId: 0
+            fileId: 0,
         },
         {
             success: true,
-            fileId: 1
+            fileId: 1,
         },
         {
             success: true,
-            fileId: 2
+            fileId: 2,
         },
         {
             success: true,
-            fileId: 3
+            fileId: 3,
         },
     ],
     setImageChannelGroup: [
@@ -85,11 +85,11 @@ const assertItem: AssertItem = {
                 tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: currentTiles
+                currentTiles: currentTiles,
             },
-            channelRange: {min: 1, max: 3},
-            currentRange: {min: 0, max: 3},
-            channelMapEnabled: true
+            channelRange: { min: 1, max: 3 },
+            currentRange: { min: 0, max: 3 },
+            channelMapEnabled: true,
         },
         {
             fileId: 1,
@@ -100,11 +100,11 @@ const assertItem: AssertItem = {
                 tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: currentTiles
+                currentTiles: currentTiles,
             },
-            channelRange: {min: 1, max: 3},
-            currentRange: {min: 0, max: 3},
-            channelMapEnabled: true
+            channelRange: { min: 1, max: 3 },
+            currentRange: { min: 0, max: 3 },
+            channelMapEnabled: true,
         },
         {
             fileId: 2,
@@ -115,11 +115,11 @@ const assertItem: AssertItem = {
                 tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: currentTiles
+                currentTiles: currentTiles,
             },
-            channelRange: {min: 1, max: 3},
-            currentRange: {min: 0, max: 3},
-            channelMapEnabled: true
+            channelRange: { min: 1, max: 3 },
+            currentRange: { min: 0, max: 3 },
+            channelMapEnabled: true,
         },
         {
             fileId: 3,
@@ -130,11 +130,11 @@ const assertItem: AssertItem = {
                 tiles: tiles,
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
-                currentTiles: currentTiles
+                currentTiles: currentTiles,
             },
-            channelRange: {min: 1, max: 3},
-            currentRange: {min: 0, max: 3},
-            channelMapEnabled: true
+            channelRange: { min: 1, max: 3 },
+            currentRange: { min: 0, max: 3 },
+            channelMapEnabled: true,
         },
     ],
     addRequiredTilesGroup: [
@@ -142,52 +142,52 @@ const assertItem: AssertItem = {
             fileId: 0,
             tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11
+            compressionQuality: 11,
         },
         {
             fileId: 1,
             tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11
+            compressionQuality: 11,
         },
         {
             fileId: 2,
             tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11
+            compressionQuality: 11,
         },
         {
             fileId: 3,
             tiles: requiredTiles,
             compressionType: CARTA.CompressionType.ZFP,
-            compressionQuality: 11
+            compressionQuality: 11,
         },
     ],
     rasterTileDataGroup: [
         {
             fileId: 0,
             channel: 0,
-            stokes: 0
+            stokes: 0,
         },
         {
             fileId: 1,
             channel: 0,
-            stokes: 0
+            stokes: 0,
         },
         {
             fileId: 2,
             channel: 0,
-            stokes: 0
+            stokes: 0,
         },
         {
             fileId: 3,
             channel: 0,
-            stokes: 0
+            stokes: 0,
         },
     ],
-}
+};
 
-describe("CHANNEL_MAP: Test loading multiple images and generating their channel maps", () => {
+describe('CHANNEL_MAP: Test loading multiple images and generating their channel maps', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -196,10 +196,10 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
 
         checkConnection();
         test(`Get the base path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE", 0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             let basepath = fileListResponse.directory;
             for (let i = 0; i < assertItem.fileOpenGroup.length; i++) {
-                assertItem.fileOpenGroup[i].directory = basepath + "/" + assertItem.fileOpenGroup[i].directory;
+                assertItem.fileOpenGroup[i].directory = basepath + '/' + assertItem.fileOpenGroup[i].directory;
             }
         });
 
@@ -207,10 +207,14 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
             assertItem.fileOpenGroup.map((input, index) => {
                 describe(`Open ${input.file}`, () => {
                     let OpenFileAck: any;
-                    test(`OPEN_FILE_ACK should arrive within ${openFileTimeout} ms`, async () => {
-                        OpenFileAck = await msgController.loadFile(input);
-                        let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-                    }, openFileTimeout);
+                    test(
+                        `OPEN_FILE_ACK should arrive within ${openFileTimeout} ms`,
+                        async () => {
+                            OpenFileAck = await msgController.loadFile(input);
+                            let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
+                        },
+                        openFileTimeout
+                    );
 
                     test(`OPEN_FILE_ACK.file = ${assertItem.fileOpenGroup[index].file}`, () => {
                         expect(OpenFileAck.fileInfo.name).toEqual(input.file);
@@ -225,12 +229,21 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
 
                 describe(`Add required tiles for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
                     let RasterTileDataResponse: any;
-                    test(`Check RASTER_TILE_DATA (Stream) and check total length`, async () => {
-                        msgController.addRequiredTiles(assertItem.addRequiredTilesGroup[index]);
-                        RasterTileDataResponse = await Stream(CARTA.RasterTileData, assertItem.addRequiredTilesGroup[index].tiles.length + 2);
-                        // RasterTileSync: Start + End + # Tiles returned
-                        expect(RasterTileDataResponse.length).toEqual(assertItem.addRequiredTilesGroup[index].tiles.length + 2);
-                    }, readFileTimeout);
+                    test(
+                        `Check RASTER_TILE_DATA (Stream) and check total length`,
+                        async () => {
+                            msgController.addRequiredTiles(assertItem.addRequiredTilesGroup[index]);
+                            RasterTileDataResponse = await Stream(
+                                CARTA.RasterTileData,
+                                assertItem.addRequiredTilesGroup[index].tiles.length + 2
+                            );
+                            // RasterTileSync: Start + End + # Tiles returned
+                            expect(RasterTileDataResponse.length).toEqual(
+                                assertItem.addRequiredTilesGroup[index].tiles.length + 2
+                            );
+                        },
+                        readFileTimeout
+                    );
 
                     // Check file Ids
                     test(`RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
@@ -238,7 +251,9 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
                     });
                     // Check channels
                     test(`RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel}`, () => {
-                        expect(RasterTileDataResponse[1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel);
+                        expect(RasterTileDataResponse[1].channel).toEqual(
+                            assertItem.rasterTileDataGroup[index].channel
+                        );
                     });
                     // Check stokes
                     test(`RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
@@ -251,34 +266,48 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
                     const rasterTileDataLen = assertItem.setImageChannelGroup[index].requiredTiles.tiles.length;
                     const resterTileMsgLen = rasterTileDataLen + 2;
 
-                    test(`Three RASTER_TILE_DATA should arrive within ${readFileTimeout} ms`, async () => {
-                        msgController.setChannels(assertItem.setImageChannelGroup[index]);
-                        const maxChan = assertItem.setImageChannelGroup[index].channelRange.max;
-                        const minChan = assertItem.setImageChannelGroup[index].channelRange.min;
-                        const channels = maxChan - minChan + 1;
-                        RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
-                    }, readFileTimeout);
+                    test(
+                        `Three RASTER_TILE_DATA should arrive within ${readFileTimeout} ms`,
+                        async () => {
+                            msgController.setChannels(assertItem.setImageChannelGroup[index]);
+                            const maxChan = assertItem.setImageChannelGroup[index].channelRange.max;
+                            const minChan = assertItem.setImageChannelGroup[index].channelRange.min;
+                            const channels = maxChan - minChan + 1;
+                            RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
+                        },
+                        readFileTimeout
+                    );
 
                     // Check file Ids
                     test(`1st RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
                         expect(RasterTileDataTemp[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
                     });
                     test(`2nd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
+                        expect(RasterTileDataTemp[resterTileMsgLen + 1].fileId).toEqual(
+                            assertItem.rasterTileDataGroup[index].fileId
+                        );
                     });
                     test(`3rd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
+                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].fileId).toEqual(
+                            assertItem.rasterTileDataGroup[index].fileId
+                        );
                     });
 
                     // Check channels
                     test(`1st RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 1}`, () => {
-                        expect(RasterTileDataTemp[1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel + 1);
+                        expect(RasterTileDataTemp[1].channel).toEqual(
+                            assertItem.rasterTileDataGroup[index].channel + 1
+                        );
                     });
                     test(`2nd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 2}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel + 2);
+                        expect(RasterTileDataTemp[resterTileMsgLen + 1].channel).toEqual(
+                            assertItem.rasterTileDataGroup[index].channel + 2
+                        );
                     });
                     test(`3rd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 3}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel + 3);
+                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].channel).toEqual(
+                            assertItem.rasterTileDataGroup[index].channel + 3
+                        );
                     });
 
                     // Check stokes
@@ -286,10 +315,14 @@ describe("CHANNEL_MAP: Test loading multiple images and generating their channel
                         expect(RasterTileDataTemp[1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
                     });
                     test(`2nd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
+                        expect(RasterTileDataTemp[resterTileMsgLen + 1].stokes).toEqual(
+                            assertItem.rasterTileDataGroup[index].stokes
+                        );
                     });
                     test(`3rd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
+                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].stokes).toEqual(
+                            assertItem.rasterTileDataGroup[index].stokes
+                        );
                     });
                 });
             });
