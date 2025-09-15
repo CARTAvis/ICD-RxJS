@@ -22,13 +22,15 @@ Session
     activate Backend
     Frontend <-- Backend : Connection response (WS)
     Frontend -> Backend : REGISTER_VIEWER
-    Frontend <-- Backend : REGISTER_VIEWER_ACK
+    Frontend <--[#red] Backend : <font color="red">REGISTER_VIEWER_ACK [Check 1]</font>
     deactivate Backend
     User <-- Frontend : Connection info updated
     deactivate Frontend
 
 ACCESS_CARTA_DEFAULT
 ~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_DEFAULT.test.ts>`__.
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
    
@@ -40,7 +42,7 @@ ACCESS_CARTA_DEFAULT
 
 2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
-3. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - REGISTER_VIEWER_ACK should arrives within 100 ms
   
@@ -58,6 +60,8 @@ ACCESS_CARTA_DEFAULT
 ACCESS_CARTA_KNOWN_SESSION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_KNOWN_SESSION.test.ts>`__.
+
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
    .. code-block:: protobuf
@@ -68,7 +72,7 @@ ACCESS_CARTA_KNOWN_SESSION
 
 2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
-3. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - REGISTER_VIEWER_ACK should arrives within 100 ms
 
@@ -87,6 +91,8 @@ ACCESS_CARTA_KNOWN_SESSION
 ACCESS_CARTA_NO_CLIENT_FEATURE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_NO_CLIENT_FEATURE.test.ts>`__.
+
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
    .. code-block:: protobuf
@@ -97,7 +103,7 @@ ACCESS_CARTA_NO_CLIENT_FEATURE
 
 2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
-3. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - REGISTER_VIEWER_ACK should arrives within 100 ms
 
@@ -115,6 +121,8 @@ ACCESS_CARTA_NO_CLIENT_FEATURE
 
 ACCESS_CARTA_SAME_ID_TWICE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_SAME_ID_TWICE.test.ts>`__.
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
@@ -136,7 +144,7 @@ ACCESS_CARTA_SAME_ID_TWICE
 
 4. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
-5. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - REGISTER_VIEWER_ACK should arrives within 100 ms
 

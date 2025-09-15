@@ -1,1 +1,5 @@
 /* custom.css */
+.red-text {
+    color: red;
+    font-weight: bold;
+}

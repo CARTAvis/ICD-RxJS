@@ -38,7 +38,7 @@ Region Statistics
     activate Frontend
     Frontend -> Backend : SET_REGION
     activate Backend
-    Frontend <-- Backend : SET_REGION_ACK
+    Frontend <--[#red] Backend : <font color="red">SET_REGION_ACK [Check 1]</font>
     deactivate Backend
     User <-- Frontend: Displays region overlay
     deactivate Frontend
@@ -47,13 +47,15 @@ Region Statistics
     activate Frontend
     Frontend -> Backend : SET_STATS_REQUIREMENTS
     activate Backend
-    Frontend <-- Backend : REGION_STATS_DATA
+    Frontend <--[#red] Backend : <font color="red">REGION_STATS_DATA [Check 2]</font>
     deactivate Backend
     User <-- Frontend: Displays region stats data
     deactivate Frontend
 
 REGION_STATISTICS_RECTANGLE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/REGION_STATISTICS_RECTANGLE.test.ts>`__.
 
 1. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
@@ -151,7 +153,7 @@ REGION_STATISTICS_RECTANGLE
 
 8. Backend returns: **SET_REGION_ACK** (``SetRegionAck``)
 
-9. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - SET_REGION_ACK should arrives within 100 ms
 
@@ -192,7 +194,7 @@ REGION_STATISTICS_RECTANGLE
      success = True
      region_id = 5
 
-10. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
+9. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
 
    Case 1:
 
@@ -234,9 +236,9 @@ REGION_STATISTICS_RECTANGLE
      region_id = -1
      stats = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-11. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
+10. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
 
-12. Check the backend message:
+:red-text:`Check 2:` the backend message shoduld satisfies:
 
    - REGION_STATS_DATA should arrives within 5000 ms
 
@@ -335,6 +337,8 @@ REGION_STATISTICS_RECTANGLE
 REGION_STATISTICS_ELLIPSE
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/REGION_STATISTICS_ELLIPSE.test.ts>`__.
+
 1. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
    .. code-block:: protobuf
@@ -418,7 +422,7 @@ REGION_STATISTICS_ELLIPSE
 
 8. Backend returns: **SET_REGION_ACK** (``SetRegionAck``)
 
-9. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - SET_REGION_ACK should arrives within 100 ms
 
@@ -445,7 +449,7 @@ REGION_STATISTICS_ELLIPSE
      success = True
      region_id = 3
 
-10. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
+9. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
 
    Case 1:
 
@@ -471,9 +475,9 @@ REGION_STATISTICS_ELLIPSE
      region_id = 3
      stats = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-11. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
+10. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
 
-12. Check the backend message:
+:red-text:`Check 2:` the backend message shoduld satisfies:
 
    - REGION_STATS_DATA should arrives within 5000 ms
 
@@ -535,6 +539,8 @@ REGION_STATISTICS_ELLIPSE
 
 REGION_STATISTICS_POLYGON
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/REGION_STATISTICS_POLYGON.test.ts>`__.
 
 1. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
@@ -652,7 +658,7 @@ REGION_STATISTICS_POLYGON
 
 8. Backend returns: **SET_REGION_ACK** (``SetRegionAck``)
 
-9. Check the backend message:
+:red-text:`Check 1:` the backend message shoduld satisfies:
 
    - SET_REGION_ACK should arrives within 100 ms
 
@@ -700,7 +706,7 @@ REGION_STATISTICS_POLYGON
      success = True
      region_id = 6
 
-10. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
+9. Frontend sends: **SET_STATS_REQUIREMENTS** (``SetRegionRequirements``)
 
    Case 1:
 
@@ -750,9 +756,9 @@ REGION_STATISTICS_POLYGON
      region_id = 6
      stats = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-11. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
+10. Backend returns: **REGION_STATS_DATA** (``RegionStatsData``)
 
-12. Check the backend message:
+:red-text:`Check 2:` the backend message shoduld satisfies:
 
    - REGION_STATS_DATA should arrives within 5000 ms
 
