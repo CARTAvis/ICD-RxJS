@@ -19,7 +19,7 @@ interface AssertItem {
     setSpectralRequirements: CARTA.ISetSpectralRequirements;
     momentRequest: CARTA.IMomentRequest;
     imageDataLength: number[];
-    imageDataLength_linux: number[];
+    imageDataLength_ubuntu: number[];
     nanEncodingsLength: number[];
 }
 
@@ -64,7 +64,7 @@ let assertItem: AssertItem = {
         restFreq: 230538000000,
     },
     imageDataLength: [72560, 72480, 59320, 67560, 74128, 32720, 68424, 72080, 70576, 67496, 32752, 76904, 61848],
-    imageDataLength_linux: [
+    imageDataLength_ubuntu: [
         72553, 72476, 59320, 67554, 74127, 32719, 68420, 72076, 70573, 67495, 32746, 76902, 61846,
     ],
     nanEncodingsLength: [1424, 1424, 1424, 1424, 1424, 1424, 1448, 1424, 1424, 1424, 1424, 1424, 1424],
@@ -106,6 +106,7 @@ const imageData30000 = [
 
 let basepath: string;
 let platformOS: String;
+let isUbuntu: boolean;
 describe('MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region on a hdf5 image', () => {
     function sleep(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -115,6 +116,10 @@ describe('MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
         beforeAll(async () => {
             let registerViewerAck = await msgController.connect(testServerUrl);
             platformOS = registerViewerAck.platformStrings.platform;
+            if (platformOS === 'Linux') {
+                let Response = String(execSync('lsb_release -a', { encoding: 'utf-8' }));
+                isUbuntu = Response.includes('Ubuntu');
+            }
         }, connectTimeout);
 
         checkConnection();
@@ -275,8 +280,8 @@ describe('MOMENTS_GENERATOR_HDF5: Testing moments generator for a given region o
                 RasterTileData.map((ack, index) => {
                     expect(ack.tiles[0].height).toEqual(201);
                     expect(ack.tiles[0].width).toEqual(201);
-                    if (platformOS === 'Linux') {
-                        expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength_linux[index]);
+                    if (platformOS === 'Linux' && isUbuntu === true) {
+                        expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength_ubuntu[index]);
                     } else {
                         expect(ack.tiles[0].imageData.length).toEqual(assertItem.imageDataLength[index]);
                     }
