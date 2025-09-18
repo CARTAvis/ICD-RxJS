@@ -467,7 +467,7 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 }
             }
             if (platformOS === 'Linux') {
-                let Response = String(execSync('cat /etc/redhat-release', {encoding:'utf-8'}));
+                let Response = String(execSync('lsb_release -a', { encoding: 'utf-8' }));
                 isRhel8 = Response.includes('release 8');
             }
         }, connectTimeout);
