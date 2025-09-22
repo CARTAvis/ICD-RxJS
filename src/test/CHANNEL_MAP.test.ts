@@ -16,6 +16,7 @@ interface AssertItem {
     setImageChannelGroup: CARTA.ISetImageChannels[];
     addRequiredTilesGroup: CARTA.IAddRequiredTiles[];
     rasterTileDataGroup: CARTA.IRasterTileData[];
+    tileDataGroup: CARTA.ITileData[];
 }
 
 const requiredTiles = [
@@ -185,6 +186,36 @@ const assertItem: AssertItem = {
             stokes: 0,
         },
     ],
+    tileDataGroup: [
+        {
+            layer: 2,
+            x: 2,
+            y: 0,
+            width: 128,
+            height: 256,
+        },
+        {
+            layer: 2,
+            x: 2,
+            y: 0,
+            width: 128,
+            height: 256,
+        },
+        {
+            layer: 2,
+            x: 2,
+            y: 0,
+            width: 128,
+            height: 256,
+        },
+        {
+            layer: 2,
+            x: 2,
+            y: 0,
+            width: 128,
+            height: 256,
+        },
+    ],
 };
 
 describe('CHANNEL_MAP: Test loading multiple images and generating their channel maps', () => {
@@ -322,6 +353,83 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                     test(`3rd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
                         expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].stokes).toEqual(
                             assertItem.rasterTileDataGroup[index].stokes
+                        );
+                    });
+
+                    // Check tiles
+                    const idx1 = rasterTileDataLen + 2 - 1 - 1;
+                    const idx2 = 2 * (rasterTileDataLen + 2) - 1 - 1;
+                    const idx3 = 3 * (rasterTileDataLen + 2) - 1 - 1;
+
+                    // Check tiles length
+                    test(`1st RASTER_TILE_DATA.tiles.length = 1`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles.length).toEqual(1);
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.length = 1`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles.length).toEqual(1);
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.length = 1`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles.length).toEqual(1);
+                    });
+
+                    // Check tiles layer
+                    test(`1st RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                    });
+
+                    // Check tiles x
+                    test(`1st RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    });
+
+                    // Check tiles y
+                    test(`1st RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                    });
+
+                    // Check tiles width
+                    test(`1st RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    });
+
+                    // Check tiles height
+                    test(`1st RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
+                        expect(RasterTileDataTemp[idx1].tiles[0].height).toEqual(
+                            assertItem.tileDataGroup[index].height
+                        );
+                    });
+                    test(`2nd RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
+                        expect(RasterTileDataTemp[idx2].tiles[0].height).toEqual(
+                            assertItem.tileDataGroup[index].height
+                        );
+                    });
+                    test(`3rd RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
+                        expect(RasterTileDataTemp[idx3].tiles[0].height).toEqual(
+                            assertItem.tileDataGroup[index].height
                         );
                     });
                 });
