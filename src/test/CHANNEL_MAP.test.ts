@@ -14,6 +14,7 @@ interface AssertItem {
     fileOpenGroup: CARTA.IOpenFile[];
     fileOpenAckGroup: CARTA.IOpenFileAck[];
     setImageChannelGroup: CARTA.ISetImageChannels[];
+    setImageChannelGroup2: CARTA.ISetImageChannels[];
     addRequiredTilesGroup: CARTA.IAddRequiredTiles[];
     rasterTileDataGroup: CARTA.IRasterTileData[];
     tileDataGroup: CARTA.ITileData[];
@@ -135,6 +136,68 @@ const assertItem: AssertItem = {
             },
             channelRange: { min: 1, max: 3 },
             currentRange: { min: 0, max: 3 },
+            channelMapEnabled: true,
+        },
+    ],
+    setImageChannelGroup2: [
+        {
+            fileId: 0,
+            channel: 4,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: tiles,
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 11,
+                currentTiles: currentTiles,
+            },
+            channelRange: { min: 4, max: 4 },
+            currentRange: { min: 1, max: 4 },
+            channelMapEnabled: true,
+        },
+        {
+            fileId: 1,
+            channel: 4,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: tiles,
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 11,
+                currentTiles: currentTiles,
+            },
+            channelRange: { min: 4, max: 4 },
+            currentRange: { min: 1, max: 4 },
+            channelMapEnabled: true,
+        },
+        {
+            fileId: 2,
+            channel: 4,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: tiles,
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 11,
+                currentTiles: currentTiles,
+            },
+            channelRange: { min: 4, max: 4 },
+            currentRange: { min: 1, max: 4 },
+            channelMapEnabled: true,
+        },
+        {
+            fileId: 3,
+            channel: 4,
+            stokes: 0,
+            requiredTiles: {
+                fileId: 0,
+                tiles: tiles,
+                compressionType: CARTA.CompressionType.ZFP,
+                compressionQuality: 11,
+                currentTiles: currentTiles,
+            },
+            channelRange: { min: 4, max: 4 },
+            currentRange: { min: 1, max: 4 },
             channelMapEnabled: true,
         },
     ],
@@ -292,7 +355,7 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                     });
                 });
 
-                describe(`Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
+                describe(`1) Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
                     let RasterTileDataTemp: any;
                     const rasterTileDataLen = assertItem.setImageChannelGroup[index].requiredTiles.tiles.length;
                     const resterTileMsgLen = rasterTileDataLen + 2;
@@ -431,6 +494,67 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                         expect(RasterTileDataTemp[idx3].tiles[0].height).toEqual(
                             assertItem.tileDataGroup[index].height
                         );
+                    });
+                });
+
+                describe(`2) Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
+                    let RasterTileDataTemp: any;
+                    const rasterTileDataLen = assertItem.setImageChannelGroup2[index].requiredTiles.tiles.length;
+                    const resterTileMsgLen = rasterTileDataLen + 2;
+
+                    test(
+                        `A new RASTER_TILE_DATA should arrive within ${readFileTimeout} ms`,
+                        async () => {
+                            msgController.setChannels(assertItem.setImageChannelGroup2[index]);
+                            const maxChan = assertItem.setImageChannelGroup2[index].channelRange.max;
+                            const minChan = assertItem.setImageChannelGroup2[index].channelRange.min;
+                            const channels = maxChan - minChan + 1;
+                            RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
+                        },
+                        readFileTimeout
+                    );
+
+                    // Check channels
+                    test(`New RASTER_TILE_DATA.channel = ${assertItem.setImageChannelGroup2[index].channel}`, () => {
+                        expect(RasterTileDataTemp[1].channel).toEqual(assertItem.setImageChannelGroup2[index].channel);
+                    });
+
+                    // Check stokes
+                    test(`New RASTER_TILE_DATA.stokes = ${assertItem.setImageChannelGroup2[index].stokes}`, () => {
+                        expect(RasterTileDataTemp[1].stokes).toEqual(assertItem.setImageChannelGroup2[index].stokes);
+                    });
+
+                    // Check tiles
+                    const idx = rasterTileDataLen + 2 - 1 - 1;
+
+                    // Check tiles length
+                    test(`New RASTER_TILE_DATA.tiles.length = 1`, () => {
+                        expect(RasterTileDataTemp[idx].tiles.length).toEqual(1);
+                    });
+
+                    // Check tiles layer
+                    test(`New RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
+                        expect(RasterTileDataTemp[idx].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                    });
+
+                    // Check tiles x
+                    test(`New RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
+                        expect(RasterTileDataTemp[idx].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    });
+
+                    // Check tiles y
+                    test(`New RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
+                        expect(RasterTileDataTemp[idx].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                    });
+
+                    // Check tiles width
+                    test(`New RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
+                        expect(RasterTileDataTemp[idx].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    });
+
+                    // Check tiles height
+                    test(`New RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
+                        expect(RasterTileDataTemp[idx].tiles[0].height).toEqual(assertItem.tileDataGroup[index].height);
                     });
                 });
             });
