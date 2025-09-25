@@ -358,7 +358,7 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                 describe(`1) Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
                     let RasterTileDataTemp: any;
                     const rasterTileDataLen = assertItem.setImageChannelGroup[index].requiredTiles.tiles.length;
-                    const resterTileMsgLen = rasterTileDataLen + 2;
+                    const rasterTileMsgLen = rasterTileDataLen + 2;
 
                     test(
                         `Three RASTER_TILE_DATA should arrive within ${readFileTimeout} ms`,
@@ -377,12 +377,12 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                         expect(RasterTileDataTemp[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
                     });
                     test(`2nd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].fileId).toEqual(
+                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].fileId).toEqual(
                             assertItem.rasterTileDataGroup[index].fileId
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].fileId).toEqual(
+                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].fileId).toEqual(
                             assertItem.rasterTileDataGroup[index].fileId
                         );
                     });
@@ -394,12 +394,12 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                         );
                     });
                     test(`2nd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 2}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].channel).toEqual(
+                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].channel).toEqual(
                             assertItem.rasterTileDataGroup[index].channel + 2
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 3}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].channel).toEqual(
+                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].channel).toEqual(
                             assertItem.rasterTileDataGroup[index].channel + 3
                         );
                     });
@@ -409,12 +409,12 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                         expect(RasterTileDataTemp[1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
                     });
                     test(`2nd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[resterTileMsgLen + 1].stokes).toEqual(
+                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].stokes).toEqual(
                             assertItem.rasterTileDataGroup[index].stokes
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[2 * resterTileMsgLen + 1].stokes).toEqual(
+                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].stokes).toEqual(
                             assertItem.rasterTileDataGroup[index].stokes
                         );
                     });
