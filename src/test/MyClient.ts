@@ -158,21 +158,21 @@ function Stream(cartaType: any, InputNum?: number) {
 function ChannelMapStream(rasterTileDataLen: number, channels: number) {
     return new Promise<any>((resolve, reject) => {
         const msgController = MessageController.Instance;
-        const msgTotalLen = (rasterTileDataLen + 2) * channels;
+        const rasterTileMsgLen = (rasterTileDataLen + 2) * channels; // # of RasterTileData + 2 RasterTileSync per channel
         let count = 0;
-        let ack: any[] = [];
-        let ex1 = msgController.rasterSyncStream.pipe(take(2 * channels));
-        ex1.subscribe((data) => {
+        let rasterTileMsgs: any[] = [];
+        let rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2 * channels));
+        rasterTileSyncStream.subscribe((data) => {
             count++;
-            ack.push(data);
-            if (data.endSync && count === msgTotalLen) {
-                resolve(ack);
+            rasterTileMsgs.push(data);
+            if (data.endSync && count === rasterTileMsgLen) {
+                resolve(rasterTileMsgs);
             }
         });
-        let ex2 = msgController.rasterTileStream.pipe(take(rasterTileDataLen * channels));
-        ex2.subscribe((data) => {
+        let rasterTileDataStream = msgController.rasterTileStream.pipe(take(rasterTileDataLen * channels));
+        rasterTileDataStream.subscribe((data) => {
             count++;
-            ack.push(data);
+            rasterTileMsgs.push(data);
         });
     });
 }
