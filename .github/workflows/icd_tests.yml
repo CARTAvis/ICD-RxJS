@@ -37,7 +37,7 @@ on:
         type: boolean
 
 env:
-  CARTA_BACKEND_BRANCH_NAME: dev
+  CARTA_BACKEND_BRANCH_NAME: ${{ inputs.carta_backend_branch }}
 
 jobs:
   Build:
