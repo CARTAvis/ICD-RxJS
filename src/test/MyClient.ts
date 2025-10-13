@@ -155,4 +155,26 @@ function Stream(cartaType: any, InputNum?: number) {
     });
 }
 
-export { checkConnection, Stream };
+function ChannelMapStream(rasterTileDataLen: number, channels: number) {
+    return new Promise<any>((resolve, reject) => {
+        const msgController = MessageController.Instance;
+        const rasterTileMsgLen = (rasterTileDataLen + 2) * channels; // # of RasterTileData + 2 RasterTileSync per channel
+        let count = 0;
+        let rasterTileMsgs: any[] = [];
+        let rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2 * channels));
+        rasterTileSyncStream.subscribe((data) => {
+            count++;
+            rasterTileMsgs.push(data);
+            if (data.endSync && count === rasterTileMsgLen) {
+                resolve(rasterTileMsgs);
+            }
+        });
+        let rasterTileDataStream = msgController.rasterTileStream.pipe(take(rasterTileDataLen * channels));
+        rasterTileDataStream.subscribe((data) => {
+            count++;
+            rasterTileMsgs.push(data);
+        });
+    });
+}
+
+export { checkConnection, Stream, ChannelMapStream };

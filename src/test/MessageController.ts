@@ -835,12 +835,18 @@ export class MessageController {
         let channel = input.channel;
         let stokes = input.stokes;
         let requiredTiles = input.requiredTiles;
+        let channelMapEnabled = input.channelMapEnabled;
+        let channelRange = input.channelRange;
+        let currentRange = input.currentRange;
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
             const message = CARTA.SetImageChannels.create({
-                fileId,
-                channel,
-                stokes,
-                requiredTiles,
+                fileId: fileId,
+                channel: channel,
+                stokes: stokes,
+                requiredTiles: requiredTiles,
+                channelRange: channelRange,
+                currentRange: currentRange,
+                channelMapEnabled: channelMapEnabled,
             });
             this.logEvent(CARTA.EventType.SET_IMAGE_CHANNELS, this.eventCounter, message, false);
             if (this.sendEvent(CARTA.EventType.SET_IMAGE_CHANNELS, CARTA.SetImageChannels.encode(message).finish())) {
@@ -1010,13 +1016,16 @@ export class MessageController {
     addRequiredTiles(input: CARTA.IAddRequiredTiles): boolean {
         let fileId = input.fileId;
         let tiles = input.tiles;
+        let type = input.compressionType;
         let quality = input.compressionQuality;
+        let currentTiles = input.currentTiles;
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
             const message = CARTA.AddRequiredTiles.create({
-                fileId,
-                tiles,
+                fileId: fileId,
+                tiles: tiles,
+                compressionType: type,
                 compressionQuality: quality,
-                compressionType: CARTA.CompressionType.ZFP,
+                currentTiles: currentTiles,
             });
             this.logEvent(CARTA.EventType.ADD_REQUIRED_TILES, this.eventCounter, message, false);
             if (this.sendEvent(CARTA.EventType.ADD_REQUIRED_TILES, CARTA.AddRequiredTiles.encode(message).finish())) {
