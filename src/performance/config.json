@@ -1,5 +1,5 @@
 {
-    "serverURL0": "ws://127.0.0.1:3006",	
+    "serverURL0": "ws://127.0.0.1:3002",
     "path": {
         "root": ".",
         "base": "$BASE",

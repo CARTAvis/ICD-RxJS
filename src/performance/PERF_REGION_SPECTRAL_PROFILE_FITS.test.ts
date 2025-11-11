@@ -23,8 +23,8 @@ interface AssertItem {
 let assertItem: AssertItem = {
     fileOpen: [
         {
-            directory: testSubdirectory + "/cube_B",
-            file: "cube_B_01600_z01000.fits",
+            directory: testSubdirectory,
+            file: "cube_B_03200_z01000.fits",
             hdu: "0",
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
