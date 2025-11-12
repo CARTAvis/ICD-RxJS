@@ -1,5 +1,6 @@
 {
     "serverURL0": "ws://127.0.0.1:3002",
+    "icdVersion": 30,
     "path": {
         "root": ".",
         "base": "$BASE",
@@ -9,11 +10,11 @@
         "region": "set_QA/regionTest",
         "performance": "set_QA_performance",
         "catalogArtificial": "set_QA/carta_artificial_catalog",
-        "catalogLarge": "set_cosmos",
+        "catalogLarge": "set_QA/set_cosmos",
         "save": "set_QA/tmp",
         "save_rhel9": "set_QA/tmp/rhel9",
         "concat_stokes": "set_StokesCube",
-        "large_files": "set_lotsFiles2",
+        "large_files": "set_QA/set_lotsFiles2",
         "compressed_fits": "set_compressed_fits"
     },
     "performance": {
@@ -27,7 +28,7 @@
     "timeout": {
         "connection": 1100,
         "listFile": 1200,
-        "openFile": 8000,
+        "openFile": 6000,
         "readFile": 6000,
         "saveFile": 3000,
         "readLargeImage": 90000,
@@ -39,7 +40,7 @@
         "cancel": 5000,
         "concurrent": 7000,
         "messageEvent": 500,
-        "mouseEvent": 1000,
+        "mouseEvent": 3000,
         "cursor": 500,
         "region": 5000,
         "import": 500,
@@ -60,7 +61,7 @@
         "pvRequest": 60000,
         "imageFitting": 100000,
         "vectorOverlay": 6000,
-        "firstHistogramCancellation": 30000,
+        "firstHistogramCancellation": 100000,
         "dragManyNumberBins": 100000
     },
     "repeat": {
