@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
-import { checkConnection, Stream } from './MyClient';
-import { MessageController } from './MessageController';
-import config from './config.json';
+import { checkConnection, Stream } from '../test/MyClient';
+import { MessageController } from '../test/MessageController';
+import config from '../test/config.json';
 
 let testServerUrl = config.serverURL0;
 let testSubdirectory = config.path.performance;

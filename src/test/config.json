@@ -17,6 +17,14 @@
         "large_files": "set_QA/set_lotsFiles2",
         "compressed_fits": "set_compressed_fits"
     },
+    "performance": {
+        "openFile": 16000,
+        "readFile": 5000,
+        "playContour": 12000,
+        "setSpectralReqTimeout": 5000,
+        "momentTimeout": 400000,
+        "pvTimeout": 200000
+    },
     "timeout": {
         "connection": 1100,
         "listFile": 1200,
