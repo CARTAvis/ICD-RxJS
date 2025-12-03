@@ -10,7 +10,7 @@ let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
 let openFileTimeout: number = config.timeout.openFile;
 let readFileTimeout: number = config.timeout.readFile;
-let playAnimatorTimeout = config.timeout.playAnimator;
+let playAnimatorTimeout = config.performance.playAnimator;
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;

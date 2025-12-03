@@ -6,7 +6,7 @@ import config from '../test/config.json';
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
 let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
+let openFileTimeout: number = config.performance.openFile;
 let readFileTimeout: number = config.timeout.readFile;
 let playContourTimeout: number = config.performance.playContour;
 
