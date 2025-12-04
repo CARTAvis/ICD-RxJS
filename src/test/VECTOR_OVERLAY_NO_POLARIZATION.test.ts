@@ -76,7 +76,7 @@ let assertItem: AssertItem = {
                 {
                     height: 144,
                     mip: 2,
-                    layer: 1,
+                    layer: -1,
                     width: 64,
                     x: 1,
                     y: 1,
@@ -86,7 +86,7 @@ let assertItem: AssertItem = {
             intensityTiles: [
                 {
                     height: 144,
-                    layer: 1,
+                    layer: -1,
                     mip: 2,
                     width: 64,
                     x: 1,

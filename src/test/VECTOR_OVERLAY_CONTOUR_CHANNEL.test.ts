@@ -120,7 +120,7 @@ let assertItem: AssertItem = {
                 {
                     height: 25,
                     mip: 1,
-                    layer: 3,
+                    layer: -1,
                     width: 25,
                     x: 4,
                     y: 4,
@@ -130,7 +130,7 @@ let assertItem: AssertItem = {
             intensityTiles: [
                 {
                     height: 25,
-                    layer: 3,
+                    layer: -1,
                     mip: 1,
                     width: 25,
                     x: 4,
@@ -154,7 +154,7 @@ let assertItem: AssertItem = {
                 {
                     height: 7,
                     mip: 4,
-                    layer: 1,
+                    layer: -1,
                     width: 7,
                     x: 1,
                     y: 1,
@@ -164,7 +164,7 @@ let assertItem: AssertItem = {
             intensityTiles: [
                 {
                     height: 7,
-                    layer: 1,
+                    layer: -1,
                     mip: 4,
                     width: 7,
                     x: 1,
@@ -188,7 +188,7 @@ let assertItem: AssertItem = {
                 {
                     height: 7,
                     mip: 4,
-                    layer: 1,
+                    layer: -1,
                     width: 7,
                     x: 1,
                     y: 1,
@@ -198,7 +198,7 @@ let assertItem: AssertItem = {
             intensityTiles: [
                 {
                     height: 7,
-                    layer: 1,
+                    layer: -1,
                     mip: 4,
                     width: 7,
                     x: 1,
