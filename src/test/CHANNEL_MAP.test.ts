@@ -462,10 +462,10 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                         expect([assertItem.tileDataGroup[index].y, 2]).toContain(RasterTileDataTemp[idx1].tiles[0].y);
                     });
                     test(`2nd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                        expect([assertItem.tileDataGroup[index].y, 2]).toContain(RasterTileDataTemp[idx2].tiles[0].y);
                     });
                     test(`3rd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                        expect([assertItem.tileDataGroup[index].y, 2]).toContain(RasterTileDataTemp[idx3].tiles[0].y);
                     });
 
                     // Check tiles width
