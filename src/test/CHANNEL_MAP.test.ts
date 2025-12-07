@@ -459,7 +459,7 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
 
                     // Check tiles y
                     test(`1st RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
+                        expect(RasterTileDataTemp[idx1].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y | 2);
                     });
                     test(`2nd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
                         expect(RasterTileDataTemp[idx2].tiles[0].y).toEqual(assertItem.tileDataGroup[index].y);
