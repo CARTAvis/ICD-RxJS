@@ -26,6 +26,9 @@ const requiredTiles = [
 ];
 const tiles = [33558529, 33558528, 33562625, 33554433, 33562624, 33558530, 33554432, 33562626, 33554434];
 const currentTiles = [33554432, 33558528, 33562624, 33554433, 33558529, 33562625, 33554434, 33558530, 33562626];
+const assertTileXY = [0, 1, 2];
+const assertTileWidth = [128, 256];
+const assertTileHeight = 256;
 
 const assertItem: AssertItem = {
     fileList: { directory: testSubdirectory },
@@ -356,7 +359,7 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                 });
 
                 describe(`1) Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
-                    let RasterTileDataTemp: any;
+                    let RasterTileMsgTemp: any;
                     const rasterTileDataLen = assertItem.setImageChannelGroup[index].requiredTiles.tiles.length;
                     const rasterTileMsgLen = rasterTileDataLen + 2;
 
@@ -367,144 +370,154 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                             const maxChan = assertItem.setImageChannelGroup[index].channelRange.max;
                             const minChan = assertItem.setImageChannelGroup[index].channelRange.min;
                             const channels = maxChan - minChan + 1;
-                            RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
+                            RasterTileMsgTemp = await ChannelMapStream(rasterTileDataLen, channels);
                         },
                         readFileTimeout
                     );
 
                     // Check file Ids
                     test(`1st RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
+                        expect(RasterTileMsgTemp[1].fileId).toEqual(assertItem.rasterTileDataGroup[index].fileId);
                     });
                     test(`2nd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].fileId).toEqual(
+                        expect(RasterTileMsgTemp[rasterTileMsgLen + 1].fileId).toEqual(
                             assertItem.rasterTileDataGroup[index].fileId
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.file_id = ${assertItem.rasterTileDataGroup[index].fileId}`, () => {
-                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].fileId).toEqual(
+                        expect(RasterTileMsgTemp[2 * rasterTileMsgLen + 1].fileId).toEqual(
                             assertItem.rasterTileDataGroup[index].fileId
                         );
                     });
 
                     // Check channels
                     test(`1st RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 1}`, () => {
-                        expect(RasterTileDataTemp[1].channel).toEqual(
-                            assertItem.rasterTileDataGroup[index].channel + 1
-                        );
+                        expect(RasterTileMsgTemp[1].channel).toEqual(assertItem.rasterTileDataGroup[index].channel + 1);
                     });
                     test(`2nd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 2}`, () => {
-                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].channel).toEqual(
+                        expect(RasterTileMsgTemp[rasterTileMsgLen + 1].channel).toEqual(
                             assertItem.rasterTileDataGroup[index].channel + 2
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.channel = ${assertItem.rasterTileDataGroup[index].channel + 3}`, () => {
-                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].channel).toEqual(
+                        expect(RasterTileMsgTemp[2 * rasterTileMsgLen + 1].channel).toEqual(
                             assertItem.rasterTileDataGroup[index].channel + 3
                         );
                     });
 
                     // Check stokes
                     test(`1st RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
+                        expect(RasterTileMsgTemp[1].stokes).toEqual(assertItem.rasterTileDataGroup[index].stokes);
                     });
                     test(`2nd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[rasterTileMsgLen + 1].stokes).toEqual(
+                        expect(RasterTileMsgTemp[rasterTileMsgLen + 1].stokes).toEqual(
                             assertItem.rasterTileDataGroup[index].stokes
                         );
                     });
                     test(`3rd RASTER_TILE_DATA.stokes = ${assertItem.rasterTileDataGroup[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[2 * rasterTileMsgLen + 1].stokes).toEqual(
+                        expect(RasterTileMsgTemp[2 * rasterTileMsgLen + 1].stokes).toEqual(
                             assertItem.rasterTileDataGroup[index].stokes
                         );
                     });
 
                     // Check tiles
-                    const idx1 = rasterTileDataLen + 2 - 1 - 1;
-                    const idx2 = 2 * (rasterTileDataLen + 2) - 1 - 1;
-                    const idx3 = 3 * (rasterTileDataLen + 2) - 1 - 1;
+                    const idx1 = rasterTileMsgLen - 1 - 1;
+                    const idx2 = 2 * rasterTileMsgLen - 1 - 1;
+                    const idx3 = 3 * rasterTileMsgLen - 1 - 1;
 
                     // Check tiles length
                     test(`1st RASTER_TILE_DATA.tiles.length = 1`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles.length).toEqual(1);
+                        expect(RasterTileMsgTemp[idx1].tiles.length).toEqual(1);
                     });
                     test(`2nd RASTER_TILE_DATA.tiles.length = 1`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles.length).toEqual(1);
+                        expect(RasterTileMsgTemp[idx2].tiles.length).toEqual(1);
                     });
                     test(`3rd RASTER_TILE_DATA.tiles.length = 1`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles.length).toEqual(1);
+                        expect(RasterTileMsgTemp[idx3].tiles.length).toEqual(1);
                     });
 
                     // Check tiles layer
                     test(`1st RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                        expect(RasterTileMsgTemp[idx1].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
                     });
                     test(`2nd RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                        expect(RasterTileMsgTemp[idx2].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
                     });
                     test(`3rd RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                        expect(RasterTileMsgTemp[idx3].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
                     });
 
                     // Check tiles x
-                    test(`1st RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    test(`1st RASTER_TILE_DATA.tiles.x = ${assertTileXY}`, () => {
+                        for (let i = idx1; i > idx1 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].x);
+                        }
                     });
-                    test(`2nd RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    test(`2nd RASTER_TILE_DATA.tiles.x = ${assertTileXY}`, () => {
+                        for (let i = idx2; i > idx2 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].x);
+                        }
                     });
-                    test(`3rd RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    test(`3rd RASTER_TILE_DATA.tiles.x = ${assertTileXY}`, () => {
+                        for (let i = idx3; i > idx3 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].x);
+                        }
                     });
 
                     // Check tiles y
-                    test(`1st RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect([assertItem.tileDataGroup[index].y, 1, 2]).toContain(
-                            RasterTileDataTemp[idx1].tiles[0].y
-                        );
+                    test(`1st RASTER_TILE_DATA.tiles.y = ${assertTileXY}`, () => {
+                        for (let i = idx1; i > idx1 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].y);
+                        }
                     });
-                    test(`2nd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect([assertItem.tileDataGroup[index].y, 1, 2]).toContain(
-                            RasterTileDataTemp[idx2].tiles[0].y
-                        );
+                    test(`2nd RASTER_TILE_DATA.tiles.y = ${assertTileXY}`, () => {
+                        for (let i = idx2; i > idx2 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].y);
+                        }
                     });
-                    test(`3rd RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect([assertItem.tileDataGroup[index].y, 1, 2]).toContain(
-                            RasterTileDataTemp[idx3].tiles[0].y
-                        );
+                    test(`3rd RASTER_TILE_DATA.tiles.y = ${assertTileXY}`, () => {
+                        for (let i = idx3; i > idx3 - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].y);
+                        }
                     });
 
                     // Check tiles width
-                    test(`1st RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    test(`1st RASTER_TILE_DATA.tiles.width = ${assertTileWidth}`, () => {
+                        for (let i = idx1; i > idx1 - rasterTileDataLen; i--) {
+                            expect(assertTileWidth).toContain(RasterTileMsgTemp[i].tiles[0].width);
+                        }
                     });
-                    test(`2nd RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    test(`2nd RASTER_TILE_DATA.tiles.width = ${assertTileWidth}`, () => {
+                        for (let i = idx2; i > idx2 - rasterTileDataLen; i--) {
+                            expect(assertTileWidth).toContain(RasterTileMsgTemp[i].tiles[0].width);
+                        }
                     });
-                    test(`3rd RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    test(`3rd RASTER_TILE_DATA.tiles.width = ${assertTileWidth}`, () => {
+                        for (let i = idx3; i > idx3 - rasterTileDataLen; i--) {
+                            expect(assertTileWidth).toContain(RasterTileMsgTemp[i].tiles[0].width);
+                        }
                     });
 
                     // Check tiles height
-                    test(`1st RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
-                        expect(RasterTileDataTemp[idx1].tiles[0].height).toEqual(
-                            assertItem.tileDataGroup[index].height
-                        );
+                    test(`1st RASTER_TILE_DATA.tiles.height = ${assertTileHeight}`, () => {
+                        for (let i = idx1; i > idx1 - rasterTileDataLen; i--) {
+                            expect(RasterTileMsgTemp[i].tiles[0].height).toEqual(assertTileHeight);
+                        }
                     });
-                    test(`2nd RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
-                        expect(RasterTileDataTemp[idx2].tiles[0].height).toEqual(
-                            assertItem.tileDataGroup[index].height
-                        );
+                    test(`2nd RASTER_TILE_DATA.tiles.height = ${assertTileHeight}`, () => {
+                        for (let i = idx2; i > idx2 - rasterTileDataLen; i--) {
+                            expect(RasterTileMsgTemp[i].tiles[0].height).toEqual(assertTileHeight);
+                        }
                     });
                     test(`3rd RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
-                        expect(RasterTileDataTemp[idx3].tiles[0].height).toEqual(
-                            assertItem.tileDataGroup[index].height
-                        );
+                        for (let i = idx3; i > idx3 - rasterTileDataLen; i--) {
+                            expect(RasterTileMsgTemp[i].tiles[0].height).toEqual(assertTileHeight);
+                        }
                     });
                 });
 
                 describe(`2) Set image channel map for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
-                    let RasterTileDataTemp: any;
+                    let RasterTileMsgTemp: any;
                     const rasterTileDataLen = assertItem.setImageChannelGroup2[index].requiredTiles.tiles.length;
                     const resterTileMsgLen = rasterTileDataLen + 2;
 
@@ -515,52 +528,60 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                             const maxChan = assertItem.setImageChannelGroup2[index].channelRange.max;
                             const minChan = assertItem.setImageChannelGroup2[index].channelRange.min;
                             const channels = maxChan - minChan + 1;
-                            RasterTileDataTemp = await ChannelMapStream(rasterTileDataLen, channels);
+                            RasterTileMsgTemp = await ChannelMapStream(rasterTileDataLen, channels);
                         },
                         readFileTimeout
                     );
 
                     // Check channels
                     test(`New RASTER_TILE_DATA.channel = ${assertItem.setImageChannelGroup2[index].channel}`, () => {
-                        expect(RasterTileDataTemp[1].channel).toEqual(assertItem.setImageChannelGroup2[index].channel);
+                        expect(RasterTileMsgTemp[1].channel).toEqual(assertItem.setImageChannelGroup2[index].channel);
                     });
 
                     // Check stokes
                     test(`New RASTER_TILE_DATA.stokes = ${assertItem.setImageChannelGroup2[index].stokes}`, () => {
-                        expect(RasterTileDataTemp[1].stokes).toEqual(assertItem.setImageChannelGroup2[index].stokes);
+                        expect(RasterTileMsgTemp[1].stokes).toEqual(assertItem.setImageChannelGroup2[index].stokes);
                     });
 
                     // Check tiles
-                    const idx = rasterTileDataLen + 2 - 1 - 1;
+                    const idx = resterTileMsgLen - 1 - 1;
 
                     // Check tiles length
                     test(`New RASTER_TILE_DATA.tiles.length = 1`, () => {
-                        expect(RasterTileDataTemp[idx].tiles.length).toEqual(1);
+                        expect(RasterTileMsgTemp[idx].tiles.length).toEqual(1);
                     });
 
                     // Check tiles layer
                     test(`New RASTER_TILE_DATA.tiles.layer = ${assertItem.tileDataGroup[index].layer}`, () => {
-                        expect(RasterTileDataTemp[idx].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
+                        expect(RasterTileMsgTemp[idx].tiles[0].layer).toEqual(assertItem.tileDataGroup[index].layer);
                     });
 
                     // Check tiles x
-                    test(`New RASTER_TILE_DATA.tiles.x = ${assertItem.tileDataGroup[index].x}`, () => {
-                        expect(RasterTileDataTemp[idx].tiles[0].x).toEqual(assertItem.tileDataGroup[index].x);
+                    test(`New RASTER_TILE_DATA.tiles.x = ${assertTileXY}`, () => {
+                        for (let i = idx; i > idx - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].x);
+                        }
                     });
 
                     // Check tiles y
-                    test(`New RASTER_TILE_DATA.tiles.y = ${assertItem.tileDataGroup[index].y}`, () => {
-                        expect([assertItem.tileDataGroup[index].y, 1, 2]).toContain(RasterTileDataTemp[idx].tiles[0].y);
+                    test(`New RASTER_TILE_DATA.tiles.y = ${assertTileXY}`, () => {
+                        for (let i = idx; i > idx - rasterTileDataLen; i--) {
+                            expect(assertTileXY).toContain(RasterTileMsgTemp[i].tiles[0].y);
+                        }
                     });
 
                     // Check tiles width
-                    test(`New RASTER_TILE_DATA.tiles.width = ${assertItem.tileDataGroup[index].width}`, () => {
-                        expect(RasterTileDataTemp[idx].tiles[0].width).toEqual(assertItem.tileDataGroup[index].width);
+                    test(`New RASTER_TILE_DATA.tiles.width = ${assertTileWidth}`, () => {
+                        for (let i = idx; i > idx - rasterTileDataLen; i--) {
+                            expect(assertTileWidth).toContain(RasterTileMsgTemp[i].tiles[0].width);
+                        }
                     });
 
                     // Check tiles height
-                    test(`New RASTER_TILE_DATA.tiles.height = ${assertItem.tileDataGroup[index].height}`, () => {
-                        expect(RasterTileDataTemp[idx].tiles[0].height).toEqual(assertItem.tileDataGroup[index].height);
+                    test(`New RASTER_TILE_DATA.tiles.height = ${assertTileHeight}`, () => {
+                        for (let i = idx; i > idx - rasterTileDataLen; i--) {
+                            expect(RasterTileMsgTemp[i].tiles[0].height).toEqual(assertTileHeight);
+                        }
                     });
                 });
             });

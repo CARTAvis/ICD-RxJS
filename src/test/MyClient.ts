@@ -161,7 +161,7 @@ function ChannelMapStream(rasterTileDataLen: number, channels: number) {
         const rasterTileMsgLen = (rasterTileDataLen + 2) * channels; // # of RasterTileData + 2 RasterTileSync per channel
         let count = 0;
         let rasterTileMsgs: any[] = [];
-        let rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2 * channels));
+        let rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2 * channels)); // 2 RasterTileSync per channel
         rasterTileSyncStream.subscribe((data) => {
             count++;
             rasterTileMsgs.push(data);
