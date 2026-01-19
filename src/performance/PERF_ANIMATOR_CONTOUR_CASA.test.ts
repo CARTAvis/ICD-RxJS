@@ -8,8 +8,8 @@ import { take } from 'rxjs/operators';
 let connectTimeout = config.timeout.connection;
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let openFileTimeout: number = config.performance.openFile;
+let readFileTimeout: number = config.performance.readFile;
 let playAnimatorTimeout = config.performance.playAnimator;
 
 interface AssertItem {
