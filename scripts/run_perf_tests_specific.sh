@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e  # stop on first failure
+
+BASE="src/performance"
+
+TESTS=(
+  PERF_ANIMATOR_CONTOUR_CASA.test.ts
+  PERF_ANIMATOR_CONTOUR_FITS.test.ts
+  PERF_ANIMATOR_CONTOUR_HDF5.test.ts
+  PERF_CONTOUR_DATA_Mode0.test.ts
+  PERF_CONTOUR_DATA_Mode1.test.ts
+  PERF_CONTOUR_DATA_Mode2.test.ts
+  PERF_CUBE_HISTOGRAM_CASA.test.ts
+  PERF_CUBE_HISTOGRAM_FITS.test.ts
+  PERF_CUBE_HISTOGRAM_HDF5.test.ts
+  PERF_LOAD_IMAGE_CASA.test.ts
+  PERF_LOAD_IMAGE_FITS.test.ts
+  PERF_LOAD_IMAGE_HDF5.test.ts
+  PERF_MOMENTS_CASA.test.ts
+  PERF_MOMENTS_FITS.test.ts
+  PERF_MOMENTS_HDF5.test.ts
+  PERF_PV_CASA.test.ts
+  PERF_PV_FITS.test.ts
+  PERF_PV_HDF5.test.ts
+  PERF_RASTER_TILE_DATA_CASA.test.ts
+  PERF_RASTER_TILE_DATA_FITS.test.ts
+  PERF_RASTER_TILE_DATA_HDF5.test.ts
+  PERF_REGION_SPECTRAL_PROFILE_CASA.test.ts
+  PERF_REGION_SPECTRAL_PROFILE_FITS.test.ts
+  PERF_REGION_SPECTRAL_PROFILE_HDF5.test.ts
+)
+
+for test in "${TESTS[@]}"; do
+  npm test "$BASE/$test"
+done
+
