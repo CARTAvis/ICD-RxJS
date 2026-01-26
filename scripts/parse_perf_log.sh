@@ -13,14 +13,15 @@ BEGIN {
     # ------------------------------------------
     # Define target texts (edit freely)
     # ------------------------------------------
-    targets[1] = "Image should return one after one and the last channel is correct:"
-    targets[2] = "Receive a series of moment progress within"
-    targets[3] = "PV Response should arrived within"
-    targets[4] = "SPECTRAL_PROFILE_DATA stream should arrive within"
-    targets[5] = "ContourImageData responses should arrive within"
-    targets[6] = "REGION_HISTOGRAM_DATA should arrive completely within"
-    targets[7] = "RasterTileData responses should arrive within"
-    targets[8] = "OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within"
+    targets[1] = "(Play forward) Image should return one after one and the last channel is correct"
+    targets[2] = "(Play backward) Image should return one after one and the last channel is correct"
+    targets[3] = "Receive a series of moment progress within"
+    targets[4] = "PV Response should arrived within"
+    targets[5] = "SPECTRAL_PROFILE_DATA stream should arrive within"
+    targets[6] = "ContourImageData responses should arrive within"
+    targets[7] = "REGION_HISTOGRAM_DATA should arrive completely within"
+    targets[8] = "RasterTileData responses should arrive within"
+    targets[9] = "(PERF_LOAD_IMAGE) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within"
 
     # ------------------------------------------
     # Automatically count targets
