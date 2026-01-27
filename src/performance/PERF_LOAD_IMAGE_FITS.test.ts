@@ -7,7 +7,7 @@ let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout: number = config.performance.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let readFileTimeout: number = config.performance.readFile;
 
 interface AssertItem {
     fileOpen: CARTA.IOpenFile[];
@@ -63,7 +63,7 @@ describe('PERF_LOAD_IMAGE', () => {
 
         describe(`Initialization: open the image`, () => {
             test(
-                `(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
+                `"${assertItem.fileOpen[0].file}" (PERF_LOAD_IMAGE) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
                 async () => {
                     msgController.closeFile(-1);
                     msgController.closeFile(0);
@@ -75,7 +75,7 @@ describe('PERF_LOAD_IMAGE', () => {
             );
 
             test(
-                `(Step 1)"${assertItem.fileOpen[0].file}" SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`,
+                `"${assertItem.fileOpen[0].file}" (PERF_LOAD_IMAGE) SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`,
                 async () => {
                     msgController.addRequiredTiles(assertItem.initTilesReq);
                     let RasterTileDataResponse = await Stream(

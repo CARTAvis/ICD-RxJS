@@ -7,7 +7,7 @@ let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout: number = config.performance.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let readFileTimeout: number = config.performance.readFile;
 let playContourTimeout: number = config.performance.playContour;
 
 interface AssertItem {

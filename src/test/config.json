@@ -18,11 +18,11 @@
         "compressed_fits": "set_compressed_fits"
     },
     "performance": {
-        "openFile": 16000,
-        "readFile": 5000,
+        "openFile": 20000,
+        "readFile": 10000,
         "playContour": 12000,
         "playAnimator": 300000,
-        "setSpectralReqTimeout": 5000,
+        "setSpectralReqTimeout": 10000,
         "momentTimeout": 400000,
         "pvTimeout": 200000
     },

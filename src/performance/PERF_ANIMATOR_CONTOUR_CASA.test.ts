@@ -8,8 +8,8 @@ import { take } from 'rxjs/operators';
 let connectTimeout = config.timeout.connection;
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let openFileTimeout: number = config.performance.openFile;
+let readFileTimeout: number = config.performance.readFile;
 let playAnimatorTimeout = config.performance.playAnimator;
 
 interface AssertItem {
@@ -201,7 +201,7 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
             let HistogramSequence: number[] = [];
             let ContourSequence: number[] = [];
             test(
-                `Image should return one after one and the last channel is correct:`,
+                `(Play forward) Image should return one after one and the last channel is correct`,
                 async () => {
                     let StartAnimationResponse: CARTA.IStartAnimationAck;
                     StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[0]);
@@ -362,7 +362,7 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
             let HistogramSequence: number[] = [];
             let ContourSequence: number[] = [];
             test(
-                `Image should return one after one and the last channel is correct:`,
+                `(Play backward) Image should return one after one and the last channel is correct`,
                 async () => {
                     let StartAnimationResponse: CARTA.IStartAnimationAck;
                     StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation[1]);
