@@ -1,5 +1,5 @@
 {
-    "serverURL0": "ws://127.0.0.1:3002",	
+    "serverURL0": "ws://127.0.0.1:3002",
     "icdVersion": 30,
     "path": {
         "root": ".",
@@ -16,6 +16,15 @@
         "concat_stokes": "set_StokesCube",
         "large_files": "set_QA/set_lotsFiles2",
         "compressed_fits": "set_compressed_fits"
+    },
+    "performance": {
+        "openFile": 20000,
+        "readFile": 10000,
+        "playContour": 12000,
+        "playAnimator": 300000,
+        "setSpectralReqTimeout": 10000,
+        "momentTimeout": 400000,
+        "pvTimeout": 200000
     },
     "timeout": {
         "connection": 1100,

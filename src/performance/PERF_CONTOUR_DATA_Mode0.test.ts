@@ -1,13 +1,13 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from '../test/MyClient';
+import { MessageController } from '../test/MessageController';
+import config from '../test/config.json';
 
 let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
+let testSubdirectory: string = config.path.performance;
 let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let openFileTimeout: number = config.performance.openFile;
+let readFileTimeout: number = config.performance.readFile;
 let playContourTimeout: number = config.performance.playContour;
 
 interface AssertItem {
@@ -17,19 +17,18 @@ interface AssertItem {
     initSpatialRequirements: CARTA.ISetSpatialRequirements;
     initContour: CARTA.ISetContourParameters;
     setContour: CARTA.ISetContourParameters[];
-};
+}
 
 let assertItem: AssertItem = {
-    fileOpen:
-        [
-            {
-                directory: testSubdirectory,
-                file: "h_m51_b_s05_drz_sci.fits",
-                hdu: "0",
-                fileId: 0,
-                renderMode: CARTA.RenderMode.RASTER,
-            },
-        ],
+    fileOpen: [
+        {
+            directory: testSubdirectory,
+            file: 'h_m51_b_s05_drz_sci.fits',
+            hdu: '0',
+            fileId: 0,
+            renderMode: CARTA.RenderMode.RASTER,
+        },
+    ],
     initTilesReq: {
         fileId: 0,
         compressionQuality: 11,
@@ -40,15 +39,14 @@ let assertItem: AssertItem = {
         fileId: 0,
         point: { x: 1, y: 1 },
     },
-    initSpatialRequirements:
-    {
+    initSpatialRequirements: {
         fileId: 0,
         regionId: 0,
-        spatialProfiles: [{coordinate:"x"}, {coordinate:"y"}],
+        spatialProfiles: [{ coordinate: 'x' }, { coordinate: 'y' }],
     },
-    initContour:{
-        fileId:0,
-        referenceFileId:0,
+    initContour: {
+        fileId: 0,
+        referenceFileId: 0,
     },
     setContour: [
         {
@@ -61,77 +59,96 @@ let assertItem: AssertItem = {
             decimationFactor: 4,
             compressionLevel: 8,
             contourChunkSize: 100000,
-        }
+        },
     ],
 };
 
 let basepath: string;
-describe("PERF_CONTOUR_DATA",()=>{
+describe('PERF_CONTOUR_DATA', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
 
         test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.fileOpen[0].directory = basepath + "/" + assertItem.fileOpen[0].directory;
+            assertItem.fileOpen[0].directory = basepath + '/' + assertItem.fileOpen[0].directory;
         });
 
         describe(`Initialization: open the image`, () => {
-            test(`(Step 1) smoothingMode of ${assertItem.setContour[0].smoothingMode} OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async() => {
-                msgController.closeFile(-1);
-                msgController.closeFile(0);
-                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
-                expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
-            }, openFileTimeout);
+            test(
+                `(Step 1) smoothingMode of ${assertItem.setContour[0].smoothingMode} OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
+                async () => {
+                    msgController.closeFile(-1);
+                    msgController.closeFile(0);
+                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
+                    expect(OpenFileResponse.success).toEqual(true);
+                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                },
+                openFileTimeout
+            );
 
-            test(`(Step 1) smoothingMode of ${assertItem.setContour[0].smoothingMode} SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`, async () => {
-                msgController.addRequiredTiles(assertItem.initTilesReq);
-                let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.initTilesReq.tiles.length + 2);
+            test(
+                `(Step 1) smoothingMode of ${assertItem.setContour[0].smoothingMode} SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`,
+                async () => {
+                    msgController.addRequiredTiles(assertItem.initTilesReq);
+                    let RasterTileDataResponse = await Stream(
+                        CARTA.RasterTileData,
+                        assertItem.initTilesReq.tiles.length + 2
+                    );
 
-                msgController.setCursor(assertItem.initSetCursor.fileId, assertItem.initSetCursor.point.x, assertItem.initSetCursor.point.y);
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
+                    msgController.setCursor(
+                        assertItem.initSetCursor.fileId,
+                        assertItem.initSetCursor.point.x,
+                        assertItem.initSetCursor.point.y
+                    );
+                    let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
 
-                msgController.setSpatialRequirements(assertItem.initSpatialRequirements);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData,1);
+                    msgController.setSpatialRequirements(assertItem.initSpatialRequirements);
+                    let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
 
-                expect(RasterTileDataResponse.length).toEqual(assertItem.initTilesReq.tiles.length + 2);
-            }, openFileTimeout);
+                    expect(RasterTileDataResponse.length).toEqual(assertItem.initTilesReq.tiles.length + 2);
+                },
+                openFileTimeout
+            );
 
-            test(`(Step 2) smoothingMode of ${assertItem.setContour[0].smoothingMode} ContourImageData responses should arrive within ${playContourTimeout} ms`, async () => {
-                msgController.setContourParameters(assertItem.initContour);
-                msgController.setContourParameters(assertItem.setContour[0]);
+            test(
+                `(Step 2) smoothingMode of ${assertItem.setContour[0].smoothingMode} ContourImageData responses should arrive within ${playContourTimeout} ms`,
+                async () => {
+                    msgController.setContourParameters(assertItem.initContour);
+                    msgController.setContourParameters(assertItem.setContour[0]);
 
-                let ContourDataArray = [];
-                let ContourDataResponse: any;
-                let count = 0;
+                    let ContourDataArray = [];
+                    let ContourDataResponse: any;
+                    let count = 0;
 
-                let ContourPromise = new Promise((resolve)=>{
-                    msgController.contourStream.subscribe({
-                        next: (data) => {
-                            ContourDataArray.push(data)
-                            if (data.progress === 1) {
-                                count = count + 1
-                                if (count === assertItem.setContour[0].levels.length) {
-                                    resolve(ContourDataArray)
+                    let ContourPromise = new Promise((resolve) => {
+                        msgController.contourStream.subscribe({
+                            next: (data) => {
+                                ContourDataArray.push(data);
+                                if (data.progress === 1) {
+                                    count = count + 1;
+                                    if (count === assertItem.setContour[0].levels.length) {
+                                        resolve(ContourDataArray);
+                                    }
                                 }
-                            }
+                            },
+                        });
+                    });
+
+                    ContourDataResponse = await ContourPromise;
+                    ContourDataResponse.map((data) => {
+                        if (data.progress == 1) {
+                            expect(assertItem.setContour[0].levels).toContain(data.contourSets[0].level);
                         }
                     });
-                });
-
-                ContourDataResponse = await ContourPromise;
-                ContourDataResponse.map((data) => {
-                    if (data.progress == 1) {
-                        expect(assertItem.setContour[0].levels).toContain(data.contourSets[0].level)
-                    }
-                })
-            }, playContourTimeout)
+                },
+                playContourTimeout
+            );
         });
 
         afterAll(() => msgController.closeConnection());

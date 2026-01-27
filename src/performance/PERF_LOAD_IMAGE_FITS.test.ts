@@ -1,13 +1,13 @@
-import { CARTA } from "carta-protobuf";
-import { checkConnection, Stream} from './myClient';
-import { MessageController } from "./MessageController";
-import config from "./config.json";
+import { CARTA } from 'carta-protobuf';
+import { checkConnection, Stream } from '../test/MyClient';
+import { MessageController } from '../test/MessageController';
+import config from '../test/config.json';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.performance;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout: number = config.performance.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+let readFileTimeout: number = config.performance.readFile;
 
 interface AssertItem {
     fileOpen: CARTA.IOpenFile[];
@@ -18,9 +18,9 @@ interface AssertItem {
 let assertItem: AssertItem = {
     fileOpen: [
         {
-            directory: testSubdirectory + "/cube_B",
-            file: "cube_B_09600_z00100.fits",
-            hdu: "0",
+            directory: testSubdirectory,
+            file: 'cube_B_06400_z00100.fits',
+            hdu: '0',
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
         },
@@ -35,52 +35,68 @@ let assertItem: AssertItem = {
         fileId: 0,
         point: { x: 1, y: 1 },
     },
-    initSpatialRequirements:
-    {
+    initSpatialRequirements: {
         fileId: 0,
         regionId: 0,
-        spatialProfiles: [{coordinate: "x", mip: 1}, {coordinate: "y", mip: 1}],
+        spatialProfiles: [
+            { coordinate: 'x', mip: 1 },
+            { coordinate: 'y', mip: 1 },
+        ],
     },
-}
+};
 
 let basepath: string;
-describe("PERF_LOAD_IMAGE",()=>{
+describe('PERF_LOAD_IMAGE', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
-        beforeAll(async ()=> {
+        beforeAll(async () => {
             await msgController.connect(testServerUrl);
         }, connectTimeout);
 
         checkConnection();
 
         test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList("$BASE",0);
+            let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.fileOpen[0].directory = basepath + "/" + assertItem.fileOpen[0].directory;
+            assertItem.fileOpen[0].directory = basepath + '/' + assertItem.fileOpen[0].directory;
         });
 
         describe(`Initialization: open the image`, () => {
-            test(`(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async() => {
-                msgController.closeFile(-1);
-                msgController.closeFile(0);
-                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
-                expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData,1);
-            }, openFileTimeout);
+            test(
+                `"${assertItem.fileOpen[0].file}" (PERF_LOAD_IMAGE) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
+                async () => {
+                    msgController.closeFile(-1);
+                    msgController.closeFile(0);
+                    let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
+                    expect(OpenFileResponse.success).toEqual(true);
+                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                },
+                openFileTimeout
+            );
 
-            test(`(Step 1)"${assertItem.fileOpen[0].file}" SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`, async () => {
-                msgController.addRequiredTiles(assertItem.initTilesReq);
-                let RasterTileDataResponse = await Stream(CARTA.RasterTileData,assertItem.initTilesReq.tiles.length + 2);
+            test(
+                `"${assertItem.fileOpen[0].file}" (PERF_LOAD_IMAGE) SetImageChannels & SetCursor responses should arrive within ${readFileTimeout} ms`,
+                async () => {
+                    msgController.addRequiredTiles(assertItem.initTilesReq);
+                    let RasterTileDataResponse = await Stream(
+                        CARTA.RasterTileData,
+                        assertItem.initTilesReq.tiles.length + 2
+                    );
 
-                msgController.setCursor(assertItem.initSetCursor.fileId, assertItem.initSetCursor.point.x, assertItem.initSetCursor.point.y);
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData,1);
+                    msgController.setCursor(
+                        assertItem.initSetCursor.fileId,
+                        assertItem.initSetCursor.point.x,
+                        assertItem.initSetCursor.point.y
+                    );
+                    let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
 
-                msgController.setSpatialRequirements(assertItem.initSpatialRequirements);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData,1);
+                    msgController.setSpatialRequirements(assertItem.initSpatialRequirements);
+                    let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
 
-                expect(RasterTileDataResponse.length).toEqual(assertItem.initTilesReq.tiles.length + 2);
-            }, openFileTimeout);
-
+                    expect(RasterTileDataResponse.length).toEqual(assertItem.initTilesReq.tiles.length + 2);
+                },
+                openFileTimeout
+            );
         });
 
         afterAll(() => msgController.closeConnection());
