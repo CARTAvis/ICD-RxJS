@@ -5,6 +5,10 @@ ICD Test Cases
    :maxdepth: 2
 
    animator
+   casa_region
+   catalog
+   channel_map
+   concat_stokes
    close_file
    contour
    cursor_profiles
