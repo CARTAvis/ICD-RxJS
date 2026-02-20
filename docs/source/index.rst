@@ -12,4 +12,5 @@ CARTA ICD Tests Documentation
 
    introduction
    test_cases
+   performance
 
