@@ -1,49 +1,88 @@
 Introduction
 ============
 
-The Interface Control Document (ICD) Test for the CARTA backend with WebSocket connection is designed 
-to validate the correctness, stability, and compliance of the backend implementation against the 
-agreed communication protocols defined in the ICD. 
-The ICD specifies the structure, format, and sequence of messages exchanged between the backend server 
-and the client applications, ensuring interoperability and consistency across the system.
+CARTA (Cube Analysis and Rendering Tool for Astronomy) is an image visualization and analysis tool
+designed for the `ALMA <https://www.almaobservatory.org/>`_, `VLA <https://public.nrao.edu/vla/>`_,
+and `SKA <https://www.skao.int/>`_ radio telescopes. It adopts a client-server architecture in which
+a backend process handles data access, computation, and image processing, while a browser-based
+frontend provides interactive visualization.
 
-In this test framework, the WebSocket protocol is used as the primary communication channel between 
-the backend and the client. WebSocket provides a full-duplex, low-latency communication mechanism that 
-is essential for real-time data exchange, event-driven interactions, and responsive user experiences. 
-The test environment replicates production-like scenarios by opening persistent connections, 
-exchanging request and response messages, and monitoring the message flows in accordance with the 
-ICD specifications.
+The **Interface Control Document (ICD)** defines the structure, format, and sequencing of all messages
+exchanged between the CARTA backend and frontend over a WebSocket connection. This test suite validates
+that the backend implementation conforms to the ICD specification, ensuring correctness, stability,
+and interoperability.
 
-To implement and manage the ICD tests, we use RxJS (Reactive Extensions for JavaScript) as the core 
-testing tool. RxJS provides a powerful and expressive abstraction for handling asynchronous event 
-streams, making it particularly well-suited for testing WebSocket-based interactions. 
-By leveraging observables, operators, and stream composition, RxJS allows us to define reproducible 
-test cases, capture message sequences, and verify protocol compliance with high precision. 
-This approach simplifies the validation of complex asynchronous workflows and ensures that the 
-backend behaves as expected under a wide range of conditions.
+Architecture
+------------
 
-The primary objectives of these tests are:
+Communication between the CARTA frontend and backend follows a message-based protocol over
+`WebSocket <https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API>`_. WebSocket provides
+full-duplex, low-latency communication that is essential for streaming raster tile data, real-time
+cursor profiles, animation frames, and other interactive workflows.
 
-1. Protocol Compliance – To confirm that the backend strictly adheres to the message definitions, 
+All messages are serialized using `Protocol Buffers <https://protobuf.dev/>`_ (protobuf), which
+provides compact binary encoding and language-neutral type definitions. Each test case in this suite
+sends protobuf-encoded requests to the backend and validates the structure and content of the
+responses.
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title CARTA ICD Communication
+
+    actor User
+
+    box "Client-side" #EDEDED
+            participant Frontend
+    end box
+
+    box "Server-side" #lightblue
+        participant Backend
+    end box
+
+    User -> Frontend: Interact with UI
+    activate Frontend
+    Frontend -> Backend : Protobuf request via WebSocket
+    activate Backend
+    Frontend <-- Backend : Protobuf response / data stream
+    deactivate Backend
+    User <-- Frontend: Updated visualization
+    deactivate Frontend
+
+Technology Stack
+----------------
+
+The test suite is built with:
+
+- **TypeScript** -- Provides type safety and IDE support for test development.
+- **Jest** -- The test runner and assertion framework.
+- **RxJS** (Reactive Extensions for JavaScript) -- Handles asynchronous message streams from the
+  WebSocket connection. Observables and operators allow precise control over message sequencing,
+  timeouts, and stream composition, making it well suited for validating complex asynchronous
+  workflows.
+- **Protocol Buffers** -- Message serialization format shared between the frontend and backend.
+  The ``carta-protobuf`` package provides the TypeScript bindings.
+
+Test Objectives
+---------------
+
+1. **Protocol Compliance** -- Confirm that the backend adheres to the message definitions,
    sequencing rules, and error-handling requirements described in the ICD.
-2. Functional Validation – To verify that backend services provide the expected responses to client 
-   requests under normal and edge-case conditions.
-3. Robustness and Stability – To assess the backend’s ability to maintain reliable connections, handle 
-   concurrent sessions, and recover gracefully from failures.
-4. Performance Evaluation – To measure latency, throughput, and resource usage during message exchanges, 
-   ensuring scalability for operational workloads.
-
-By systematically exercising the WebSocket-based backend through these ICD tests, we ensure alignment 
-with the defined interface contract, minimize integration risks, and provide confidence in the backend’s 
-readiness for deployment in production environments.
+2. **Functional Validation** -- Verify that backend services return correct responses under
+   normal and edge-case conditions, including file operations, region statistics, animation,
+   and image export.
+3. **Robustness and Stability** -- Assess the backend's ability to maintain reliable connections,
+   handle concurrent sessions, and remain responsive after file closures or cancelled operations.
+4. **Performance Evaluation** -- Measure latency and throughput during message exchanges such as
+   animation playback, histogram computation, and tile streaming.
 
 Build Tests
 ===========
 
-The ICD test project relies heavily on **Node.js** and **npm**, so ensure that both are properly 
-installed and accessible in your environment before proceeding.
+The test suite requires **Node.js** and **npm**. Ensure both are installed before proceeding.
 
-0. **Clone the source code from the ICD-RxJS GitHub repository**
+0. **Clone the repository**
 
    ::
 
@@ -57,32 +96,33 @@ installed and accessible in your environment before proceeding.
      git submodule update --init --recursive
      npm install
 
-2. **Build static Protocol Buffer code**
+2. **Build Protocol Buffer bindings**
 
-   The script ``build_proto.sh`` located in the ``protobuf`` folder generates the static JavaScript code 
-   and the corresponding TypeScript definitions. It also creates symbolic links to the 
-   ``node_modules/carta-protobuf`` directory for seamless integration.
+   The ``build_proto.sh`` script in the ``protobuf`` directory generates static JavaScript code
+   and TypeScript definitions, then creates symbolic links under ``node_modules/carta-protobuf``.
 
    ::
 
-     cd ICD-rxjs/protobuf
+     cd protobuf
      ./build_proto.sh
-
-This process ensures that all dependencies are properly set up and that the protocol buffer definitions 
-are correctly compiled before running the ICD tests.
 
 Run Tests
 =========
 
-For local testing, configure the ``src/test/config.json`` file by setting:
+Configuration
+-------------
+
+Edit ``src/test/config.json`` to point to the target backend.
+
+For **local** testing:
 
 .. code-block:: json
 
    "serverURL": "ws://127.0.0.1:3002"
 
-Here, ``3002`` corresponds to the backend port number in this example.
+where ``3002`` is the backend port number.
 
-For server-side testing, update the same configuration file with:
+For **remote** testing:
 
 .. code-block:: json
 
@@ -91,10 +131,7 @@ For server-side testing, update the same configuration file with:
 Run One Test at a Time
 ----------------------
 
-To minimize side effects such as concurrency issues or heavy I/O traffic, 
-it is recommended to run tests individually. A basic connectivity test is always 
-available at the beginning of the test suite, 
-and the target server address can be adjusted in ``src/test/config.json``.
+To avoid concurrency issues and heavy I/O contention, it is recommended to run tests individually.
 
 Example Test Runs
 -----------------
@@ -111,15 +148,20 @@ Example Test Runs
 
      npm test src/test/ACCESS_CARTA_DEFAULT.test.ts
 
-  If these tests fail, review and adjust the parameters in ``config.json`` to 
+  If these tests fail, review and adjust the parameters in ``config.json`` to
   match your environment.
 
-- **Validate supported file formats**:
+- **Validate file info retrieval**:
 
   .. code-block:: bash
 
-     npm test src/test/FILEINFO.test.ts
+     npm test src/test/FILEINFO_FITS_MULTIHDU.test.ts
 
-  If this test fails, you may need to increase the timeout values in 
+  If this test fails, you may need to increase the timeout values in
   ``config.json``, such as ``timeout.readFile`` or ``timeout.openFile``.
 
+- **Run a specific test category** (e.g., all animator tests):
+
+  .. code-block:: bash
+
+     npm test src/test/ANIMATOR_DATA_STREAM.test.ts
