@@ -479,3 +479,62 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
    - The backend should remain alive
    - FILE_LIST_RESPONSE.success = True
    - FILE_LIST_RESPONSE.directory should contain "set_QA"
+
+CLOSE_FILE_MULTI_FILES
+~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLOSE_FILE_MULTI_FILES.test.ts>`__.
+
+This test verifies that multiple files can be closed in various orders and combinations, and that the backend remains alive and responsive after each scenario.
+
+1. Frontend sends: **OPEN_FILE** (``OpenFile``) for 3 files
+
+   .. code-block:: protobuf
+
+     file = "M17_SWex.fits", file_id = 0
+     file = "M17_SWex.hdf5", file_id = 1
+     file = "M17_SWex.image", file_id = 2
+
+2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA** for each file
+
+3. For each file: Frontend sends **ADD_REQUIRED_TILES**, **SET_CURSOR**, and **SET_SPATIAL_REQUIREMENTS**
+
+**Case 1: Close files in reverse order (2 -> 1 -> 0)**
+
+4. Frontend sends: **CLOSE_FILE** (file_id = 2), then verifies remaining files respond to spatial requirements
+
+5. Frontend sends: **CLOSE_FILE** (file_id = 1), then verifies remaining file responds
+
+6. Frontend sends: **CLOSE_FILE** (file_id = 0)
+
+:red-text:`Check 1:` after all files closed:
+
+   - Backend should remain alive: FILE_LIST_RESPONSE.success = True
+   - No additional ICD messages should arrive (message count stable for 500 ms)
+
+**Case 2: Close two files simultaneously, then close the last**
+
+7. Reopen all 3 files with the same setup
+
+8. Frontend sends: **CLOSE_FILE** (file_id = 0) and **CLOSE_FILE** (file_id = 1) simultaneously
+
+:red-text:`Check 2:` after simultaneous close:
+
+   - No additional ICD messages should arrive (message count stable for 500 ms)
+
+9. Frontend sends: **CLOSE_FILE** (file_id = 2)
+
+:red-text:`Check 3:` the backend should remain alive:
+
+   - FILE_LIST_RESPONSE.success = True
+
+**Case 3: Close all three files simultaneously**
+
+10. Reopen all 3 files with the same setup
+
+11. Frontend sends: **CLOSE_FILE** for file_id = 0, 1, and 2 simultaneously
+
+:red-text:`Check 4:` after simultaneous close of all files:
+
+    - Backend should remain alive: FILE_LIST_RESPONSE.success = True
+    - No additional ICD messages should arrive (message count stable for 500 ms)

@@ -639,3 +639,206 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CHA
    - RASTER_TILE_DATA.channel = 4, stokes = 0
 
    - Tile properties: layer = 2, x in [0, 1, 2], y in [0, 1, 2], width in [128, 256], height = 256
+
+ANIMATOR_PLAYBACK
+~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ANIMATOR_PLAYBACK.test.ts>`__.
+
+This test verifies various animation playback modes including forward, backward with looping, round-trip (bouncing), reverse playback, and blink animation between two channels.
+
+1. Frontend sends: **OPEN_FILE** (``OpenFile``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "M17_SWex.image"
+     hdu = ""
+     file_id = 0
+     render_mode = RASTER
+
+2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA**
+
+3. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) with 12 tiles
+
+**Step 2: Forward playback (channels 1 to 10)**
+
+4. Frontend sends: **START_ANIMATION** (``StartAnimation``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     start_frame = {channel: 1, stokes: 0}
+     first_frame = {channel: 0, stokes: 0}
+     last_frame = {channel: 24, stokes: 0}
+     delta_frame = {channel: 1, stokes: 0}
+     looping = true
+     reverse = false
+     frame_rate = 5
+
+5. Backend returns: **START_ANIMATION_ACK**, then streams RASTER_TILE_DATA and REGION_HISTOGRAM_DATA per frame
+
+6. Frontend sends: **ANIMATION_FLOW_CONTROL** after each received frame
+
+7. Frontend sends: **STOP_ANIMATION** at channel 10
+
+:red-text:`Check 1:` the received channel sequence should be [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+**Step 3: Backward playback with looping (channels 19 to 9, looping)**
+
+8. Frontend sends: **START_ANIMATION** (``StartAnimation``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     start_frame = {channel: 19, stokes: 0}
+     first_frame = {channel: 9, stokes: 0}
+     last_frame = {channel: 19, stokes: 0}
+     delta_frame = {channel: -1, stokes: 0}
+     looping = true
+     reverse = false
+     frame_rate = 5
+
+:red-text:`Check 2:` the received channel sequence should be [19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 19, 18]
+
+**Step 4: Forward playback with looping (channels 9 to 19, looping)**
+
+:red-text:`Check 3:` the received channel sequence should be [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 9, 10]
+
+**Step 5: Round-trip (bouncing) playback**
+
+9. Frontend sends: **START_ANIMATION** with reverse = true, looping = true over full channel range (0-24)
+
+:red-text:`Check 4:` the received channel sequence should bounce: [1, 2, ..., 24, 23, 22, ..., 0, 1, 2, ..., 23]
+
+**Step 6: Backward playback using two methods**
+
+Method 1 (reverse=true, delta=+1):
+
+   .. code-block:: protobuf
+
+     start_frame = {channel: 20, stokes: 0}
+     first_frame = {channel: 10, stokes: 0}
+     last_frame = {channel: 20, stokes: 0}
+     delta_frame = {channel: 1, stokes: 0}
+     reverse = true
+     looping = true
+
+Method 2 (reverse=false, delta=-1):
+
+   .. code-block:: protobuf
+
+     delta_frame = {channel: -1, stokes: 0}
+     reverse = false
+     looping = true
+
+:red-text:`Check 5:` both methods should produce the same backward sequence [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
+
+**Step 7: Blink animation between channels 3 and 10**
+
+10. Frontend sends: **START_ANIMATION** (``StartAnimation``)
+
+    .. code-block:: protobuf
+
+      file_id = 0
+      start_frame = {channel: 3, stokes: 0}
+      first_frame = {channel: 3, stokes: 0}
+      last_frame = {channel: 10, stokes: 0}
+      delta_frame = {channel: 7, stokes: 0}
+      looping = true
+      reverse = false
+      frame_rate = 5
+
+:red-text:`Check 6:` the received channel sequence should alternate: [3, 10, 3, 10, 3, 10, 3, 10, 3, 10, 3, 10]
+
+ANIMATOR_SWAPPED_IMAGES
+~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ANIMATOR_SWAPPED_IMAGES.test.ts>`__.
+
+This test verifies channel and stokes animation for an image with non-standard (swapped) axis ordering (Dec-Stokes-RA-Channel).
+
+1. Frontend sends: **OPEN_FILE** (``OpenFile``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "HH211_IQU-swap-dsrf.image"
+     hdu = ""
+     file_id = 0
+     render_mode = RASTER
+
+2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA**
+
+:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
+
+   - success = True
+   - fileInfo.name = "HH211_IQU-swap-dsrf.image"
+   - fileInfoExtended.axesNumbers: spatialX = 3, spatialY = 1, stokes = 2, spectral = 4, depth = 4
+   - fileInfoExtended: dimensions = 4, width = 1049, height = 1049, depth = 5, stokes = 3
+
+3. Frontend sends: **ADD_REQUIRED_TILES** with 25 tiles and sets spatial requirements
+
+**Case 1: Channel animation on swapped image**
+
+4. Frontend sends: **START_ANIMATION** (``StartAnimation``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     start_frame = {channel: 0, stokes: 0}
+     first_frame = {channel: 0, stokes: 0}
+     last_frame = {channel: 4, stokes: 0}
+     delta_frame = {channel: 1, stokes: 0}
+     frame_rate = 5
+     looping = true
+     reverse = false
+     stokes_indices = [0, 1, 2, 14, 16, 17]
+
+5. Backend returns: **START_ANIMATION_ACK**
+
+:red-text:`Check 2:` the START_ANIMATION_ACK should satisfy:
+
+   - success = True
+   - animationId = 1
+
+6. Animation plays for 6 frames with **ANIMATION_FLOW_CONTROL** per frame
+
+7. Frontend sends: **STOP_ANIMATION** at channel 2
+
+:red-text:`Check 3:` for each animated frame:
+
+   - RASTER_TILE_DATA.animationId = 1
+   - REGION_HISTOGRAM_DATA.channel matches the corresponding RASTER_TILE_DATA channel
+
+**Case 2: Stokes animation on swapped image**
+
+8. Frontend sends: **START_ANIMATION** (``StartAnimation``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     start_frame = {channel: 0, stokes: 0}
+     first_frame = {channel: 0, stokes: 0}
+     last_frame = {channel: 0, stokes: 5}
+     delta_frame = {channel: 0, stokes: 1}
+     frame_rate = 5
+     looping = true
+     reverse = false
+     stokes_indices = [0, 1, 2, 14, 16, 17]
+
+9. Backend returns: **START_ANIMATION_ACK**
+
+:red-text:`Check 4:` the START_ANIMATION_ACK should satisfy:
+
+   - success = True
+   - animationId = 2
+
+10. Animation plays for 9 stokes frames with **ANIMATION_FLOW_CONTROL** per frame
+
+11. Frontend sends: **STOP_ANIMATION** at stokes 14
+
+:red-text:`Check 5:` for each animated frame:
+
+    - RASTER_TILE_DATA.animationId = 2
+    - REGION_HISTOGRAM_DATA.stokes matches the corresponding RASTER_TILE_DATA stokes (where defined)
