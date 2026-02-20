@@ -5,4 +5,7 @@ ICD Test Cases
    :maxdepth: 2
 
    session
+   file_browser
+   close_file
+   animator
    region_stats
