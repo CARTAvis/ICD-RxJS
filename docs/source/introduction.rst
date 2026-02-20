@@ -78,7 +78,7 @@ Test Objectives
    animation playback, histogram computation, and tile streaming.
 
 Build Tests
-===========
+-----------
 
 The test suite requires **Node.js** and **npm**. Ensure both are installed before proceeding.
 
@@ -107,10 +107,10 @@ The test suite requires **Node.js** and **npm**. Ensure both are installed befor
      ./build_proto.sh
 
 Run Tests
-=========
+---------
 
 Configuration
--------------
+~~~~~~~~~~~~~
 
 Edit ``src/test/config.json`` to point to the target backend.
 
@@ -129,12 +129,12 @@ For **remote** testing:
    "serverURL": "wss://carta.asiaa.sinica.edu.tw/socketdev"
 
 Run One Test at a Time
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 To avoid concurrency issues and heavy I/O contention, it is recommended to run tests individually.
 
 Example Test Runs
------------------
+~~~~~~~~~~~~~~~~~
 
 - **Verify backend connectivity**:
 

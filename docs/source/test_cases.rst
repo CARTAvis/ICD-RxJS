@@ -11,8 +11,8 @@ ICD Test Cases
    catalog
    channel_map
    check_raster_tile_data
-   concat_stokes
    close_file
+   concat_stokes
    contour
    cursor_profiles
    ds9_region
@@ -35,10 +35,8 @@ ICD Test Cases
    region_data
    region_spectral_profiles
    region_statistics
-   region_stats
    resume_session
    save_image
-   session
    set_histogram_config
    tile_data_request
    vector_overlay

@@ -130,7 +130,7 @@ This test verifies connecting to the backend with zero client feature flags (no 
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
-   .. code-block:: protobuf
+   .. code-block:: text
 
      session_id = 0
      client_feature_flags = 0

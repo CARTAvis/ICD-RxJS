@@ -21,14 +21,7 @@ release = '0.0'
 
 extensions = [
     'sphinxcontrib.plantuml',    # Support PlantUML
-    'sphinx.ext.autodoc',        # Auto-documentation from docstrings
-    'sphinx.ext.autosummary',    # Generate autodoc summaries
-    'sphinx.ext.viewcode',       # Add links to highlighted source code
-    'sphinx.ext.napoleon',       # Support for NumPy and Google style docstrings
-    'sphinx.ext.intersphinx',    # Link to other project's documentation
     'sphinx.ext.todo',           # Support for todo items
-    'sphinx.ext.coverage',       # Coverage checker for documentation
-    'sphinx.ext.ifconfig',       # Include content based on configuration
 ]
 
 plantuml = 'plantuml'
