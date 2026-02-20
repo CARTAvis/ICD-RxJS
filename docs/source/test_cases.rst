@@ -16,7 +16,11 @@ ICD Test Cases
    file_browser
    file_list_progress
    fits_region_matching
+   image_fitting
+   moments_generator
    region_data
    region_spectral_profiles
    region_stats
+   resume_session
+   save_image
    session
