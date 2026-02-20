@@ -1,5 +1,19 @@
 /* custom.css */
+
+/* Red check-point labels used via :red-text:`Check N:` role */
 .red-text {
-    color: red;
+    color: #c0392b;
     font-weight: bold;
+    font-style: normal;  /* Override italic inherited from <em> (emphasis role) */
+}
+
+/* Give PlantUML diagrams consistent spacing */
+.uml {
+    margin: 1.5em 0;
+}
+
+/* Prevent protobuf/text code blocks from being excessively wide */
+.highlight pre {
+    max-height: 40em;
+    overflow-y: auto;
 }
