@@ -12,7 +12,10 @@ ICD Test Cases
    close_file
    contour
    cursor_profiles
+   ds9_region
    file_browser
+   file_list_progress
+   fits_region_matching
    region_data
    region_spectral_profiles
    region_stats
