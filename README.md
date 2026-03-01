@@ -1,22 +1,23 @@
 # ICD-RxJS
 
-Integration tests for the [CARTA](https://cartavis.org/) backend, driven through the protobuf/WebSocket interface via RxJS (adapted from `carta-frontend/src/services/BackendService.ts`). The suite provides white-box protocol-level testing of **carta-backend**.
+Protocol-level integration tests for the [CARTA](https://cartavis.org/) backend, driven through the protobuf/WebSocket interface via RxJS (adapted from `carta-frontend/src/services/BackendService.ts`).
 
 ## Prerequisites
 
-- **Node.js** and **npm**
-- **Python 3** with a Conda environment (for building documentation)
+- [Node.js](https://nodejs.org/) (with npm)
+- A running **carta-backend** instance (local or remote)
+- [Test images](#test-images) for the test stage you want to run
 
 ## Build
 
-Initialise submodules and install dependencies:
+Initialize submodules and install dependencies:
 
 ```shell
 git submodule update --init --recursive
 npm install
 ```
 
-Build the static protocol buffer code (JavaScript + TypeScript definitions):
+Then build the protobuf bindings (JavaScript + TypeScript definitions):
 
 ```shell
 cd protobuf
@@ -29,31 +30,31 @@ The script compiles the `.proto` files and symlinks the output to `node_modules/
 
 Edit `src/test/config.json` before running tests.
 
-- **Local testing** — set the server URL to your local backend instance:
+- **Local testing** — point to your local backend instance:
   ```json
   { "serverURL": "ws://127.0.0.1:3002" }
   ```
-- **Remote testing** — point to a deployed server:
+- **Remote testing** — point to a deployed server (for example):
   ```json
   { "serverURL": "wss://carta.asiaa.sinica.edu.tw/socketdev" }
   ```
 
 ## Running tests
 
-To avoid concurrency and I/O issues, run one test file at a time:
+Run one test file at a time to avoid concurrency and I/O issues:
 
 ```shell
 npm test src/test/ACCESS_WEBSOCKET.test.ts
 npm test src/test/ACCESS_CARTA_DEFAULT.test.ts
 ```
 
-If a test fails, check the parameters in `config.json` (server URL, timeout values such as `timeout.readfile` and `timeout.openfile`) to match your environment.
-
 To verify supported file formats:
 
 ```shell
 npm test src/test/FILEINFO.test.ts
 ```
+
+If a test fails, check the parameters in `config.json` — in particular, the server URL and timeout values (`timeout.readfile`, `timeout.openfile`) — to ensure they match your environment.
 
 ## Test images
 
@@ -62,36 +63,33 @@ Download the test images from:
 
 Each test stage lists the required images, packed into `.tgz` archives. Use the **Download all files** link or copy the **wget** command from the page.
 
-## Building the documentation
+## Documentation
 
-The test documentation is built with [Sphinx](https://www.sphinx-doc.org/) using the Read the Docs theme.
+The test documentation is built with [Sphinx](https://www.sphinx-doc.org/) using the Read the Docs theme. A hosted copy is available at <https://carta.asiaa.sinica.edu.tw/icd-test-docs/index.html>.
 
 ### Setup (one-time)
 
-Create and activate a Python environment, then install the required packages:
+Install Sphinx and extensions via conda:
 
 ```shell
 conda create -n py312 python=3.12
 conda activate py312
-pip install sphinx sphinx-rtd-theme sphinxcontrib-plantuml
+conda install sphinx sphinx-rtd-theme plantuml sphinxcontrib-plantuml
 ```
 
 [PlantUML](https://plantuml.com/) must also be installed and available on your `PATH` for diagram rendering.
-
-The generated documentation is also available on this [website](https://carta.asiaa.sinica.edu.tw/icd-test-docs/index.html).
 
 ### Build
 
 ```shell
 cd docs
-make clean
-make html
+make clean && make html
 ```
 
-The generated HTML is written to `docs/build/html/`. Open it with:
+Open the generated HTML:
 
 ```shell
-open docs/build/html/index.html    # macOS
+open docs/build/html/index.html      # macOS
 xdg-open docs/build/html/index.html  # Linux
 ```
 
