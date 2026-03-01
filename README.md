@@ -78,6 +78,8 @@ pip install sphinx sphinx-rtd-theme sphinxcontrib-plantuml
 
 [PlantUML](https://plantuml.com/) must also be installed and available on your `PATH` for diagram rendering.
 
+The generated documentation is also available on this [website](https://carta.asiaa.sinica.edu.tw/icd-test-docs/index.html).
+
 ### Build
 
 ```shell
@@ -93,6 +95,6 @@ open docs/build/html/index.html    # macOS
 xdg-open docs/build/html/index.html  # Linux
 ```
 
-## Documentation
+## Design documents
 
-The old design documents for all tests are available on [Google Drive](https://drive.google.com/drive/folders/1SxE1qw_6UlleKBkoXZRmpv4-LYWwU97Y?usp=sharing) (access permission may be required).
+The original design documents for all tests are available on [Google Drive](https://drive.google.com/drive/folders/1SxE1qw_6UlleKBkoXZRmpv4-LYWwU97Y?usp=sharing) (access permission may be required).
