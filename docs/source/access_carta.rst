@@ -1,0 +1,186 @@
+Access CARTA
+------------
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title Access CARTA workflow
+
+    actor User
+
+    box "Client-side" #EDEDED
+            participant Frontend
+    end box
+
+    box "Server-side" #lightblue
+        participant Backend
+    end box
+
+    User -> Frontend: Connect to server
+    activate Frontend
+    Frontend -> Backend : 1. REGISTER_VIEWER
+    activate Backend
+    Frontend <--[#red] Backend : <font color="red">2. REGISTER_VIEWER_ACK [Check 1]</font>
+    deactivate Backend
+    User <-- Frontend: Session established
+    deactivate Frontend
+
+ACCESS_CARTA_DEFAULT
+~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_DEFAULT.test.ts>`__.
+
+This test verifies that a default connection to the backend succeeds and returns correct session information.
+
+1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
+
+   .. code-block:: text
+
+     session_id = 0
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+:red-text:`Check 1:` the REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id is not None
+
+   - REGISTER_VIEWER_ACK.message is not empty
+
+   - REGISTER_VIEWER_ACK.platformStrings is not empty
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+
+ACCESS_CARTA_DEFAULT_CONCURRENT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_DEFAULT_CONCURRENT.test.ts>`__.
+
+This test verifies that multiple concurrent connections (10 clients) to the backend all succeed, each receiving a unique session ID.
+
+1. 10 clients each send: **REGISTER_VIEWER** (``RegisterViewer``)
+
+   .. code-block:: text
+
+     session_id = 0
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``) for each client
+
+:red-text:`Check 1:` every REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id is not None
+
+   - REGISTER_VIEWER_ACK.session_id is unique across all connections
+
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.NEW
+
+   - REGISTER_VIEWER_ACK.message is not empty
+
+   - REGISTER_VIEWER_ACK.platformStrings is not empty
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+
+ACCESS_CARTA_KNOWN_SESSION
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_KNOWN_SESSION.test.ts>`__.
+
+This test verifies that connecting with a known (previously used) session ID results in a resumed session.
+
+1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
+
+   .. code-block:: text
+
+     session_id = 9999
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+:red-text:`Check 1:` the REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id = 9999
+
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
+
+   - REGISTER_VIEWER_ACK.message is a non-empty string
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+
+ACCESS_CARTA_NO_CLIENT_FEATURE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_NO_CLIENT_FEATURE.test.ts>`__.
+
+This test verifies that a connection without any client feature flags still succeeds.
+
+1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
+
+   .. code-block:: text
+
+     session_id = 0
+     client_feature_flags = 0
+
+2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+:red-text:`Check 1:` the REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id is not None
+
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.NEW
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+
+ACCESS_CARTA_SAME_ID_TWICE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_SAME_ID_TWICE.test.ts>`__.
+
+This test verifies that sending REGISTER_VIEWER twice on the same connection with the same session ID results in a resumed session on the second attempt.
+
+1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) — first registration
+
+   .. code-block:: text
+
+     session_id = 9999
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+3. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) — second registration on same connection
+
+   .. code-block:: text
+
+     session_id = 9999
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+4. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+:red-text:`Check 1:` the second REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id = 9999
+
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
