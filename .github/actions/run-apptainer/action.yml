@@ -2,7 +2,7 @@ name: 'Run ICD tests via Apptainer'
 description: 'Start carta_backend and run ICD tests'
 inputs:
   os_version:
-    description: 'Platfrom'
+    description: 'Platform'
     required: true
   image:
     description: 'Apptainer image'
@@ -17,7 +17,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - run: |
+    - name: Run ICD tests via Apptainer
+      run: |
         set -eo pipefail  # Make script exit on any error
     
         SRC_DIR=$GITHUB_WORKSPACE/source
@@ -76,3 +77,11 @@ runs:
               exit 1
             fi"
       shell: bash
+
+    - name: Upload backend log on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: carta-backend-log-${{ inputs.os_version }}-${{ inputs.test_stage_name }}
+        path: /tmp/carta_icd_${{ inputs.os_version }}_${{ inputs.test_stage_name }}.log
+        retention-days: 14

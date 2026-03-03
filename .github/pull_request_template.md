@@ -5,4 +5,4 @@ linked issues and companion PRs (if there are)
 **Checklist**
 
 For the pull request:
-- [ ] The Document unchange / Need update the Document
+- [ ] Documentation has been updated (or no documentation changes are needed)

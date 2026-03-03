@@ -32,12 +32,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -113,9 +113,7 @@ jobs:
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd source ; git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
-            ls && pwd && \
             cd $BUILD_DIR && \
-            ls && pwd && \
             cmake $SRC_DIR \
               -Dtest=on \
               -DCMAKE_BUILD_TYPE=Debug \
@@ -158,12 +156,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -174,7 +172,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: Build              
+    needs: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -190,10 +188,10 @@ jobs:
 
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
+        shell: bash
         run: |
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
-          cd $ICD_DIR          
-          ls && pwd
+          cd $ICD_DIR
           git submodule init && git submodule update && npm install
           cd protobuf
           ./build_proto.sh
@@ -202,6 +200,7 @@ jobs:
 
       - name: Prepare ICD-RxJS (Linux)
         if: matrix.os == 'linux'
+        shell: bash
         run: |
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
@@ -210,7 +209,6 @@ jobs:
           git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "\
             cd ICD-RxJS && \
-            ls && pwd && \
             npm install && \
             cd protobuf && \
             ./build_proto.sh && \
@@ -238,12 +236,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -262,7 +260,7 @@ jobs:
         uses: ./source/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
-      # Linux steps    
+      # Linux steps
       - name: File Browser ICD tests
         if: matrix.os == 'linux'
         uses: ./source/.github/actions/run-apptainer
@@ -293,12 +291,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -309,7 +307,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [File-Browser-ICD-Tests, Prepare-ICD-RxJS]              
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Animator ICD tests
@@ -348,12 +346,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -364,7 +362,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Animator-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Region-Statistics ICD tests
@@ -403,12 +401,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -419,7 +417,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Region-Statistics-ICD-Tests, Prepare-ICD-RxJS]
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Region Manipulation ICD tests
@@ -458,12 +456,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -474,7 +472,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Region-Manipulation-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Cube Histogram ICD tests
@@ -513,12 +511,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -529,7 +527,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Cube-Histogram-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: PV Generator ICD tests
@@ -568,12 +566,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -584,7 +582,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [PV-Generator-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Raster Tiles ICD tests
@@ -623,12 +621,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -639,7 +637,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Raster-Tiles-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Catalog ICD tests
@@ -678,12 +676,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -694,7 +692,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Catalog-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Moment ICD tests
@@ -733,12 +731,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -749,7 +747,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Moment-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Match ICD tests
@@ -788,12 +786,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -804,7 +802,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Match-ICD-Tests, Prepare-ICD-RxJS]              
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Close File ICD tests
@@ -843,12 +841,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -859,7 +857,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Close-File-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Image Fitting ICD tests
@@ -898,12 +896,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -914,7 +912,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Image-Fitting-ICD-Tests, Prepare-ICD-RxJS]          
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Vector Overlay ICD tests
@@ -953,12 +951,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -969,7 +967,7 @@ jobs:
             runner: [self-hosted, Linux, Apptainer, ICD5]
             image: /opt/apptainer/almalinux9-dec2023.sif
             port: 9005
-    needs: [Vector-Overlay-ICD-Tests, Prepare-ICD-RxJS]            
+    needs: [Build, Prepare-ICD-RxJS]
     steps:
       # macOS steps
       - name: Resume ICD tests
@@ -991,8 +989,8 @@ jobs:
     name: Send email on failure
     runs-on: ubuntu-latest
     needs:
-      - Build 
-      - Prepare-ICD-RxJS 
+      - Build
+      - Prepare-ICD-RxJS
       - File-Browser-ICD-Tests
       - Animator-ICD-Tests
       - Region-Statistics-ICD-Tests
