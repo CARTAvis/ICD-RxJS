@@ -4,37 +4,67 @@ inputs:
   test_stage_name:
     description: 'ICD test stage'
     required: true
+  port:
+    description: 'Port number for carta_backend'
+    required: false
+    default: '5555'
 runs:
   using: 'composite'
   steps:
     - name: Check backend dynamic linking
-      run: otool -L ./carta_backend
+      run: otool -L $GITHUB_WORKSPACE/build/carta_backend
       shell: bash
 
     - name: Start the carta-backend
       run: |
         SRC_DIR=$GITHUB_WORKSPACE/source
         BUILD_DIR=$GITHUB_WORKSPACE/build
+        LOG_FILE="/tmp/carta_icd_macos_${{ inputs.test_stage_name }}.log"
         cd $BUILD_DIR
         ASAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan.supp \
         LSAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan-leaks.supp \
         ASAN_SYMBOLIZER_PATH=llvm-symbolizer \
         ./carta_backend /images --top_level_folder /images \
-        --port 5555 \
-        --omp_threads=4 --debug_no_auth --no_frontend --no_database --verbosity=5 &
+        --port ${{ inputs.port }} \
+        --omp_threads=4 --debug_no_auth --no_frontend --no_database --no_log \
+        --verbosity=5 >> "$LOG_FILE" 2>&1 &
         echo "CARTA_BACKEND_PID=$!" >> $GITHUB_ENV
+        echo "CARTA_LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
       shell: bash
 
     - name: ICD tests
       run: |
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
-        for test_file in $(cat ICD_test_stages/${{ inputs.test_stage_name }}.tests); do
-          CI=true npm test $test_file
-          sleep 3 && pgrep carta_backend
+        failed_tests=()
+        mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
+        for test_file in "${test_files[@]}"; do
+          if [ -n "$test_file" ]; then
+            if ! CI=true npm test -- "$test_file"; then
+              failed_tests+=("$test_file")
+            fi
+            sleep 3 && pgrep carta_backend
+          fi
         done
+        if [ ${#failed_tests[@]} -ne 0 ]; then
+          echo "The following tests failed:"
+          printf '%s\n' "${failed_tests[@]}"
+          exit 1
+        fi
       shell: bash
 
+    - name: Upload backend log on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: carta-backend-log-macos-${{ inputs.test_stage_name }}
+        path: ${{ env.CARTA_LOG_FILE }}
+        retention-days: 14
+
     - name: Stop carta-backend
-      run: kill ${{ env.CARTA_BACKEND_PID }}
+      if: always()
+      run: |
+        if [ -n "${{ env.CARTA_BACKEND_PID }}" ]; then
+          kill ${{ env.CARTA_BACKEND_PID }} || true
+        fi
       shell: bash

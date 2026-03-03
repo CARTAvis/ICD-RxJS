@@ -32,12 +32,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -113,9 +113,7 @@ jobs:
           rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
           cd source ; git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
-            ls && pwd && \
             cd $BUILD_DIR && \
-            ls && pwd && \
             cmake $SRC_DIR \
               -Dtest=on \
               -DCMAKE_BUILD_TYPE=Debug \
@@ -158,12 +156,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -190,10 +188,10 @@ jobs:
 
       - name: Prepare ICD-RxJS (macOS)
         if: matrix.os == 'macos'
+        shell: bash
         run: |
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
-          cd $ICD_DIR          
-          ls && pwd
+          cd $ICD_DIR
           git submodule init && git submodule update && npm install
           cd protobuf
           ./build_proto.sh
@@ -202,6 +200,7 @@ jobs:
 
       - name: Prepare ICD-RxJS (Linux)
         if: matrix.os == 'linux'
+        shell: bash
         run: |
           BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
           ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
@@ -210,7 +209,6 @@ jobs:
           git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "\
             cd ICD-RxJS && \
-            ls && pwd && \
             npm install && \
             cd protobuf && \
             ./build_proto.sh && \
@@ -238,12 +236,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -293,12 +291,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -348,12 +346,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -403,12 +401,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -458,12 +456,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -513,12 +511,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -568,12 +566,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -623,12 +621,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -678,12 +676,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -733,12 +731,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -788,12 +786,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -843,12 +841,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -898,12 +896,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
@@ -953,12 +951,12 @@ jobs:
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD2]
             image: /opt/apptainer/ubuntu-2204-dec2023.sif
-            port: 9001
+            port: 9002
           - os_version: ubuntu-24.04
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD6]
             image: /opt/apptainer/ubuntu-2404-apr2025.sif
-            port: 9002
+            port: 9006
           - os_version: rhel-8
             os: linux
             runner: [self-hosted, Linux, Apptainer, ICD4]
