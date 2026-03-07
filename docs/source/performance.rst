@@ -70,6 +70,44 @@ See the source code:
 Measures the end-to-end latency of opening an image and receiving the initial raster
 tiles, spatial profiles, and histogram.
 
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_LOAD_IMAGE
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    Client -> Backend : OPEN_FILE
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    note over Client, Backend
+        **Timeout starts (openFile: 20,000 ms)**
+    end note
+
+    Client -> Backend : ADD_REQUIRED_TILES (9 tiles, ZFP q=11)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (9 tiles + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    note over Client
+        **Assert:** OPEN_FILE_ACK.success = True
+        **Assert:** RASTER_TILE_DATA count = 9 + 2
+    end note
+
 1. Frontend sends: **OPEN_FILE** (``OpenFile``)
 
    .. code-block:: text
@@ -108,6 +146,51 @@ See the source code:
 Measures bulk raster tile delivery throughput by requesting 54 tiles at a higher zoom
 level after the initial image load.
 
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_RASTER_TILE_DATA
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1: Open file and load 1 initial tile ==
+
+    Client -> Backend : OPEN_FILE
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (1 tile)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (1 tile + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    == Step 2: Request 54 tiles at higher MIP level ==
+
+    note over Client, Backend
+        **Timeout starts (readFile: 10,000 ms)**
+    end note
+
+    Client -> Backend : ADD_REQUIRED_TILES (54 tiles, ZFP q=11)
+    activate Backend
+    Client <-- Backend : RASTER_TILE_DATA (54 tiles + sync start/end)
+    deactivate Backend
+
+    note over Client
+        **Assert:** RASTER_TILE_DATA count = 54 + 2
+    end note
+
 1. Frontend opens ``cube_B_06400_z00100.<fits|image|hdf5>`` and loads 1 initial tile
 
 2. Frontend sends: **ADD_REQUIRED_TILES** (54 tiles at higher MIP level)
@@ -134,6 +217,55 @@ See the source code:
 
 Measures contour computation time on a large 2D Hubble image (8600 x 12200 pixels) across
 three smoothing modes: NoSmoothing (0), BlockAverage (1), and GaussianBlur (2).
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_CONTOUR_DATA
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1: Open file and load initial tiles ==
+
+    Client -> Backend : OPEN_FILE\n(h_m51_b_s05_drz_sci.fits, hdu="0")
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (9 tiles)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (9 tiles + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    == Step 2: Set contour parameters ==
+
+    note over Client, Backend
+        **Timeout starts (playContour: 12,000 ms)**
+    end note
+
+    Client -> Backend : SET_CONTOUR_PARAMETERS (reset)
+    Client -> Backend : SET_CONTOUR_PARAMETERS\n(5 levels, smoothing_mode=<0|1|2>)
+    activate Backend
+    loop for each of 5 contour levels
+        Client <-- Backend : CONTOUR_IMAGE_DATA (progress < 1)
+        Client <-- Backend : CONTOUR_IMAGE_DATA (progress = 1)
+    end
+    deactivate Backend
+
+    note over Client
+        **Assert:** all 5 levels reach progress = 1
+    end note
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``)
 
@@ -176,6 +308,91 @@ See the source code:
 
 Measures animation playback performance with contour overlays, testing both forward and
 backward channel animation.
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_ANIMATOR_CONTOUR
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Preparation: Open file, load tile, set contours ==
+
+    Client -> Backend : OPEN_FILE
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (1 tile)
+    activate Backend
+    Client <-- Backend : RASTER_TILE_DATA (1 tile + sync)
+    deactivate Backend
+
+    Client -> Backend : SET_CONTOUR_PARAMETERS\n(levels=[-0.01, 0.01], GaussianBlur)
+    activate Backend
+    Client <-- Backend : CONTOUR_IMAGE_DATA (2 levels)
+    deactivate Backend
+
+    == Case 1: Forward animation (channels 1 -> 30) ==
+
+    Client -> Backend : SET_IMAGE_CHANNELS (channel=0)
+    activate Backend
+    Client <-- Backend : RASTER_TILE_DATA
+    deactivate Backend
+
+    note over Client, Backend
+        **Timeout starts (playAnimator: 300,000 ms)**
+    end note
+
+    Client -> Backend : START_ANIMATION\n(start=ch1, delta=+1, rate=5fps)
+    activate Backend
+    Client <-- Backend : START_ANIMATION_ACK
+
+    loop channel 1 to 30
+        Client -> Backend : ADD_REQUIRED_TILES
+        Client <-- Backend : RASTER_TILE_DATA (tile + sync)
+        Client <-- Backend : CONTOUR_IMAGE_DATA (2 levels)
+        Client <-- Backend : REGION_HISTOGRAM_DATA
+        Client -> Backend : ANIMATION_FLOW_CONTROL
+    end
+    deactivate Backend
+
+    Client -> Backend : STOP_ANIMATION (endFrame=ch30)
+
+    == Case 2: Backward animation (channels 40 -> 31) ==
+
+    Client -> Backend : SET_IMAGE_CHANNELS (channel=40)
+    activate Backend
+    Client <-- Backend : RASTER_TILE_DATA
+    deactivate Backend
+
+    Client -> Backend : START_ANIMATION\n(start=ch40, delta=-1, rate=5fps)
+    activate Backend
+    Client <-- Backend : START_ANIMATION_ACK
+
+    loop channel 39 down to 31
+        Client -> Backend : ADD_REQUIRED_TILES
+        Client <-- Backend : RASTER_TILE_DATA (tile + sync)
+        Client <-- Backend : CONTOUR_IMAGE_DATA (2 levels)
+        Client <-- Backend : REGION_HISTOGRAM_DATA
+        Client -> Backend : ANIMATION_FLOW_CONTROL
+    end
+    deactivate Backend
+
+    Client -> Backend : STOP_ANIMATION (endFrame=ch30)
+
+    note over Client
+        **Assert:** channels in ascending order (Case 1)
+        **Assert:** channels in descending order (Case 2)
+    end note
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``)
 
@@ -237,6 +454,55 @@ Measures the time to compute a full cube histogram across all channels. The HDF5
 pre-computes histograms at write time, so the HDF5 variant uses a much tighter timeout
 (500 ms vs 300,000 ms) to verify the cached result is returned quickly.
 
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_CUBE_HISTOGRAM
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1: Open file and load initial tiles ==
+
+    Client -> Backend : OPEN_FILE
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (9 tiles)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (9 tiles + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    == Step 2: Request cube histogram ==
+
+    note over Client, Backend
+        **Timeout starts**
+        FITS/CASA: 300,000 ms | HDF5: 500 ms
+    end note
+
+    Client -> Backend : SET_HISTOGRAM_REQUIREMENTS\n(region=-2, channel=-2, num_bins=-1)
+    activate Backend
+    loop streaming progress
+        Client <-- Backend : REGION_HISTOGRAM_DATA (progress < 1)
+    end
+    Client <--[#red] Backend : <font color="red">REGION_HISTOGRAM_DATA (progress = 1)</font>
+    deactivate Backend
+
+    note over Client
+        **Assert:** progress reaches 1
+    end note
+
 1. Frontend opens ``cube_B_06400_z00100.<fits|image|hdf5>`` and loads initial tiles
 
 2. Frontend sends: **SET_HISTOGRAM_REQUIREMENTS** (``SetHistogramRequirements``)
@@ -264,6 +530,64 @@ See the source code:
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_MOMENTS_HDF5.test.ts>`__
 
 Measures the time to generate all 13 moment images from a spectral cube.
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_MOMENTS
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1: Open file ==
+
+    Client -> Backend : OPEN_FILE\n(S255_IR_sci.spw25.cube.I.pbcor)
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    == Step 2: Load tiles and set spectral profile ==
+
+    Client -> Backend : ADD_REQUIRED_TILES (1 tile)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=960, y=960)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (1 tile + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    Client -> Backend : SET_SPECTRAL_REQUIREMENTS (Sum)
+    activate Backend
+    loop streaming progress
+        Client <-- Backend : SPECTRAL_PROFILE_DATA (progress < 1)
+    end
+    Client <-- Backend : SPECTRAL_PROFILE_DATA (progress = 1)
+    deactivate Backend
+
+    == Step 3: Request 13 moments ==
+
+    note over Client, Backend
+        **Timeout starts (momentTimeout: 400,000 ms)**
+    end note
+
+    Client -> Backend : MOMENT_REQUEST\n(moments=[0..12], axis=SPECTRAL,\nmask=Include, pixelRange=[0.1,1.0])
+    activate Backend
+    Client <-- Backend : REGION_HISTOGRAM_DATA x 13\n(one per moment image)
+    Client <--[#red] Backend : <font color="red">MOMENT_RESPONSE\n(13 openFileAcks)</font>
+    deactivate Backend
+
+    note over Client
+        **Assert:** MOMENT_RESPONSE.success = True
+        **Assert:** openFileAcks.length = 13
+        **Assert:** all openFileAcks[].success = True
+    end note
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``)
 
@@ -309,6 +633,77 @@ See the source code:
 
 Measures the time to generate a position-velocity (PV) diagram from a spectral cube.
 
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_PV
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1-3: Open file and set up region ==
+
+    Client -> Backend : OPEN_FILE
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (1 tile)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client <-- Backend : RASTER_TILE_DATA (1 tile + sync)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    activate Backend
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    == Step 4: Create LINE region ==
+
+    Client -> Backend : SET_REGION\n(LINE, rotation=135)
+    activate Backend
+    Client <-- Backend : SET_REGION_ACK (regionId=1)
+    deactivate Backend
+
+    == Step 5: Request PV diagram ==
+
+    note over Client, Backend
+        **Timeout starts (pvTimeout: 200,000 ms)**
+    end note
+
+    Client -> Backend : PV_REQUEST\n(fileId=0, regionId=1, width=3)
+    activate Backend
+    loop streaming progress
+        Client <-- Backend : PV_PROGRESS (progress < 1)
+    end
+    Client <-- Backend : PV_PROGRESS (progress = 1)
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    Client <--[#red] Backend : <font color="red">PV_RESPONSE (success = True)</font>
+    deactivate Backend
+
+    == Step 6: Load PV output tiles ==
+
+    Client -> Backend : ADD_REQUIRED_TILES\n(fileId=1, 13 tiles)
+    activate Backend
+    Client <-- Backend : RASTER_TILE_DATA (13 tiles + sync start/end)
+    deactivate Backend
+
+    note over Client
+        **Assert:** PV_RESPONSE.success = True
+        **Assert:** PV progress reaches 1
+        **Assert:** 1 REGION_HISTOGRAM_DATA
+        **Assert:** RASTER_TILE_DATA count = 13 + 2
+    end note
+
 1. Frontend opens ``cube_B_06400_z00100.<fits|image|hdf5>`` and loads initial tiles
 
 2. Frontend sends: **SET_REGION** (``SetRegion``) with a LINE region
@@ -348,6 +743,62 @@ See the source code:
 
 Measures the time to compute a mean spectral profile over a large rectangular region on a
 1000-channel cube.
+
+.. uml::
+
+    skinparam style strictuml
+    hide footbox
+    title PERF_REGION_SPECTRAL_PROFILE
+
+    box "Client (Test Runner)" #EDEDED
+        participant Client
+    end box
+
+    box "Server (Backend)" #lightblue
+        participant Backend
+    end box
+
+    == Step 1: Open file and load initial tile ==
+
+    Client -> Backend : OPEN_FILE\n(cube_B_03200_z01000)
+    activate Backend
+    Client <-- Backend : OPEN_FILE_ACK
+    Client <-- Backend : REGION_HISTOGRAM_DATA
+    deactivate Backend
+
+    Client -> Backend : ADD_REQUIRED_TILES (1 tile)
+    activate Backend
+    Client -> Backend : SET_CURSOR (x=1, y=1)
+    Client -> Backend : SET_SPATIAL_REQUIREMENTS
+    Client <-- Backend : RASTER_TILE_DATA (1 tile + sync start/end)
+    Client <-- Backend : SPATIAL_PROFILE_DATA
+    deactivate Backend
+
+    == Step 2: Create rectangle region ==
+
+    Client -> Backend : SET_REGION\n(RECTANGLE, center=(800,800),\nsize=400x400, rotation=0)
+    activate Backend
+    Client <-- Backend : SET_REGION_ACK (regionId=1)
+    deactivate Backend
+
+    == Step 3: Request spectral profile ==
+
+    note over Client, Backend
+        **Timeout starts (120,000 ms)**
+    end note
+
+    Client -> Backend : SET_SPECTRAL_REQUIREMENTS\n(regionId=1, stats=[Mean])
+    activate Backend
+    loop streaming progress
+        Client <-- Backend : SPECTRAL_PROFILE_DATA (progress < 1)
+    end
+    Client <--[#red] Backend : <font color="red">SPECTRAL_PROFILE_DATA (progress = 1)</font>
+    deactivate Backend
+
+    note over Client
+        **Assert:** SET_REGION_ACK.success = True
+        **Assert:** SPECTRAL_PROFILE_DATA progress = 1
+    end note
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``)
 
