@@ -108,7 +108,8 @@ See the source code:
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_LOAD_IMAGE_HDF5.test.ts>`__
 
 Measures the end-to-end latency of opening an image and receiving the initial raster
-tiles, spatial profiles, and histogram.
+tiles, spatial profiles, and histogram. The elapsed time is measured between the
+``OPEN_FILE`` request and the ``REGION_HISTOGRAM_DATA`` response.
 
 .. uml::
 
@@ -124,11 +125,22 @@ tiles, spatial profiles, and histogram.
         participant Backend
     end box
 
-    Client -> Backend : OPEN_FILE
+    Client -[#red]> Backend : <font color="red">OPEN_FILE</font>
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     Client <-- Backend : OPEN_FILE_ACK
-    Client <-- Backend : REGION_HISTOGRAM_DATA
+    Client <--[#red] Backend : <font color="red">REGION_HISTOGRAM_DATA</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client, Backend
         **Timeout starts (openFile: 20,000 ms)**
@@ -516,7 +528,9 @@ See the source code:
 
 Measures the time to compute a full cube histogram across all channels. The HDF5 format
 pre-computes histograms at write time, so the HDF5 variant uses a much tighter timeout
-(500 ms vs 300,000 ms) to verify the cached result is returned quickly.
+(500 ms vs 300,000 ms) to verify the cached result is returned quickly. The elapsed time
+is measured between the ``SET_HISTOGRAM_REQUIREMENTS`` request and the
+``REGION_HISTOGRAM_DATA`` response with progress = 1.
 
 .. uml::
 
@@ -555,13 +569,24 @@ pre-computes histograms at write time, so the HDF5 variant uses a much tighter t
         FITS/CASA: 300,000 ms | HDF5: 500 ms
     end note
 
-    Client -> Backend : SET_HISTOGRAM_REQUIREMENTS\n(region=-2, channel=-2, num_bins=-1)
+    Client -[#red]> Backend : <font color="red">SET_HISTOGRAM_REQUIREMENTS</font>\n(region=-2, channel=-2, num_bins=-1)
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     loop streaming progress
         Client <-- Backend : REGION_HISTOGRAM_DATA (progress < 1)
     end
     Client <--[#red] Backend : <font color="red">REGION_HISTOGRAM_DATA (progress = 1)</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client
         **Assert:** progress reaches 1
