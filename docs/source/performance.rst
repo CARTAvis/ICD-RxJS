@@ -732,7 +732,8 @@ See the source code:
 `CASA <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_PV_CASA.test.ts>`__ |
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_PV_HDF5.test.ts>`__
 
-Measures the time to generate a position-velocity (PV) diagram from a spectral cube.
+Measures the time to generate a position-velocity (PV) diagram from a spectral cube. The
+elapsed time is measured between the ``PV_REQUEST`` request and the ``PV_RESPONSE`` response.
 
 .. uml::
 
@@ -781,8 +782,14 @@ Measures the time to generate a position-velocity (PV) diagram from a spectral c
         **Timeout starts (pvTimeout: 200,000 ms)**
     end note
 
-    Client -> Backend : PV_REQUEST\n(fileId=0, regionId=1, width=3)
+    Client -[#red]> Backend : <font color="red">PV_REQUEST</font>\n(fileId=0, regionId=1, width=3)
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     loop streaming progress
         Client <-- Backend : PV_PROGRESS (progress < 1)
     end
@@ -790,6 +797,11 @@ Measures the time to generate a position-velocity (PV) diagram from a spectral c
     Client <-- Backend : REGION_HISTOGRAM_DATA
     Client <--[#red] Backend : <font color="red">PV_RESPONSE (success = True)</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     == Step 6: Load PV output tiles ==
 
