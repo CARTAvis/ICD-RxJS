@@ -618,7 +618,8 @@ See the source code:
 `CASA <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_MOMENTS_CASA.test.ts>`__ |
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_MOMENTS_HDF5.test.ts>`__
 
-Measures the time to generate all 13 moment images from a spectral cube.
+Measures the time to generate all 13 moment images from a spectral cube. The elapsed time
+is measured between the ``MOMENT_REQUEST`` request and the ``MOMENT_RESPONSE`` response.
 
 .. uml::
 
@@ -666,11 +667,22 @@ Measures the time to generate all 13 moment images from a spectral cube.
         **Timeout starts (momentTimeout: 400,000 ms)**
     end note
 
-    Client -> Backend : MOMENT_REQUEST\n(moments=[0..12], axis=SPECTRAL,\nmask=Include, pixelRange=[0.1,1.0])
+    Client -[#red]> Backend : <font color="red">MOMENT_REQUEST</font>\n(moments=[0..12], axis=SPECTRAL,\nmask=Include, pixelRange=[0.1,1.0])
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     Client <-- Backend : REGION_HISTOGRAM_DATA x 13\n(one per moment image)
     Client <--[#red] Backend : <font color="red">MOMENT_RESPONSE\n(13 openFileAcks)</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client
         **Assert:** MOMENT_RESPONSE.success = True
