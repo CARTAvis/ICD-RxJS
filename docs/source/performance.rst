@@ -867,7 +867,8 @@ See the source code:
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_REGION_SPECTRAL_PROFILE_HDF5.test.ts>`__
 
 Measures the time to compute a mean spectral profile over a large rectangular region on a
-1000-channel cube.
+1000-channel cube. The elapsed time is measured between the ``SET_SPECTRAL_REQUIREMENTS``
+request and the ``SPECTRAL_PROFILE_DATA`` response with progress = 1.
 
 .. uml::
 
@@ -912,13 +913,24 @@ Measures the time to compute a mean spectral profile over a large rectangular re
         **Timeout starts (120,000 ms)**
     end note
 
-    Client -> Backend : SET_SPECTRAL_REQUIREMENTS\n(regionId=1, stats=[Mean])
+    Client -[#red]> Backend : <font color="red">SET_SPECTRAL_REQUIREMENTS</font>\n(regionId=1, stats=[Mean])
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     loop streaming progress
         Client <-- Backend : SPECTRAL_PROFILE_DATA (progress < 1)
     end
     Client <--[#red] Backend : <font color="red">SPECTRAL_PROFILE_DATA (progress = 1)</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client
         **Assert:** SET_REGION_ACK.success = True
