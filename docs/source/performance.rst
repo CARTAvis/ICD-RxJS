@@ -9,7 +9,7 @@ All performance tests read data files from the ``set_QA_performance`` directory.
 file formats (FITS, CASA, HDF5) are tested for each operation, enabling cross-format
 performance comparison.
 
-Sample images
+Sample Images
 ~~~~~~~~~~~~~
 
 The following data files are used across the performance tests:
@@ -99,8 +99,8 @@ Timeout values are configured in ``src/test/config.json`` under the ``performanc
     Tester <-- "Test Runner": Test result
     deactivate "Test Runner"
 
-PERF_LOAD_IMAGE
-~~~~~~~~~~~~~~~
+Load Image
+~~~~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_LOAD_IMAGE_FITS.test.ts>`__ |
@@ -187,8 +187,8 @@ tiles, spatial profiles, and histogram. The elapsed time is measured between the
    - OPEN_FILE_ACK.success = True
    - RASTER_TILE_DATA stream length = 9 + 2 (9 tiles + RasterTileSync start and end)
 
-PERF_RASTER_TILE_DATA
-~~~~~~~~~~~~~~~~~~~~~
+Raster Tile Data
+~~~~~~~~~~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_RASTER_TILE_DATA_FITS.test.ts>`__ |
@@ -271,8 +271,8 @@ level after the initial image load. The elapsed time is measured between the
 
    - RASTER_TILE_DATA stream length = 54 + 2 (54 tiles + RasterTileSync start and end)
 
-PERF_CONTOUR_DATA
-~~~~~~~~~~~~~~~~~
+Contour Data
+~~~~~~~~~~~~
 
 See the source code:
 `Mode 0 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_CONTOUR_DATA_Mode0.test.ts>`__ |
@@ -375,8 +375,8 @@ time is measured between the ``SET_CONTOUR_PARAMETERS`` request and the last
 
    - All 5 contour levels reach progress = 1
 
-PERF_ANIMATOR_CONTOUR
-~~~~~~~~~~~~~~~~~~~~~
+Animator Contour
+~~~~~~~~~~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_ANIMATOR_CONTOUR_FITS.test.ts>`__ |
@@ -530,8 +530,8 @@ request and the ``STOP_ANIMATION`` request while playing the animation forwardly
    - CONTOUR_IMAGE_DATA channels are in descending order
    - REGION_HISTOGRAM_DATA channels are in descending order
 
-PERF_CUBE_HISTOGRAM
-~~~~~~~~~~~~~~~~~~~
+Cube Histogram
+~~~~~~~~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_CUBE_HISTOGRAM_FITS.test.ts>`__ |
@@ -622,8 +622,8 @@ is measured between the ``SET_HISTOGRAM_REQUIREMENTS`` request and the
    - HDF5: 500 ms (pre-computed)
    - REGION_HISTOGRAM_DATA reaches progress = 1
 
-PERF_MOMENTS
-~~~~~~~~~~~~
+Moments
+~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_MOMENTS_FITS.test.ts>`__ |
@@ -736,8 +736,8 @@ is measured between the ``MOMENT_REQUEST`` request and the ``MOMENT_RESPONSE`` r
    - MOMENT_RESPONSE.openFileAcks.length = 13
    - All openFileAcks[].success = True
 
-PERF_PV
-~~~~~~~
+PV
+~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_PV_FITS.test.ts>`__ |
@@ -858,8 +858,8 @@ elapsed time is measured between the ``PV_REQUEST`` request and the ``PV_RESPONS
    - PV output image produces 1 REGION_HISTOGRAM_DATA
    - Raster tiles for PV image: stream length = 13 + 2
 
-PERF_REGION_SPECTRAL_PROFILE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Region Spectral Profile
+~~~~~~~~~~~~~~~~~~~~~~~
 
 See the source code:
 `FITS <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_REGION_SPECTRAL_PROFILE_FITS.test.ts>`__ |
