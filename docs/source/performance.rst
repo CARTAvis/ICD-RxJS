@@ -256,7 +256,9 @@ See the source code:
 `Mode 2 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_CONTOUR_DATA_Mode2.test.ts>`__
 
 Measures contour computation time on a large 2D Hubble image (8600 x 12200 pixels) across
-three smoothing modes: NoSmoothing (0), BlockAverage (1), and GaussianBlur (2).
+three smoothing modes: NoSmoothing (0), BlockAverage (1), and GaussianBlur (2). The elapsed
+time is measured between the ``SET_CONTOUR_PARAMETERS`` request and the last
+``CONTOUR_IMAGE_DATA`` response with progress = 1 for all 5 contour levels.
 
 .. uml::
 
@@ -295,13 +297,24 @@ three smoothing modes: NoSmoothing (0), BlockAverage (1), and GaussianBlur (2).
     end note
 
     Client -> Backend : SET_CONTOUR_PARAMETERS (reset)
-    Client -> Backend : SET_CONTOUR_PARAMETERS\n(5 levels, smoothing_mode=<0|1|2>)
+    Client -[#red]> Backend : <font color="red">SET_CONTOUR_PARAMETERS</font>\n(5 levels, smoothing_mode=<0|1|2>)
     activate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
     loop for each of 5 contour levels
         Client <-- Backend : CONTOUR_IMAGE_DATA (progress < 1)
-        Client <-- Backend : CONTOUR_IMAGE_DATA (progress = 1)
+        Client <--[#red] Backend : <font color="red">CONTOUR_IMAGE_DATA (progress = 1)</font>
     end
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client
         **Assert:** all 5 levels reach progress = 1
