@@ -196,7 +196,8 @@ See the source code:
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_RASTER_TILE_DATA_HDF5.test.ts>`__
 
 Measures bulk raster tile delivery throughput by requesting 54 tiles at a higher zoom
-level after the initial image load.
+level after the initial image load. The elapsed time is measured between the
+``ADD_REQUIRED_TILES`` request and the last ``RASTER_TILE_DATA`` response.
 
 .. uml::
 
@@ -234,10 +235,21 @@ level after the initial image load.
         **Timeout starts (readFile: 10,000 ms)**
     end note
 
-    Client -> Backend : ADD_REQUIRED_TILES (54 tiles, ZFP q=11)
+    Client -[#red]> Backend : <font color="red">ADD_REQUIRED_TILES</font> (54 tiles, ZFP q=11)
     activate Backend
-    Client <-- Backend : RASTER_TILE_DATA (54 tiles + sync start/end)
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
+
+    Client <--[#red] Backend : <font color="red">RASTER_TILE_DATA (54 tiles + sync start/end)</font>
     deactivate Backend
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     note over Client
         **Assert:** RASTER_TILE_DATA count = 54 + 2
