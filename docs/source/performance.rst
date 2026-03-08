@@ -347,7 +347,8 @@ See the source code:
 `HDF5 <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/performance/PERF_ANIMATOR_CONTOUR_HDF5.test.ts>`__
 
 Measures animation playback performance with contour overlays, testing both forward and
-backward channel animation.
+backward channel animation. The elapsed time is measured between the ``START_ANIMATION``
+request and the ``STOP_ANIMATION`` request while playing the animation forwardly.
 
 .. uml::
 
@@ -392,9 +393,14 @@ backward channel animation.
         **Timeout starts (playAnimator: 300,000 ms)**
     end note
 
-    Client -> Backend : START_ANIMATION\n(start=ch1, delta=+1, rate=5fps)
+    Client -[#red]> Backend : <font color="red">START_ANIMATION</font>\n(start=ch1, delta=+1, rate=5fps)
     activate Backend
     Client <-- Backend : START_ANIMATION_ACK
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement starts
+    end note
 
     loop channel 1 to 30
         Client -> Backend : ADD_REQUIRED_TILES
@@ -405,7 +411,12 @@ backward channel animation.
     end
     deactivate Backend
 
-    Client -> Backend : STOP_ANIMATION (endFrame=ch30)
+    Client -[#red]> Backend : <font color="red">STOP_ANIMATION (endFrame=ch30)</font>
+
+    note right of Backend #FFEEEE
+        <font color="red">Elapsed time
+        measurement ends
+    end note
 
     == Case 2: Backward animation (channels 40 -> 31) ==
 
