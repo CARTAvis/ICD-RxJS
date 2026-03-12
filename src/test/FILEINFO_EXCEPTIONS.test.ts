@@ -14,10 +14,7 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    message: [
-        () => `File ${basepath}/no_such_file.image does not exist.`,
-        'Image must be 2D, 3D or 4D.'
-    ],
+    message: ['File /images/set_QA/no_such_file.image does not exist.', 'Image must be 2D, 3D or 4D.'],
 };
 
 let basepath: string;
@@ -53,8 +50,7 @@ describe('FILEINFO_EXCEPTIONS: Testing error handle of file info generation', ()
                             await msgController.getFileInfo(`${basepath}/` + testSubdirectory, fileName, '0');
                         } catch (err) {
                             console.log(err);
-                            const expectedMsg = typeof assertItem.message[index] === 'function' ? assertItem.message[index]() : assertItem.message[index];
-                            expect(err).toEqual(expectedMsg);
+                            expect(err).toEqual(assertItem.message[index]);
                         }
                     },
                     openFileTimeout
