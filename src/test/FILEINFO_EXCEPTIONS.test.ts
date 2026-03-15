@@ -14,7 +14,7 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    message: ['File no_such_file.image does not exist.', 'Image must be 2D, 3D or 4D.'],
+    message: ['File /images/set_QA/no_such_file.image does not exist.', 'Image must be 2D, 3D or 4D.'],
 };
 
 let basepath: string;

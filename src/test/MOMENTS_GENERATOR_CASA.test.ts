@@ -221,9 +221,9 @@ describe('MOMENTS_GENERATOR_CASA: Testing moments generator for a given region o
                 });
             });
 
-            test(`Assert openFileAcks[].fileInfoExtended.headerEntries.length = 85`, () => {
+            test(`Assert openFileAcks[].fileInfoExtended.headerEntries.length = 73`, () => {
                 momentResponse.openFileAcks.map((ack, index) => {
-                    expect(ack.fileInfoExtended.headerEntries.length).toEqual(85);
+                    expect(ack.fileInfoExtended.headerEntries.length).toEqual(73);
                 });
             });
 
