@@ -61,10 +61,17 @@ jobs:
           cd source ; git submodule update --init
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
             cd $BUILD_DIR && \
+            if [ -f /opt/carta-cfitsio-v450-curl/lib/pkgconfig/cfitsio.pc ]; then \
+              export PKG_CONFIG_PATH=/opt/carta-cfitsio-v450-curl/lib/pkgconfig; \
+              CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
+            else \
+              CFITSIO_ROOT=''; \
+            fi && \
             cmake $SRC_DIR \
               -Dtest=on \
               -DCMAKE_BUILD_TYPE=Debug \
               -DDevSuppressExternalWarnings=ON \
+              ${CFITSIO_ROOT:+-DCFITSIO_ROOT=$CFITSIO_ROOT} \
               -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' \
               -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
             make -j 16"
