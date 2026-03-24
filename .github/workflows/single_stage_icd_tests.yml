@@ -63,6 +63,7 @@ jobs:
             cd $BUILD_DIR && \
             if [ -f /opt/carta-cfitsio-v450-curl/lib/pkgconfig/cfitsio.pc ]; then \
               export PKG_CONFIG_PATH=/opt/carta-cfitsio-v450-curl/lib/pkgconfig; \
+              export LD_LIBRARY_PATH=/opt/carta-cfitsio-v450-curl/lib:$LD_LIBRARY_PATH; \
               CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
             else \
               CFITSIO_ROOT=''; \
