@@ -64,6 +64,7 @@ jobs:
             if [ -f /opt/carta-cfitsio-v450-curl/lib64/pkgconfig/cfitsio.pc ]; then \
               export PKG_CONFIG_PATH=/opt/carta-cfitsio-v450-curl/lib64/pkgconfig; \
               export LD_LIBRARY_PATH=/opt/carta-cfitsio-v450-curl/lib64:$LD_LIBRARY_PATH; \
+              export LIBRARY_PATH=/opt/carta-cfitsio-v450-curl/lib64:$LIBRARY_PATH
               CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
             else \
               CFITSIO_ROOT=''; \
