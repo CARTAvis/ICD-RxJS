@@ -164,7 +164,7 @@ describe('MOMENTS_GENERATOR_FITS: Testing moments generator for a given region o
                             await sleep(200);
                             expect(saveFileAck.slice(-1)[0].fileId).toEqual(FileId[j]);
                         },
-                        12000
+                        saveFileTimeout
                     );
                 }
             }
