@@ -64,9 +64,9 @@ jobs:
             if [ -f /opt/carta-cfitsio-v450-curl/lib64/pkgconfig/cfitsio.pc ]; then \
               CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
               BUILD_PATH=/opt/carta-cfitsio-v450-curl/lib64; \
-              export PKG_CONFIG_PATH=$BUILD_PATH/pkgconfig:$PKG_CONFIG_PATH; \
-              export LD_LIBRARY_PATH=$BUILD_PATH:$LD_LIBRARY_PATH; \
-              export LIBRARY_PATH=$BUILD_PATH:$LIBRARY_PATH; \
+              export PKG_CONFIG_PATH=$BUILD_PATH/pkgconfig; \
+              export LD_LIBRARY_PATH=$BUILD_PATH:\$LD_LIBRARY_PATH; \
+              export LIBRARY_PATH=$BUILD_PATH:\$LIBRARY_PATH; \
             else \
               CFITSIO_ROOT=''; \
               BUILD_PATH=''; \
