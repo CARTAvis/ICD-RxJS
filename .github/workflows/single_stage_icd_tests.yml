@@ -62,18 +62,20 @@ jobs:
           apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
             cd $BUILD_DIR && \
             if [ -f /opt/carta-cfitsio-v450-curl/lib64/pkgconfig/cfitsio.pc ]; then \
-              export PKG_CONFIG_PATH=/opt/carta-cfitsio-v450-curl/lib64/pkgconfig; \
-              export LD_LIBRARY_PATH=/opt/carta-cfitsio-v450-curl/lib64:$LD_LIBRARY_PATH; \
-              export LIBRARY_PATH=/opt/carta-cfitsio-v450-curl/lib64:$LIBRARY_PATH
               CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
+              BUILD_PATH=/opt/carta-cfitsio-v450-curl/lib64; \
+              export PKG_CONFIG_PATH=$BUILD_PATH/pkgconfig:$PKG_CONFIG_PATH; \
+              export LD_LIBRARY_PATH=$BUILD_PATH:$LD_LIBRARY_PATH; \
+              export LIBRARY_PATH=$BUILD_PATH:$LIBRARY_PATH; \
             else \
               CFITSIO_ROOT=''; \
+              BUILD_PATH=''; \
             fi && \
             cmake $SRC_DIR \
               -Dtest=on \
               -DCMAKE_BUILD_TYPE=Debug \
               -DDevSuppressExternalWarnings=ON \
-              -DCMAKE_BUILD_RPATH=/opt/carta-cfitsio-v450-curl/lib64 \
+              -DCMAKE_BUILD_RPATH=$BUILD_PATH \
               ${CFITSIO_ROOT:+-DCFITSIO_ROOT=$CFITSIO_ROOT} \
               -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' \
               -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
