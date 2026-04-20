@@ -6,8 +6,7 @@ inputs:
     required: true
   port:
     description: 'Port number for carta_backend'
-    required: false
-    default: '5555'
+    required: true
 runs:
   using: 'composite'
   steps:
