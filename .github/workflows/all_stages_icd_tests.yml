@@ -929,6 +929,7 @@ jobs:
         if: matrix.os == 'macos'
         uses: ./source/.github/actions/run-macos
         with:
+          port: ${{ matrix.port }}
           test_stage_name: 'image_fitting'
       # Linux steps
       - name: Image Fitting ICD tests
@@ -987,6 +988,7 @@ jobs:
         if: matrix.os == 'macos'
         uses: ./source/.github/actions/run-macos
         with:
+          port: ${{ matrix.port }}
           test_stage_name: 'vector_overlay'
       # Linux steps
       - name: Vector Overlay ICD tests
@@ -1045,6 +1047,7 @@ jobs:
         if: matrix.os == 'macos'
         uses: ./source/.github/actions/run-macos
         with:
+          port: ${{ matrix.port }}
           test_stage_name: 'resume'
       # Linux steps
       - name: Resume ICD tests
