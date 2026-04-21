@@ -407,7 +407,15 @@ export class MessageController {
                     isReconnection ||
                     connectionAttempts >= MessageController.MaxConnectionAttempts
                 ) {
+                    const wasNeverActive = this.connectionStatus !== ConnectionStatus.ACTIVE;
                     this.connectionStatus = ConnectionStatus.CLOSED;
+                    if (wasNeverActive) {
+                        const def = this.deferredMap.get(requestId);
+                        if (def) {
+                            def.reject(new Error(`WebSocket closed before connect: code=${ev.code} reason=${ev.reason}`));
+                            this.deferredMap.delete(requestId);
+                        }
+                    }
                 } else {
                     connectionAttempts++;
                     setTimeout(() => {
@@ -449,8 +457,12 @@ export class MessageController {
         });
 
         this.connection.onerror = (ev) => {
-            // AppStore.Instance.logStore.addInfo(`Connecting to server ${url} failed.`, ["network"]);
             console.log(ev);
+            const def = this.deferredMap.get(requestId);
+            if (def) {
+                def.reject(new Error(`WebSocket connection error to ${url}`));
+                this.deferredMap.delete(requestId);
+            }
         };
 
         return await deferredResponse.promise;
