@@ -38,38 +38,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-13
-            os: macos
-            runner: [macOS-13, ICD]
-            port: 9007
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 9008
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
             port: 9009
-          - os_version: ubuntu-22.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2204-mar2026.sif
-            port: 9002
-          - os_version: ubuntu-24.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2404-mar2026.sif
-            port: 9006
-          - os_version: rhel-8
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD4]
-            image: /opt/apptainer/almalinux8-mar2026.sif
-            port: 9004
-          - os_version: rhel-9
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD5]
-            image: /opt/apptainer/almalinux9-mar2026.sif
-            port: 9005
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -177,38 +149,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-13
-            os: macos
-            runner: [macOS-13, ICD]
-            port: 9007
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 9008
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
             port: 9009
-          - os_version: ubuntu-22.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2204-mar2026.sif
-            port: 9002
-          - os_version: ubuntu-24.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2404-mar2026.sif
-            port: 9006
-          - os_version: rhel-8
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD4]
-            image: /opt/apptainer/almalinux8-mar2026.sif
-            port: 9004
-          - os_version: rhel-9
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD5]
-            image: /opt/apptainer/almalinux9-mar2026.sif
-            port: 9005
     needs: Build              
     steps:
       - name: Checkout
@@ -260,38 +204,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-13
-            os: macos
-            runner: [macOS-13, ICD]
-            port: 9007
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 9008
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
             port: 9009
-          - os_version: ubuntu-22.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD2]
-            image: /opt/apptainer/ubuntu-2204-mar2026.sif
-            port: 9002
-          - os_version: ubuntu-24.04
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD6]
-            image: /opt/apptainer/ubuntu-2404-mar2026.sif
-            port: 9006
-          - os_version: rhel-8
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD4]
-            image: /opt/apptainer/almalinux8-mar2026.sif
-            port: 9004
-          - os_version: rhel-9
-            os: linux
-            runner: [self-hosted, Linux, Apptainer, ICD5]
-            image: /opt/apptainer/almalinux9-mar2026.sif
-            port: 9005
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.job_name == 'File-Browser-ICD-Tests' }}  
     steps:
