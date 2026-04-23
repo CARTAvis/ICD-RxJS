@@ -594,6 +594,9 @@ describe('OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                     assertItem.setCursor[1].point.x,
                     assertItem.setCursor[1].point.y
                 );
+                // Output Debug log to check the values of asstertItem.spatialProfileData[1]
+                console.log(`Values of SpatialProfileData for image 1: ${JSON.stringify(assertItem.spatialProfileData[1])}`);
+
                 let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
 
                 msgController.setCursor(
@@ -601,6 +604,10 @@ describe('OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                     assertItem.setCursor[2].point.x,
                     assertItem.setCursor[2].point.y
                 );
+
+                // Output Debug log to check the values of asstertItem.spatialProfileData[2]
+                console.log(`Values of SpatialProfileData for image 2: ${JSON.stringify(assertItem.spatialProfileData[2])}`);
+
                 let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
 
                 expect(SpatialProfileDataResponse1[0].x).toEqual(assertItem.spatialProfileData[1].x);
