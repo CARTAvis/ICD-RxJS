@@ -584,7 +584,6 @@ describe('OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
                 expect(RasterTileData.length).toEqual(assertItem.addTilesReq[2].tiles.length + 2);
                 expect(RasterTileData.slice(-1)[0].endSync).toEqual(true);
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[3]);
-                msgController.setSpatialRequirements(assertItem.setSpatialRequirements[1]);
                 msgController.setSpatialRequirements(assertItem.setSpatialRequirements[4]);
             });
 
