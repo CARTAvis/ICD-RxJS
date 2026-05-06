@@ -82,8 +82,8 @@ jobs:
           uname -a
           sw_vers
 
-      - name: Build carta-backend (macOS-15)
-        if: matrix.os_version == 'macOS-15'
+      - name: Build carta-backend (macOS-14)
+        if: matrix.os_version == 'macOS-14'
         shell: bash
         run: |
           export CC=/usr/local/Cellar/llvm/20.1.3/bin/clang
@@ -107,7 +107,7 @@ jobs:
           make -j 16
 
       - name: Build carta-backend (macOS)
-        if: matrix.os == 'macos' && matrix.os_version != 'macOS-15'
+        if: matrix.os == 'macos' && matrix.os_version != 'macOS-14'
         shell: bash
         run: |
           SRC_DIR=$GITHUB_WORKSPACE/source
