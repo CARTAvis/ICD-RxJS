@@ -59,6 +59,9 @@ jobs:
           ref:  ${{ env.CARTA_BACKEND_BRANCH_NAME }}
           path: source
 
+      - name: Setup Homebrew PATH
+        run: echo "/opt/homebrew/bin" >> $GITHUB_PATH
+
       - name: System information (macOS)
         if: matrix.os == 'macos'
         shell: bash
