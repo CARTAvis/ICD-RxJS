@@ -62,9 +62,13 @@ jobs:
       - name: Setup Homebrew PATH
         run: |
           echo "/opt/homebrew/bin" >> $GITHUB_PATH
+
+      - name: Check PATH
+        shell: bash
+        run: |
           echo $PATH
-          which npm || true
-          which node || true
+          which npm || echo "npm not found"
+          which node || echo "node not found"
 
       - name: System information (macOS)
         if: matrix.os == 'macos'
