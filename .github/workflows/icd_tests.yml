@@ -60,7 +60,11 @@ jobs:
           path: source
 
       - name: Setup Homebrew PATH
-        run: echo "/opt/homebrew/bin" >> $GITHUB_PATH
+        run: |
+          echo "/opt/homebrew/bin" >> $GITHUB_PATH
+          echo $PATH
+          which npm || true
+          which node || true
 
       - name: System information (macOS)
         if: matrix.os == 'macos'
@@ -73,7 +77,6 @@ jobs:
         if: matrix.os == 'macos' && matrix.os_version != 'macOS-14'
         shell: bash
         run: |
-          export PATH="/opt/homebrew/bin:$PATH"
           export Protobuf_ROOT="/opt/homebrew/opt/protobuf@21"
           SRC_DIR=$GITHUB_WORKSPACE/source
           BUILD_DIR=$GITHUB_WORKSPACE/build
