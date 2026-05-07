@@ -48,9 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +62,8 @@ jobs:
       - name: Check PATH
         shell: bash
         run: |
+          cat ~/.zshrc
+          source ~/.zshrc
           echo $PATH
           which npm || echo "npm not found"
           which node || echo "node not found"
@@ -142,9 +144,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: Build              
     steps:
       - name: Checkout
@@ -200,9 +202,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.file_browser_animator_icd_tests == 'true' }} 
     steps:
@@ -230,9 +232,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.file_browser_animator_icd_tests == 'true' }} 
     steps:
@@ -260,9 +262,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.region_statistics_manipulation_icd_tests == 'true' }}
     steps:
@@ -290,9 +292,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.region_statistics_manipulation_icd_tests == 'true' }}
     steps:
@@ -320,9 +322,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.cube_histogram_pv_generator_icd_tests == 'true' }}
     steps:
@@ -350,9 +352,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.cube_histogram_pv_generator_icd_tests == 'true' }}
     steps:
@@ -380,9 +382,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.raster_tiles_catalog_icd_tests == 'true' }}
     steps:
@@ -410,9 +412,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.raster_tiles_catalog_icd_tests == 'true' }}
     steps:
@@ -440,9 +442,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.moment_match_icd_tests == 'true' }}            
     steps:
@@ -470,9 +472,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.moment_match_icd_tests == 'true' }}
     steps:
@@ -500,9 +502,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.close_files_image_fitting_icd_tests == 'true' }}
     steps:
@@ -530,9 +532,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.close_files_image_fitting_icd_tests == 'true' }}
     steps:
@@ -560,9 +562,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.vector_overlay_resume_icd_tests == 'true' }}
     steps:
@@ -590,9 +592,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-15
+          - os_version: macOS-26
             os: macos
-            runner: [macOS-15, ICD]
+            runner: [macOS-26, ICD]
     needs: [Build, Prepare-ICD-RxJS]
     if: ${{ github.event.inputs.vector_overlay_resume_icd_tests == 'true' }}
     steps:
