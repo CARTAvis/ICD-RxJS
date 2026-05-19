@@ -38,9 +38,35 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - os_version: macOS-14
+            os: macos
+            runner: [macOS-14, ICD]
+          - os_version: macOS-15
+            os: macos
+            runner: [macOS-15, ICD]
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+          - os_version: ubuntu-22.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD2]
+            image: /opt/apptainer/ubuntu-2204-mar2026.sif
+            port: 9002
+          - os_version: ubuntu-24.04
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD6]
+            image: /opt/apptainer/ubuntu-2404-mar2026.sif
+            port: 9006
+          - os_version: rhel-8
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD4]
+            image: /opt/apptainer/almalinux8-mar2026.sif
+            port: 9004
+          - os_version: rhel-9
+            os: linux
+            runner: [self-hosted, Linux, Apptainer, ICD5]
+            image: /opt/apptainer/almalinux9-mar2026.sif
+            port: 9005
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -55,6 +81,30 @@ jobs:
         run: |
           uname -a
           sw_vers
+
+      - name: Build carta-backend (macOS-14)
+        if: matrix.os_version == 'macOS-14'
+        shell: bash
+        run: |
+          export CC=/usr/local/Cellar/llvm/20.1.3/bin/clang
+          export CXX=/usr/local/Cellar/llvm/20.1.3/bin/clang++
+          export PROTOBUF_ROOT=$(brew --prefix protobuf@21)
+          export PATH="$PROTOBUF_ROOT/bin:$PATH"
+          export LIBRARY_PATH="$PROTOBUF_ROOT/lib:$LIBRARY_PATH"
+          export CMAKE_PREFIX_PATH="$PROTOBUF_ROOT:$CMAKE_PREFIX_PATH"
+          export PKG_CONFIG_PATH="$PROTOBUF_ROOT/lib/pkgconfig:$PKG_CONFIG_PATH"
+          SRC_DIR=$GITHUB_WORKSPACE/source
+          BUILD_DIR=$GITHUB_WORKSPACE/build
+          cd $SRC_DIR && git submodule update --init
+          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
+          cd $BUILD_DIR
+          cmake $SRC_DIR \
+            -Dtest=on \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDevSuppressExternalWarnings=ON \
+            -DCMAKE_CXX_FLAGS="-O0 -g -fsanitize=address -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+          make -j 16
 
       - name: Build carta-backend (macOS)
         if: matrix.os == 'macos' && matrix.os_version != 'macOS-14'
@@ -74,11 +124,48 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
           make -j 16
 
+      - name: Build carta-backend (Linux)
+        if: matrix.os == 'linux'
+        shell: bash
+        run: |
+          SRC_DIR=$GITHUB_WORKSPACE/source
+          BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
+          rm -rf $BUILD_DIR && mkdir -p $BUILD_DIR
+          cd source ; git submodule update --init
+          apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $SRC_DIR ${{ matrix.image }} /bin/bash -c "\
+            cd $BUILD_DIR && \
+            if [ -f /opt/carta-cfitsio-v450-curl/lib64/pkgconfig/cfitsio.pc ]; then \
+              CFITSIO_ROOT=/opt/carta-cfitsio-v450-curl; \
+              BUILD_PATH=\$CFITSIO_ROOT/lib64; \
+              export PKG_CONFIG_PATH=\$CFITSIO_ROOT/lib64/pkgconfig; \
+              export LD_LIBRARY_PATH=\$CFITSIO_ROOT/lib64:\$LD_LIBRARY_PATH; \
+              export LIBRARY_PATH=\$CFITSIO_ROOT/lib64:\$LIBRARY_PATH; \
+            else \
+              CFITSIO_ROOT=''; \
+              BUILD_PATH=''; \
+            fi && \
+            cmake $SRC_DIR \
+              -Dtest=on \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DDevSuppressExternalWarnings=ON \
+              \${BUILD_PATH:+-DCMAKE_BUILD_RPATH=\$BUILD_PATH} \
+              \${CFITSIO_ROOT:+-DCFITSIO_ROOT=\$CFITSIO_ROOT} \
+              -DCMAKE_CXX_FLAGS='-O0 -g -fsanitize=address -fno-omit-frame-pointer' \
+              -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address' && \
+            make -j 16"
+
       - name: Check backend runs (macOS)
         if: matrix.os == 'macos'
         shell: bash
         run: |
           ./build/carta_backend --version
+
+      - name: Check backend runs (Linux)
+        if: matrix.os == 'linux'
+        shell: bash
+        run: |
+          BUILD_DIR=$GITHUB_WORKSPACE/build-${{ matrix.os_version }}
+          apptainer exec --bind $GITHUB_WORKSPACE:$GITHUB_WORKSPACE --pwd $BUILD_DIR ${{ matrix.image }} /bin/bash -c "./carta_backend --version"
 
   Prepare-ICD-RxJS:
     name: Prepare-ICD-RxJS ${{ matrix.os_version }}
@@ -943,4 +1030,5 @@ jobs:
           image: ${{ matrix.image }}
           port: ${{ matrix.port }}
           test_stage_name: 'resume'
+
 
