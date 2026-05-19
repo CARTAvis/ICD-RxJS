@@ -69,7 +69,7 @@ jobs:
             port: 9005
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: CARTAvis/carta-backend
           ref:  ${{ env.CARTA_BACKEND_BRANCH_NAME }}
@@ -207,7 +207,7 @@ jobs:
     needs: Build              
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ICD-RxJS
 
