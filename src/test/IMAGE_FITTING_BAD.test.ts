@@ -371,16 +371,16 @@ let assertItem: AssertItem = {
         {
             resultValues: [
                 {
-                    center: { x: 116.31369946305503, y: 284.23462476726297 },
-                    amp: 22.12829836659118,
-                    fwhm: { x: -2.4318180151342417, y: -0.004330957756786921 },
-                    pa: 133.73792912297432,
+                    center: { x: 134.7226762659036, y: 280.4762688332016 },
+                    amp: 0.5436350059500957,
+                    fwhm: { x: 0.7094817008480923, y: 0.12297548397696609 },
+                    pa: 270.0710593770099,
                 },
                 {
-                    center: { x: 324.3524987938526, y: 324.34918203704683 },
-                    amp: 9.997331578861056,
-                    fwhm: { x: 29.40216567491421, y: 117.4850448687386 },
-                    pa: 0.5446955482204604,
+                    center: { x: 324.35628993697605, y: 324.34845897862266 },
+                    amp: 9.996890409336245,
+                    fwhm: { x: 29.399585456199773, y: 117.48633742486919 },
+                    pa: 0.5426721064405485,
                 },
             ],
             resultErrors: [
@@ -390,15 +390,15 @@ let assertItem: AssertItem = {
                 },
                 {
                     center: {
-                        x: 1.1714809697842197e-10,
-                        y: 2.933890362251915e-11,
+                        x: 1.171590888148931e-10,
+                        y: 2.933860676478705e-11,
                     },
-                    amp: 2.34753928031256e-11,
+                    amp: 2.347629378380985e-11,
                     fwhm: {
-                        x: 6.904116193771595e-11,
-                        y: 2.7587437257939583e-10,
+                        x: 6.904079939171759e-11,
+                        y: 2.759001709565778e-10,
                     },
-                    pa: 5.079872634449951e-11,
+                    pa: 5.0797230374050426e-11,
                 },
             ],
             success: true,
@@ -555,36 +555,36 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 `Send Image fitting request and match the result`,
                 async () => {
                     let response = await msgController.requestFitting(assertItem.fittingRequest[0]);
-                    console.log(MacOSNumber);
-                    console.log(platformOS);
+                    // console.log(MacOSNumber);
+                    // console.log(platformOS);
 
-                    console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
-                    console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
-                    console.log('response.resultValues[0].amp', response.resultValues[0].amp);
-                    console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
-                    console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
-                    console.log('response.resultValues[0].pa', response.resultValues[0].pa);
-                    console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
-                    console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
-                    console.log('response.resultValues[1].amp', response.resultValues[1].amp);
-                    console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
-                    console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
-                    console.log('response.resultValues[1].pa', response.resultValues[1].pa);
-                    console.log('response.success', response.success);
+                    // console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
+                    // console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
+                    // console.log('response.resultValues[0].amp', response.resultValues[0].amp);
+                    // console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
+                    // console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
+                    // console.log('response.resultValues[0].pa', response.resultValues[0].pa);
+                    // console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
+                    // console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
+                    // console.log('response.resultValues[1].amp', response.resultValues[1].amp);
+                    // console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
+                    // console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
+                    // console.log('response.resultValues[1].pa', response.resultValues[1].pa);
+                    // console.log('response.success', response.success);
 
-                    console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
-                    console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
-                    console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
-                    console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
-                    console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
-                    console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
-                    console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
-                    console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
-                    console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
-                    console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
+                    // console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
+                    // console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
+                    // console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
+                    // console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
+                    // console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
+                    // console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
+                    // console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
+                    // console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
+                    // console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
+                    // console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
 
-                    console.log('response.log', response.log);
-                    console.log('response.message', response.message);
+                    // console.log('response.log', response.log);
+                    // console.log('response.message', response.message);
 
                     if (MacOSNumber === '11.6.1' && platformOS === 'macOS') {
                         expect(response.resultValues[0].center.x).toBeCloseTo(
