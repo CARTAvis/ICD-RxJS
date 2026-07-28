@@ -199,7 +199,10 @@ describe('CHANNEL_MAP: Test loading multiple images and generating their channel
                 const channelMapSequence = [...assertItem.channelMapView, assertItem.channelMapJump];
 
                 channelMapSequence.forEach((channel, seq) => {
-                    const label = seq < assertItem.channelMapView.length ? `view channel ${channel}` : `jump to channel ${channel}`;
+                    const label =
+                        seq < assertItem.channelMapView.length
+                            ? `view channel ${channel}`
+                            : `jump to channel ${channel}`;
 
                     describe(`Channel map (${label}) for the file "${assertItem.fileOpenGroup[index].file}"`, () => {
                         let response: { rasterTileMsgs: any[]; flowControl: any };

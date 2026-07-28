@@ -421,7 +421,9 @@ export class MessageController {
                     if (wasNeverActive) {
                         const def = this.deferredMap.get(requestId);
                         if (def) {
-                            def.reject(new Error(`WebSocket closed before connect: code=${ev.code} reason=${ev.reason}`));
+                            def.reject(
+                                new Error(`WebSocket closed before connect: code=${ev.code} reason=${ev.reason}`)
+                            );
                             this.deferredMap.delete(requestId);
                         }
                     }
