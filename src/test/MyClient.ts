@@ -155,24 +155,41 @@ function Stream(cartaType: any, InputNum?: number) {
     });
 }
 
-function ChannelMapStream(rasterTileDataLen: number, channels: number) {
-    return new Promise<any>((resolve, reject) => {
+// Collects the response to a single channel map request. Since the refactor, the backend
+// processes one channel per SET_IMAGE_CHANNELS request and replies with that channel's raster
+// tiles (2 RasterTileSync + rasterTileDataLen RasterTileData) followed by a single
+// CHANNEL_MAP_FLOW_CONTROL message reporting the request outcome. Resolves once both the tile
+// batch and the flow control message have arrived.
+function ChannelMapStream(rasterTileDataLen: number) {
+    return new Promise<{ rasterTileMsgs: any[]; flowControl: any }>((resolve, reject) => {
         const msgController = MessageController.Instance;
-        const rasterTileMsgLen = (rasterTileDataLen + 2) * channels; // # of RasterTileData + 2 RasterTileSync per channel
+        const rasterTileMsgLen = rasterTileDataLen + 2; // # of RasterTileData + 2 RasterTileSync for one channel
         let count = 0;
         let rasterTileMsgs: any[] = [];
-        let rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2 * channels)); // 2 RasterTileSync per channel
+        let flowControl: any = null;
+
+        const tryResolve = () => {
+            if (count === rasterTileMsgLen && flowControl !== null) {
+                resolve({ rasterTileMsgs, flowControl });
+            }
+        };
+
+        const rasterTileSyncStream = msgController.rasterSyncStream.pipe(take(2)); // start + end
         rasterTileSyncStream.subscribe((data) => {
             count++;
             rasterTileMsgs.push(data);
-            if (data.endSync && count === rasterTileMsgLen) {
-                resolve(rasterTileMsgs);
-            }
+            tryResolve();
         });
-        let rasterTileDataStream = msgController.rasterTileStream.pipe(take(rasterTileDataLen * channels));
+        const rasterTileDataStream = msgController.rasterTileStream.pipe(take(rasterTileDataLen));
         rasterTileDataStream.subscribe((data) => {
             count++;
             rasterTileMsgs.push(data);
+            tryResolve();
+        });
+        const flowControlStream = msgController.channelMapFlowControlStream.pipe(take(1));
+        flowControlStream.subscribe((data) => {
+            flowControl = data;
+            tryResolve();
         });
     });
 }

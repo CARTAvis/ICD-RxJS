@@ -94,6 +94,7 @@ export class MessageController {
     readonly fittingProgressStream: Subject<CARTA.FittingProgress>;
     readonly vectorTileStream: Subject<CARTA.VectorOverlayTileData>;
     readonly pvPreviewStream: Subject<CARTA.PvPreviewData>;
+    readonly channelMapFlowControlStream: Subject<CARTA.ChannelMapFlowControl>;
     private readonly decoderMap: Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>;
 
     private constructor() {
@@ -123,6 +124,7 @@ export class MessageController {
         this.fittingProgressStream = new Subject<CARTA.FittingProgress>();
         this.vectorTileStream = new Subject<CARTA.VectorOverlayTileData>();
         this.pvPreviewStream = new Subject<CARTA.PvPreviewData>();
+        this.channelMapFlowControlStream = new Subject<CARTA.ChannelMapFlowControl>();
 
         // Construct handler and decoder maps
         this.decoderMap = new Map<CARTA.EventType, { messageClass: any; handler: HandlerFunction }>([
@@ -376,6 +378,13 @@ export class MessageController {
                 {
                     messageClass: CARTA.RemoteFileResponse,
                     handler: this.onDeferredResponse,
+                },
+            ],
+            [
+                CARTA.EventType.CHANNEL_MAP_FLOW_CONTROL,
+                {
+                    messageClass: CARTA.ChannelMapFlowControl,
+                    handler: this.onStreamedChannelMapFlowControl,
                 },
             ],
         ]);
@@ -848,16 +857,12 @@ export class MessageController {
         let stokes = input.stokes;
         let requiredTiles = input.requiredTiles;
         let channelMapEnabled = input.channelMapEnabled;
-        let channelRange = input.channelRange;
-        let currentRange = input.currentRange;
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
             const message = CARTA.SetImageChannels.create({
                 fileId: fileId,
                 channel: channel,
                 stokes: stokes,
                 requiredTiles: requiredTiles,
-                channelRange: channelRange,
-                currentRange: currentRange,
                 channelMapEnabled: channelMapEnabled,
             });
             this.logEvent(CARTA.EventType.SET_IMAGE_CHANNELS, this.eventCounter, message, false);
@@ -1466,6 +1471,10 @@ export class MessageController {
 
     private onStreamedPvPreviewData(_eventId: number, previewData: CARTA.PvPreviewData) {
         this.pvPreviewStream.next(previewData);
+    }
+
+    private onStreamedChannelMapFlowControl(_eventId: number, flowControl: CARTA.ChannelMapFlowControl) {
+        this.channelMapFlowControlStream.next(flowControl);
     }
 
     private sendEvent(eventType: CARTA.EventType, payload: Uint8Array): boolean {
