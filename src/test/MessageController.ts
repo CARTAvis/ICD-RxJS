@@ -1035,14 +1035,12 @@ export class MessageController {
         let tiles = input.tiles;
         let type = input.compressionType;
         let quality = input.compressionQuality;
-        let currentTiles = input.currentTiles;
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
             const message = CARTA.AddRequiredTiles.create({
                 fileId: fileId,
                 tiles: tiles,
                 compressionType: type,
                 compressionQuality: quality,
-                currentTiles: currentTiles,
             });
             this.logEvent(CARTA.EventType.ADD_REQUIRED_TILES, this.eventCounter, message, false);
             if (this.sendEvent(CARTA.EventType.ADD_REQUIRED_TILES, CARTA.AddRequiredTiles.encode(message).finish())) {
