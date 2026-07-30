@@ -4,6 +4,7 @@
     "path": {
         "root": ".",
         "base": "$BASE",
+        "imageRoot": "/images",
         "directory": ".",
         "QA": "set_QA",
         "casa_varients": "set_casaImageVarients",
