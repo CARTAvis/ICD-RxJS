@@ -200,6 +200,30 @@ describe('SAVE_IMAGE_OVERWRITE: Saving an image to a path which cannot be overwr
     const linkDirectory = path.join(imageRoot, saveSubdirectory);
     const linkPath = path.join(linkDirectory, symbolicLinkName);
 
+    // The ICD tests run on whichever node the runner provides, which is still node 12 on some of
+    // them, so stay with file system calls which have been available all along: lstatSync has no
+    // throwIfNoEntry option before node 14.17 and rmSync does not exist before node 14.14.
+    const lstatOrNull = (target: string): fs.Stats | null => {
+        try {
+            return fs.lstatSync(target);
+        } catch (err) {
+            return null;
+        }
+    };
+
+    const removePath = (target: string): void => {
+        const stats = lstatOrNull(target);
+        if (!stats) {
+            return;
+        }
+        if (stats.isDirectory()) {
+            fs.readdirSync(target).forEach((entry) => removePath(path.join(target, entry)));
+            fs.rmdirSync(target);
+        } else {
+            fs.unlinkSync(target);
+        }
+    };
+
     describe(`Register a session`, () => {
         // The symbolic link must exist before any request is sent: with nothing at the target path
         // the backend has nothing to refuse and saves a new image there instead. Preparing it in
@@ -216,7 +240,7 @@ describe('SAVE_IMAGE_OVERWRITE: Saving an image to a path which cannot be overwr
             }
             fs.mkdirSync(linkDirectory, { recursive: true });
             // Remove anything left behind by an interrupted run, which may be a file or a directory
-            fs.rmSync(linkPath, { recursive: true, force: true });
+            removePath(linkPath);
             fs.symlinkSync(linkTarget, linkPath);
             expect(fs.lstatSync(linkPath).isSymbolicLink()).toBe(true);
         });
@@ -285,7 +309,8 @@ describe('SAVE_IMAGE_OVERWRITE: Saving an image to a path which cannot be overwr
         });
 
         afterAll(() => {
-            if (fs.lstatSync(linkPath, { throwIfNoEntry: false })?.isSymbolicLink()) {
+            const stats = lstatOrNull(linkPath);
+            if (stats && stats.isSymbolicLink()) {
                 fs.unlinkSync(linkPath);
             }
             msgController.closeConnection();
