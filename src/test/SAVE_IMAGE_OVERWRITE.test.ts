@@ -227,12 +227,19 @@ describe('SAVE_IMAGE_OVERWRITE: Saving an image to a path which cannot be overwr
 
         checkConnection();
 
+        // The basepath is empty when the backend starts in its own top level folder, and prefixing
+        // a subdirectory with "basepath + '/'" would then make it absolute. SaveFile joins the
+        // directory with std::filesystem::operator/, which drops the top level folder for an
+        // absolute directory, so the request would leave the image folder entirely.
+        const resolveDirectory = (subdirectory: string): string =>
+            basepath ? basepath + '/' + subdirectory : subdirectory;
+
         test(`Get basepath and modify the directory path`, async () => {
             let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.fileOpen.directory = basepath + '/' + assertItem.fileOpen.directory;
+            assertItem.fileOpen.directory = resolveDirectory(assertItem.fileOpen.directory);
             assertItem.saveFile.map((saveFileInput) => {
-                saveFileInput.outputFileDirectory = basepath + '/' + saveFileInput.outputFileDirectory;
+                saveFileInput.outputFileDirectory = resolveDirectory(saveFileInput.outputFileDirectory);
             });
         });
 

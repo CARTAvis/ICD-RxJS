@@ -111,12 +111,17 @@ describe('EXPORT_REGION_OVERWRITE: Exporting regions to a path which cannot be o
 
         checkConnection();
 
+        // The basepath is empty when the backend starts in its own top level folder, so only
+        // insert the separator when there is something to separate
+        const resolveDirectory = (subdirectory: string): string =>
+            basepath ? basepath + '/' + subdirectory : subdirectory;
+
         test(`Get basepath and modify the directory path`, async () => {
             let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.fileOpen.directory = basepath + '/' + assertItem.fileOpen.directory;
+            assertItem.fileOpen.directory = resolveDirectory(assertItem.fileOpen.directory);
             assertItem.exportRegion.map((exportRegionInput) => {
-                exportRegionInput.directory = basepath + '/' + exportRegionInput.directory;
+                exportRegionInput.directory = resolveDirectory(exportRegionInput.directory);
             });
         });
 
