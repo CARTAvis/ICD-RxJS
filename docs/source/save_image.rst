@@ -493,3 +493,172 @@ This test verifies that appropriate error messages are returned when attempting 
 :red-text:`Check 4:` the SAVE_FILE response should satisfy:
 
    - Error message should contain "The selected region is entirely outside the image."
+
+SAVE_IMAGE_OVERWRITE
+~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/SAVE_IMAGE_OVERWRITE.test.ts>`__.
+
+This test verifies that the backend refuses to save an image to a path where doing so would destroy
+something which is already there, and that it asks the frontend for confirmation in the cases where
+the user may legitimately want to overwrite.
+
+Seven requests are sent, one per refusal. The first three must be refused whatever ``overwrite``
+says, so they are sent with ``overwrite = true`` to show that the refusal does not depend on it. The
+remaining four are the ones the frontend may retry after asking the user, so they are sent with
+``overwrite = false`` and the backend is expected to set ``overwrite_confirmation_required = true``
+rather than simply failing.
+
+.. note::
+
+   Case 5 needs a symbolic link on disk, which the test creates before connecting and removes
+   afterwards. It is the only ICD test which needs to know the absolute path of the backend's top
+   level folder, because no CARTA message exposes it — ``FILE_LIST_RESPONSE.directory`` is relative.
+   Set ``path.imageRoot`` in ``src/test/config.json`` to the folder the backend was started with,
+   otherwise the test aborts before sending any request.
+
+1. Frontend sends: **CLOSE_FILE** (``CloseFile``) and **OPEN_FILE** (``OpenFile``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "M17_SWex.fits"
+     hdu = ""
+     file_id = 0
+     render_mode = RASTER
+
+2. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
+
+:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
+
+   - OPEN_FILE_ACK.success = True
+   - OPEN_FILE_ACK.fileInfo.name = "M17_SWex.fits"
+
+**Case 1: No file name**
+
+3. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA/tmp"
+     output_file_name = ""
+     output_file_type = CASA
+     overwrite = true
+
+:red-text:`Check 2:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot save image with no filename."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = False
+
+**Case 2: The output path is the image which is currently open**
+
+4. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA"
+     output_file_name = "M17_SWex.fits"
+     output_file_type = FITS
+     overwrite = true
+
+:red-text:`Check 3:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite the source image."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = False
+
+**Case 3: The output path is a directory which is not an image**
+
+5. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA"
+     output_file_name = "regionTest"
+     output_file_type = CASA
+     overwrite = true
+
+:red-text:`Check 4:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite existing directory."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = False
+
+**Case 4: The output path is a file which is not an image**
+
+6. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA/regionTest"
+     output_file_name = "M17_SWex_regionSet1_pix.crtf"
+     output_file_type = CASA
+     overwrite = false
+
+:red-text:`Check 5:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite existing file or symlink."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = True
+
+**Case 5: The output path is a symbolic link**
+
+7. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA/tmp"
+     output_file_name = "save_image_overwrite_symlink"
+     output_file_type = CASA
+     overwrite = false
+
+:red-text:`Check 6:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite existing file or symlink."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = True
+
+   (A symbolic link is refused separately because writing to it would replace the link itself
+   rather than the file it points at.)
+
+**Case 6: The output path is an existing image file**
+
+8. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA"
+     output_file_name = "M17_SWex.hdf5"
+     output_file_type = HDF5
+     overwrite = false
+
+:red-text:`Check 7:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite existing image."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = True
+
+**Case 7: The output path is an existing image directory**
+
+9. Frontend sends: **SAVE_FILE** (``SaveFile``)
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     output_file_directory = "set_QA"
+     output_file_name = "M17_SWex.image"
+     output_file_type = CASA
+     overwrite = false
+
+:red-text:`Check 8:` the SAVE_FILE_ACK should satisfy:
+
+   - SAVE_FILE_ACK.success = False
+   - SAVE_FILE_ACK.message = "Cannot overwrite existing image."
+   - SAVE_FILE_ACK.overwrite_confirmation_required = True
