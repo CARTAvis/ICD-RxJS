@@ -47,6 +47,22 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/IMA
 
 This test verifies Gaussian image fitting on FITS files, covering various configurations: without field of view (FoV), with FoV using different solvers (Cholesky, QR, SVD), creating model and residual images, region-based fitting, and fitting with background flux offset.
 
+.. note::
+
+   Every case also checks the integrated flux and the background offset returned in the
+   FITTING_RESPONSE. ``integrated_flux_values`` and ``integrated_flux_errors`` were added by
+   `carta-backend PR #1294 <https://github.com/CARTAvis/carta-backend/pull/1294>`__, which adopted
+   the error calculation of Condon (1997). They are only reported for images in ``Jy/beam`` or
+   ``Jy/pixel``; this image is ``Jy/beam`` and carries a beam, so one value is returned per fitted
+   component.
+
+   All of the reported errors, integrated flux included, scale with the noise estimate the backend
+   derives from the median absolute deviation of the residuals over the pixels which take part in
+   the fit. Restricting the fit to a field of view or a region therefore raises every error by the
+   same factor, roughly 58 for the values below, because a far larger fraction of the included
+   pixels contains source signal. The flux values themselves are compared with a coarser precision
+   than the other parameters, since they are of order 3.7e3.
+
 1. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
    .. code-block:: protobuf
@@ -116,6 +132,10 @@ This test verifies Gaussian image fitting on FITS files, covering various config
      result_values[0].amp = 10.00
      result_values[0].fwhm = {x: 170.64, y: 41.48}
      result_values[0].pa = 142.16
+     integrated_flux_values = [3684.61]
+     integrated_flux_errors = [0.384]
+     offset_value = 0
+     offset_error = 0
      log contains "Gaussian fitting with 1 component"
 
    - resultErrors should be close to zero
@@ -146,6 +166,14 @@ This test verifies Gaussian image fitting on FITS files, covering various config
      result_values[0].amp = 10.00
      result_values[0].fwhm = {x: 170.64, y: 41.48}
      result_values[0].pa = 142.16
+     integrated_flux_values = [3684.61]
+     integrated_flux_errors = [22.43]
+     offset_value = 0
+     offset_error = 0
+
+   The flux error here is 22.43 rather than the 0.384 of Case 1. The fitted values are unchanged,
+   so this is the noise estimate rising when the fit is restricted to the field of view; every
+   other error in this response is larger by the same factor.
 
 **Case 2-2: Image fitting with FoV (solver = QR)**
 
@@ -182,6 +210,8 @@ This test verifies Gaussian image fitting on FITS files, covering various config
 :red-text:`Check 7:` the FITTING_RESPONSE should satisfy:
 
     - FITTING_RESPONSE.success = True
+    - the fitted values, errors, integrated flux and offset match Case 1, since creating a model
+      image does not change the fit
     - REGION_HISTOGRAM_DATA.fileId = 1 (model image)
 
 17. Frontend sends: **ADD_REQUIRED_TILES** for model image (file_id = 1)
@@ -206,6 +236,7 @@ This test verifies Gaussian image fitting on FITS files, covering various config
 :red-text:`Check 9:` the response should satisfy:
 
     - FITTING_RESPONSE.success = True
+    - the fitted values, errors, integrated flux and offset match Case 1
     - REGION_HISTOGRAM_DATA fileIds should contain 2 and 3
 
 **Case 5: Image fitting with region, model and residual images**
@@ -240,6 +271,8 @@ This test verifies Gaussian image fitting on FITS files, covering various config
 :red-text:`Check 11:` the FITTING_RESPONSE should satisfy:
 
     - FITTING_RESPONSE.success = True
+    - the fitted values, errors, integrated flux and offset match Case 2-1, because the region has
+      the same control points as the field of view used there
     - REGION_HISTOGRAM_DATA fileIds should contain 4 and 5
 
 **Case 6: Image fitting with background flux offset**
@@ -262,10 +295,16 @@ This test verifies Gaussian image fitting on FITS files, covering various config
       success = true
       result_values[0].center = {x: 319.50, y: 399.50}
       result_values[0].amp = 10.00
+      integrated_flux_values = [3684.45]
+      integrated_flux_errors = [22.43]
       offset_value = 10.00
+      offset_error = 0.0021
       log contains "Gaussian fitting with 1 component"
 
-    - offsetValue and offsetError should be present and valid
+    This is the only case where the background offset is a free parameter, so it is the only one
+    where ``offset_value`` and ``offset_error`` are non-zero. The offset error is calculated from
+    the covariance matrix, which PR #1294 changed; the other errors in this response come from the
+    Condon (1997) formulae.
 
 IMAGE_FITTING_CASA
 ~~~~~~~~~~~~~~~~~~
@@ -375,6 +414,14 @@ This test verifies error handling in image fitting, including cases where the so
    - FITTING_RESPONSE.log contains iteration exceeded message
    - FITTING_RESPONSE.message contains warning about exceeded iterations
    - Result values and errors should still be returned (platform-dependent)
+   - ``integrated_flux_values`` and ``integrated_flux_errors`` are empty, and ``offset_value`` and
+     ``offset_error`` are zero
+
+.. note::
+
+   This image carries neither a brightness unit nor a beam, so the backend reports no integrated
+   flux at all. That makes the check platform independent, unlike the fitted values above, which
+   need a separate expected result for each operating system this test runs on.
 
 **Case 2: Fit did not converge**
 
@@ -482,6 +529,13 @@ This test verifies that an in-progress image fitting request can be cancelled vi
       result_values[0].amp = 10.00
       result_values[0].fwhm = {x: 170.64, y: 41.48}
       result_values[0].pa = 142.16
+      integrated_flux_values = [3684.63]
+      integrated_flux_errors = [2.51]
+      offset_value = 0
+      offset_error = 0
       log contains "Gaussian fitting with 1 component"
 
     - All resultErrors should be close to zero
+
+    The region used here is larger than the one in IMAGE_FITTING_FITS, so the flux error falls
+    between the whole-image and field-of-view values of that test.
