@@ -131,6 +131,12 @@ let assertItem: AssertItem = {
                     pa: 0.0049460116505525625,
                 },
             ],
+            // This image has neither a brightness unit nor a beam, so the backend reports no
+            // integrated flux at all (PR #1294). The background offset is fixed by the request.
+            integratedFluxValues: [],
+            integratedFluxErrors: [],
+            offsetValue: 0,
+            offsetError: 0,
             success: true,
             log: 'Gaussian fitting with 2 component',
             message: 'exceeded max number of iterations',
@@ -1362,6 +1368,24 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                         expect(response.log).toContain(assertItem.fittingResponse[0].log);
                         expect(response.message).toContain(assertItem.fittingResponse[0].message);
                     }
+
+                    // Integrated flux was added in PR #1294 and is only reported for images in
+                    // Jy/beam or Jy/pixel. This image carries neither a brightness unit nor a
+                    // beam, so the fields stay empty whichever platform the fit ran on.
+                    expect(response.integratedFluxValues.length).toEqual(
+                        assertItem.fittingResponse[0].integratedFluxValues.length
+                    );
+                    expect(response.integratedFluxErrors.length).toEqual(
+                        assertItem.fittingResponse[0].integratedFluxErrors.length
+                    );
+                    expect(response.offsetValue).toBeCloseTo(
+                        assertItem.fittingResponse[0].offsetValue,
+                        assertItem.precisionDigits
+                    );
+                    expect(response.offsetError).toBeCloseTo(
+                        assertItem.fittingResponse[0].offsetError,
+                        assertItem.precisionDigits
+                    );
                 },
                 imageFittingTimeout
             );
