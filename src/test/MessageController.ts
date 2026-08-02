@@ -556,12 +556,12 @@ export class MessageController {
     async getFileInfo(
         directory: string | null | undefined,
         file: string | null | undefined,
-        hdu: string | null | undefined
+        hdu: string | null | undefined,
+        supportAipsBeam: boolean = false
     ): Promise<CARTA.IFileInfoResponse> {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
             throw new Error('Not connected');
         } else {
-            const supportAipsBeam = false;
             const message = CARTA.FileInfoRequest.create({
                 directory,
                 file,
@@ -702,6 +702,7 @@ export class MessageController {
         let hdu = input.hdu;
         let fileId = input.fileId;
         let imageArithmetic = input.lelExpr;
+        let supportAipsBeam = input.supportAipsBeam ?? false;
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
             throw new Error('Not connected');
         } else {
@@ -712,7 +713,7 @@ export class MessageController {
                 fileId,
                 lelExpr: imageArithmetic,
                 renderMode: CARTA.RenderMode.RASTER,
-                supportAipsBeam: false,
+                supportAipsBeam,
             });
             const requestId = this.eventCounter;
             this.logEvent(CARTA.EventType.OPEN_FILE, requestId, message, false);
