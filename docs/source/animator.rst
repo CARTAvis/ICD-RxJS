@@ -418,6 +418,24 @@ ANIMATOR_CONTOUR_MATCH
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ANIMATOR_CONTOUR_MATCH.test.ts>`__.
 
+This test verifies that a spectrally matched image is animated alongside the reference image: it
+steps through its own matched channels, returns contours and histograms at every step, and is tiled
+only while the frontend is actually rendering it.
+
+The tiles of a matched image are controlled entirely by **ADD_REQUIRED_TILES** sent *during* the
+animation. Outside an animation that message returns tile data immediately and does not become an
+animation setting, so a matched image opened before **START_ANIMATION** is not tiled until the
+frontend sends a tile request for it while the animation runs. Sending one with an empty tile list —
+which is what the frontend does when a matched image is no longer visible — stops its tiles again
+without stopping its channel updates.
+
+.. note::
+
+   The backend runs at most one animation frame ahead of the last flow-control acknowledgement, and
+   a message sent mid-frame takes effect a frame or two later. Each phase below is therefore checked
+   over the last three channels before the next client message, leaving the three channels after each
+   message unchecked.
+
 1. Frontend sends: **OPEN_FILE** (``OpenFile``) for two files
 
    File 1:
@@ -442,11 +460,11 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ANI
 
 2. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) for each file
 
-3. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``)
+3. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for each file
 
    .. code-block:: protobuf
 
-     file_id = 0
+     file_id = 0                 // and file_id = 1
      compression_quality = 11
      compression_type = ZFP
      tiles = [0]
@@ -496,26 +514,91 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ANI
      frame_rate = 5
      matched_frames = {1: {frame_numbers: [0, 1, 2, ..., 24]}}
 
-6. Backend returns: **START_ANIMATION_ACK** (``StartAnimationAck``)
+6. Backend returns: **START_ANIMATION_ACK** (``StartAnimationAck``), then a
+   **RASTER_TILE_DATA** stream, **CONTOUR_IMAGE_DATA** and **REGION_HISTOGRAM_DATA** per channel.
+   The frontend acknowledges each channel with **ANIMATION_FLOW_CONTROL** (``AnimationFlowControl``)
+   as soon as the reference image tile arrives.
 
-:red-text:`Check 1:` the backend messages should satisfy:
+:red-text:`Check 1:` the animation of the reference image should satisfy:
 
    - START_ANIMATION_ACK.success = True
 
-   - For each animated channel: ContourImageData should arrive for both file_id = 0 and file_id = 1
+   - RASTER_TILE_DATA.channel of file_id = 0 is in ascending order from start_frame
 
-   - All ContourImageData.reference_file_id = 1
+:red-text:`Check 2:` channels 1 to 3, before any tile request for the matched image, should satisfy:
 
-   - Total ContourImageData count = stop_channel * num_levels * num_files
+   - RASTER_TILE_DATA arrives for file_id = 0 only
 
-   - Received image channels should be in ascending order
+   - No RASTER_TILE_SYNC arrives for file_id = 1
 
-7. Frontend sends: **STOP_ANIMATION** (``StopAnimation``)
+**The matched image becomes visible**
+
+7. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image, while the
+   animation is running
 
    .. code-block:: protobuf
 
-     file_id = 0
-     end_frame = {channel: 10, stokes: 0}
+     file_id = 1
+     compression_type = ZFP
+     compression_quality = 9
+     tiles = [0]
+
+:red-text:`Check 3:` channels 7 to 9 should satisfy, for both file_id = 0 and file_id = 1:
+
+   - one RASTER_TILE_DATA at that channel, with stokes = 0
+
+   - two RASTER_TILE_SYNC at that channel, one of them with end_sync = True, both with tile_count = 1
+
+**The matched image is no longer visible**
+
+8. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image with an empty
+   tile list
+
+   .. code-block:: protobuf
+
+     file_id = 1
+     compression_type = ZFP
+     compression_quality = 9
+     tiles = []
+
+:red-text:`Check 4:` channels 13 to 15 should satisfy:
+
+   - RASTER_TILE_DATA arrives for file_id = 0 only
+
+   - No RASTER_TILE_SYNC arrives for file_id = 1
+
+**The matched image is visible again**
+
+9. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image, as in step 7
+
+:red-text:`Check 5:` channels 19 to 21 should satisfy, for both file_id = 0 and file_id = 1:
+
+   - one RASTER_TILE_DATA and two RASTER_TILE_SYNC at that channel
+
+:red-text:`Check 6:` every checked channel of every phase should satisfy, for both files:
+
+   - CONTOUR_IMAGE_DATA count at progress = 1 equals the number of contour levels
+
+   - All ContourImageData.reference_file_id = 1
+
+   - One REGION_HISTOGRAM_DATA per file
+
+   The matched image keeps stepping through its own channels even while it is not tiled, so an empty
+   tile list suppresses only its raster data.
+
+10. Frontend sends: **STOP_ANIMATION** (``StopAnimation``)
+
+    .. code-block:: protobuf
+
+      file_id = 0
+      end_frame = {channel: 21, stokes: 0}
+
+11. Frontend sends: **SET_IMAGE_CHANNELS** (``SetImageChannels``) for each file at channel 0,
+    requesting one tile
+
+:red-text:`Check 7:` each file should satisfy:
+
+   - one RASTER_TILE_DATA with the matching file_id and channel = 0
 
 ANIMATOR_PLAYBACK
 ~~~~~~~~~~~~~~~~~
