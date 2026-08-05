@@ -212,6 +212,16 @@ function collectAnimation(activeFileId: number) {
     let lastActiveChannel = -1;
     let waiters: { channel: number; resolve: () => void }[] = [];
 
+    // Resolves once the active file has delivered the tile of the given channel.
+    const reached = (channel: number) =>
+        new Promise<void>((resolve) => {
+            if (lastActiveChannel >= channel) {
+                resolve();
+            } else {
+                waiters.push({ channel, resolve });
+            }
+        });
+
     const settle = () => {
         waiters = waiters.filter((waiter) => {
             if (lastActiveChannel >= waiter.channel) {
@@ -241,19 +251,10 @@ function collectAnimation(activeFileId: number) {
         msgController.histogramStream.subscribe((data) => record.histogram.push(data)),
     ];
 
-    return {
-        record,
-        // Resolves once the active file has delivered the tile of the given channel.
-        reached: (channel: number) =>
-            new Promise<void>((resolve) => {
-                if (lastActiveChannel >= channel) {
-                    resolve();
-                } else {
-                    waiters.push({ channel, resolve });
-                }
-            }),
-        stop: () => subscriptions.forEach((subscription) => subscription.unsubscribe()),
-    };
+    // Ends the collection once the playback is over.
+    const stop = () => subscriptions.forEach((subscription) => subscription.unsubscribe());
+
+    return { record, reached, stop };
 }
 
 let basepath: string;
