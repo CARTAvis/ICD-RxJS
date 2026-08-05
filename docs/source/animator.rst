@@ -433,8 +433,13 @@ without stopping its channel updates.
 
    The backend runs at most one animation frame ahead of the last flow-control acknowledgement, and
    a message sent mid-frame takes effect a frame or two later. Each phase below is therefore checked
-   over the last three channels before the next client message, leaving the three channels after each
-   message unchecked.
+   over the three channels before the next client message, leaving the channels around each message
+   unchecked.
+
+   The channel on which a message is sent is itself unchecked. Within one frame the backend serves
+   the reference image and then each matched image, and the frontend sends the message as soon as the
+   reference image tile arrives, so the message can still take effect on the matched image of that
+   same frame. The channel before it is the last one whose matched image has already been served.
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``) for two files
 
@@ -534,7 +539,7 @@ without stopping its channel updates.
 **The matched image becomes visible**
 
 7. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image, while the
-   animation is running
+   animation is running, on channel 4
 
    .. code-block:: protobuf
 
@@ -552,7 +557,7 @@ without stopping its channel updates.
 **The matched image is no longer visible**
 
 8. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image with an empty
-   tile list
+   tile list, on channel 10
 
    .. code-block:: protobuf
 
@@ -569,7 +574,8 @@ without stopping its channel updates.
 
 **The matched image is visible again**
 
-9. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image, as in step 7
+9. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``) for the matched image, as in step 7,
+   on channel 16
 
 :red-text:`Check 5:` channels 19 to 21 should satisfy, for both file_id = 0 and file_id = 1:
 
@@ -591,7 +597,7 @@ without stopping its channel updates.
     .. code-block:: protobuf
 
       file_id = 0
-      end_frame = {channel: 21, stokes: 0}
+      end_frame = {channel: 22, stokes: 0}
 
 11. Frontend sends: **SET_IMAGE_CHANNELS** (``SetImageChannels``) for each file at channel 0,
     requesting one tile

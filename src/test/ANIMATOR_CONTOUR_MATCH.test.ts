@@ -139,7 +139,7 @@ let assertItem: AssertItem = {
     },
     stopAnimation: {
         fileId: 0,
-        endFrame: { channel: 21, stokes: 0 },
+        endFrame: { channel: 22, stokes: 0 },
     },
     setImageChannel: [
         {
@@ -167,24 +167,29 @@ let assertItem: AssertItem = {
     ],
     // The active file's channel at which each client message is sent.
     milestone: {
-        requestMatchedTiles: 3,
-        hideMatchedImage: 9,
-        restoreMatchedImage: 15,
-        stop: 21,
+        requestMatchedTiles: 4,
+        hideMatchedImage: 10,
+        restoreMatchedImage: 16,
+        stop: 22,
     },
 };
 
 /**
  * The backend runs at most one animation frame ahead of the last flow-control ack, and a client
  * message queued mid-frame lands a frame or two later. Each phase is therefore asserted over the
- * last three channels before the next milestone, which leaves the three channels right after a
- * milestone as an unasserted settling band.
+ * three channels before its milestone, which leaves the channels around a milestone as an
+ * unasserted settling band.
+ *
+ * The milestone channel itself is excluded: within a frame the backend serves the reference image
+ * and then each matched image, and the milestone message is sent on the reference image's tile, so
+ * it can still land before the matched image of that same frame is served. Channel milestone - 1 is
+ * the last one whose matched image is already out.
  */
 const WINDOW_CHANNELS = 3;
 
 function assertedChannels(milestone: number): number[] {
     let channels: number[] = [];
-    for (let channel = milestone - WINDOW_CHANNELS + 1; channel <= milestone; channel++) {
+    for (let channel = milestone - WINDOW_CHANNELS; channel <= milestone - 1; channel++) {
         channels.push(channel);
     }
     return channels;
@@ -336,9 +341,9 @@ describe('ANIMATOR_CONTOUR_MATCH: Testing animation playback of a spectrally mat
                     await collector.reached(assertItem.milestone.restoreMatchedImage);
                     msgController.addRequiredTiles(assertItem.matchedTilesReq);
 
+                    // The reference image's tile of the stop channel implies every message of the
+                    // last asserted frame is already out, but leave a margin before unsubscribing.
                     await collector.reached(assertItem.milestone.stop);
-                    // The matched image is served after the reference image within a frame, so let
-                    // the rest of the last asserted frame arrive before unsubscribing.
                     await new Promise((resolve) => setTimeout(resolve, messageReturnTimeout));
                     msgController.stopAnimation(assertItem.stopAnimation);
                     collector.stop();
