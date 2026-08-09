@@ -3,7 +3,6 @@ import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import config from './config.json';
 import { execSync } from 'child_process';
-import * as fs from 'fs';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
