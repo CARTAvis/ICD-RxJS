@@ -1,31 +1,38 @@
 import { CARTA } from 'carta-protobuf';
-import { checkConnection, Stream } from './MyClient';
 import * as Long from 'long';
+import { Subscription } from 'rxjs';
+import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import config from './config.json';
-import { take } from 'rxjs/operators';
 
 let connectTimeout = config.timeout.connection;
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
 let openFileTimeout: number = config.timeout.openFile;
+let readFileTimeout: number = config.timeout.readFile;
+let playAnimatorTimeout: number = config.timeout.playAnimator;
+let changeChannelTimeout: number = config.timeout.changeChannel;
+let messageReturnTimeout: number = config.timeout.messageEvent;
 
 interface AssertItem {
-    registerViewer: CARTA.IRegisterViewer;
     filelist: CARTA.IFileListRequest;
     fileOpen: CARTA.IOpenFile[];
-    addTilesReq: CARTA.IAddRequiredTiles;
+    initTilesReq: CARTA.IAddRequiredTiles[];
     setContour: CARTA.ISetContourParameters[];
     startAnimation: CARTA.IStartAnimation;
+    matchedTilesReq: CARTA.IAddRequiredTiles;
+    hiddenTilesReq: CARTA.IAddRequiredTiles;
     stopAnimation: CARTA.IStopAnimation;
     setImageChannel: CARTA.ISetImageChannels[];
+    milestone: {
+        requestMatchedTiles: number;
+        hideMatchedImage: number;
+        restoreMatchedImage: number;
+        stop: number;
+    };
 }
 
 let assertItem: AssertItem = {
-    registerViewer: {
-        sessionId: 0,
-        clientFeatureFlags: 5,
-    },
     filelist: { directory: testSubdirectory },
     fileOpen: [
         {
@@ -43,12 +50,20 @@ let assertItem: AssertItem = {
             renderMode: CARTA.RenderMode.RASTER,
         },
     ],
-    addTilesReq: {
-        fileId: 0,
-        compressionQuality: 11,
-        compressionType: CARTA.CompressionType.ZFP,
-        tiles: [0],
-    },
+    initTilesReq: [
+        {
+            fileId: 0,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [0],
+        },
+        {
+            fileId: 1,
+            compressionQuality: 11,
+            compressionType: CARTA.CompressionType.ZFP,
+            tiles: [0],
+        },
+    ],
     setContour: [
         {
             fileId: 0,
@@ -106,9 +121,25 @@ let assertItem: AssertItem = {
             },
         },
     },
+    // Sent while the animation is running. This is the only way the matched image can acquire
+    // animation view settings: outside an animation ADD_REQUIRED_TILES returns tile data instead.
+    matchedTilesReq: {
+        fileId: 1,
+        tiles: [0],
+        compressionType: CARTA.CompressionType.ZFP,
+        compressionQuality: 9,
+    },
+    // What the frontend sends when a matched image scrolls out of view during animation:
+    // AppStore's view autorun pushes a view update with an empty tile list for it.
+    hiddenTilesReq: {
+        fileId: 1,
+        tiles: [],
+        compressionType: CARTA.CompressionType.ZFP,
+        compressionQuality: 9,
+    },
     stopAnimation: {
         fileId: 0,
-        endFrame: { channel: 10, stokes: 0 },
+        endFrame: { channel: 22, stokes: 0 },
     },
     setImageChannel: [
         {
@@ -127,17 +158,112 @@ let assertItem: AssertItem = {
             channel: 0,
             stokes: 0,
             requiredTiles: {
-                fileId: 0,
+                fileId: 1,
                 tiles: [0],
                 compressionType: CARTA.CompressionType.ZFP,
                 compressionQuality: 11,
             },
         },
     ],
+    // The active file's channel at which each client message is sent.
+    milestone: {
+        requestMatchedTiles: 4,
+        hideMatchedImage: 10,
+        restoreMatchedImage: 16,
+        stop: 22,
+    },
 };
 
+/**
+ * The backend runs at most one animation frame ahead of the last flow-control ack, and a client
+ * message queued mid-frame lands a frame or two later. Each phase is therefore asserted over the
+ * three channels before its milestone, which leaves the channels around a milestone as an
+ * unasserted settling band.
+ *
+ * The milestone channel itself is excluded: within a frame the backend serves the reference image
+ * and then each matched image, and the milestone message is sent on the reference image's tile, so
+ * it can still land before the matched image of that same frame is served. Channel milestone - 1 is
+ * the last one whose matched image is already out.
+ */
+const WINDOW_CHANNELS = 3;
+
+function assertedChannels(milestone: number): number[] {
+    let channels: number[] = [];
+    for (let channel = milestone - WINDOW_CHANNELS; channel <= milestone - 1; channel++) {
+        channels.push(channel);
+    }
+    return channels;
+}
+
+interface AnimationRecord {
+    sync: CARTA.RasterTileSync[];
+    tile: CARTA.RasterTileData[];
+    contour: CARTA.ContourImageData[];
+    histogram: CARTA.RegionHistogramData[];
+}
+
+/**
+ * Subscribe to every animation stream for the whole playback rather than per frame.
+ *
+ * The RxJS subjects do not buffer, so a per-frame subscribe/await loop can drop messages of the
+ * frame the backend is already working on. Subscribing once up front also removes any assumption
+ * about the order in which the active and the matched image are served within a frame.
+ *
+ * Flow control is acknowledged from the active file's tile, which is what paces the animation.
+ */
+function collectAnimation(activeFileId: number) {
+    const msgController = MessageController.Instance;
+    const record: AnimationRecord = { sync: [], tile: [], contour: [], histogram: [] };
+    let lastActiveChannel = -1;
+    let waiters: { channel: number; resolve: () => void }[] = [];
+
+    // Resolves once the active file has delivered the tile of the given channel.
+    const reached = (channel: number) =>
+        new Promise<void>((resolve) => {
+            if (lastActiveChannel >= channel) {
+                resolve();
+            } else {
+                waiters.push({ channel, resolve });
+            }
+        });
+
+    const settle = () => {
+        waiters = waiters.filter((waiter) => {
+            if (lastActiveChannel >= waiter.channel) {
+                waiter.resolve();
+                return false;
+            }
+            return true;
+        });
+    };
+
+    const subscriptions: Subscription[] = [
+        msgController.rasterSyncStream.subscribe((data) => record.sync.push(data)),
+        msgController.rasterTileStream.subscribe((data) => {
+            record.tile.push(data);
+            if (data.fileId === activeFileId) {
+                lastActiveChannel = data.channel;
+                msgController.sendAnimationFlowControl({
+                    fileId: activeFileId,
+                    animationId: 0,
+                    receivedFrame: { channel: data.channel, stokes: data.stokes },
+                    timestamp: Long.fromNumber(Date.now()),
+                });
+                settle();
+            }
+        }),
+        msgController.contourStream.subscribe((data) => record.contour.push(data)),
+        msgController.histogramStream.subscribe((data) => record.histogram.push(data)),
+    ];
+
+    // Ends the collection once the playback is over.
+    const stop = () => subscriptions.forEach((subscription) => subscription.unsubscribe());
+
+    return { record, reached, stop };
+}
+
 let basepath: string;
-describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () => {
+describe('ANIMATOR_CONTOUR_MATCH: Testing animation playback of a spectrally matched image', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -172,149 +298,195 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
         });
 
         describe(`Preparation`, () => {
-            test(`Contour set`, async () => {
-                msgController.addRequiredTiles(assertItem.addTilesReq);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addTilesReq.tiles.length + 2
-                );
+            test(
+                `Render both images and set matched contours`,
+                async () => {
+                    for (let i = 0; i < assertItem.initTilesReq.length; i++) {
+                        let rasterResponse = Stream(CARTA.RasterTileData, assertItem.initTilesReq[i].tiles!.length + 2);
+                        msgController.addRequiredTiles(assertItem.initTilesReq[i]);
+                        await rasterResponse;
+                    }
 
-                msgController.setContourParameters(assertItem.setContour[0]);
-                let ContourImageDataResponse1 = await Stream(
-                    CARTA.ContourImageData,
-                    assertItem.setContour[0].levels.length
-                );
+                    for (let i = 0; i < assertItem.setContour.length; i++) {
+                        let contourResponse = Stream(CARTA.ContourImageData, assertItem.setContour[i].levels!.length);
+                        msgController.setContourParameters(assertItem.setContour[i]);
+                        await contourResponse;
+                    }
+                },
+                readFileTimeout * 2
+            );
+        });
 
-                msgController.setContourParameters(assertItem.setContour[1]);
-                let ContourImageDataResponse2 = await Stream(
-                    CARTA.ContourImageData,
-                    assertItem.setContour[1].levels.length
-                );
+        describe(`Play the animation of the reference image`, () => {
+            let record: AnimationRecord;
+
+            test(
+                `Play up to channel ${assertItem.milestone.stop}, hiding and restoring the matched image`,
+                async () => {
+                    const collector = collectAnimation(assertItem.startAnimation.fileId!);
+                    record = collector.record;
+
+                    let StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation);
+                    expect(StartAnimationResponse.success).toEqual(true);
+
+                    // The matched image has no animation view settings yet, so it is not tiled.
+                    await collector.reached(assertItem.milestone.requestMatchedTiles);
+                    msgController.addRequiredTiles(assertItem.matchedTilesReq);
+
+                    // The matched image goes out of view: an empty tile list stops its tiles.
+                    await collector.reached(assertItem.milestone.hideMatchedImage);
+                    msgController.addRequiredTiles(assertItem.hiddenTilesReq);
+
+                    // The matched image comes back into view.
+                    await collector.reached(assertItem.milestone.restoreMatchedImage);
+                    msgController.addRequiredTiles(assertItem.matchedTilesReq);
+
+                    // The reference image's tile of the stop channel implies every message of the
+                    // last asserted frame is already out, but leave a margin before unsubscribing.
+                    await collector.reached(assertItem.milestone.stop);
+                    await new Promise((resolve) => setTimeout(resolve, messageReturnTimeout));
+                    msgController.stopAnimation(assertItem.stopAnimation);
+                    collector.stop();
+                },
+                playAnimatorTimeout
+            );
+
+            test(`START_ANIMATION_ACK.success = True and the reference channels are in sequence`, () => {
+                let channels = record.tile
+                    .filter((data) => data.fileId === assertItem.startAnimation.fileId)
+                    .map((data) => data.channel);
+                channels.map((channel, index) => {
+                    expect(channel).toEqual(assertItem.startAnimation.startFrame!.channel! + index);
+                });
+                expect(channels.length).toBeGreaterThanOrEqual(assertItem.milestone.stop);
+            });
+
+            describe(`Before ADD_REQUIRED_TILES of the matched image`, () => {
+                assertedChannels(assertItem.milestone.requestMatchedTiles).map((channel) => {
+                    test(`Channel ${channel}: only the reference image is tiled`, () => {
+                        expect(
+                            record.tile.filter((data) => data.fileId === 0 && data.channel === channel).length
+                        ).toEqual(1);
+                        expect(
+                            record.tile.filter((data) => data.fileId === 1 && data.channel === channel).length
+                        ).toEqual(0);
+                        expect(
+                            record.sync.filter((data) => data.fileId === 1 && data.channel === channel).length
+                        ).toEqual(0);
+                    });
+                });
+            });
+
+            describe(`After ADD_REQUIRED_TILES of the matched image`, () => {
+                assertedChannels(assertItem.milestone.hideMatchedImage).map((channel) => {
+                    test(`Channel ${channel}: both images are tiled`, () => {
+                        assertItem.fileOpen.map((file) => {
+                            let tiles = record.tile.filter(
+                                (data) => data.fileId === file.fileId && data.channel === channel
+                            );
+                            expect(tiles.length).toEqual(1);
+                            expect(tiles[0].stokes).toEqual(0);
+
+                            let syncs = record.sync.filter(
+                                (data) => data.fileId === file.fileId && data.channel === channel
+                            );
+                            expect(syncs.length).toEqual(2);
+                            expect(syncs.filter((data) => data.endSync).length).toEqual(1);
+                            expect(syncs.filter((data) => data.tileCount === 1).length).toEqual(2);
+                        });
+                    });
+                });
+            });
+
+            describe(`After ADD_REQUIRED_TILES of the matched image with an empty tile list`, () => {
+                assertedChannels(assertItem.milestone.restoreMatchedImage).map((channel) => {
+                    test(`Channel ${channel}: only the reference image is tiled`, () => {
+                        expect(
+                            record.tile.filter((data) => data.fileId === 0 && data.channel === channel).length
+                        ).toEqual(1);
+                        expect(
+                            record.tile.filter((data) => data.fileId === 1 && data.channel === channel).length
+                        ).toEqual(0);
+                        expect(
+                            record.sync.filter((data) => data.fileId === 1 && data.channel === channel).length
+                        ).toEqual(0);
+                    });
+                });
+            });
+
+            describe(`After the matched image is restored`, () => {
+                assertedChannels(assertItem.milestone.stop).map((channel) => {
+                    test(`Channel ${channel}: both images are tiled`, () => {
+                        assertItem.fileOpen.map((file) => {
+                            expect(
+                                record.tile.filter((data) => data.fileId === file.fileId && data.channel === channel)
+                                    .length
+                            ).toEqual(1);
+                            expect(
+                                record.sync.filter((data) => data.fileId === file.fileId && data.channel === channel)
+                                    .length
+                            ).toEqual(2);
+                        });
+                    });
+                });
+            });
+
+            describe(`Contours and histograms of the matched image`, () => {
+                // The matched image keeps stepping through its own channels even while it is not
+                // tiled, so its contours and histograms arrive in every phase.
+                let allChannels = [
+                    ...assertedChannels(assertItem.milestone.requestMatchedTiles),
+                    ...assertedChannels(assertItem.milestone.hideMatchedImage),
+                    ...assertedChannels(assertItem.milestone.restoreMatchedImage),
+                    ...assertedChannels(assertItem.milestone.stop),
+                ];
+
+                allChannels.map((channel) => {
+                    test(`Channel ${channel}: both images return contours and a histogram`, () => {
+                        assertItem.setContour.map((contour) => {
+                            let contours = record.contour.filter(
+                                (data) =>
+                                    data.fileId === contour.fileId && data.channel === channel && data.progress === 1
+                            );
+                            expect(contours.length).toEqual(contour.levels!.length);
+                            contours.map((data) => {
+                                expect(data.referenceFileId).toEqual(contour.referenceFileId);
+                            });
+
+                            expect(
+                                record.histogram.filter(
+                                    (data) => data.fileId === contour.fileId && data.channel === channel
+                                ).length
+                            ).toEqual(1);
+                        });
+                    });
+                });
             });
         });
 
-        describe(`Play some channels forwardly`, () => {
-            let regionHistogramData: CARTA.RegionHistogramData[] = [];
-            let sequence: number[] = [];
-            let contourImageData: CARTA.ContourImageData[] = [];
-            let HistogramSequence: number[] = [];
-            let ContourSequence: number[] = [];
-            test(`Assert ContourImageData.channel = RasterTileData.channel`, async () => {
-                let StartAnimationResponse = await msgController.startAnimation(assertItem.startAnimation);
-                expect(StartAnimationResponse.success).toEqual(true);
+        describe(`Set the channel of each image after STOP_ANIMATION`, () => {
+            assertItem.setImageChannel.map((setImageChannel) => {
+                let rasterTileData: CARTA.RasterTileData[];
 
-                for (let i = 0; i < assertItem.stopAnimation.endFrame.channel; i++) {
-                    msgController.addRequiredTiles(assertItem.addTilesReq);
-                    let resRegionHistogramData = msgController.histogramStream.pipe(take(2)).subscribe({
-                        next: (data) => {
-                            regionHistogramData.push(data);
-                            HistogramSequence.push(data.channel);
-                        },
-                    });
-                    let rasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
-                    let resContourImageData = msgController.contourStream.pipe(take(4)).subscribe({
-                        next: (data) => {
-                            contourImageData.push(data);
-                            ContourSequence.push(data.channel);
-                        },
-                    });
-                    let currentChannel = rasterTileDataResponse[0].channel;
-                    sequence.push(currentChannel);
-                    msgController.sendAnimationFlowControl({
-                        fileId: 0,
-                        animationId: 0,
-                        receivedFrame: {
-                            channel: currentChannel,
-                            stokes: 0,
-                        },
-                        timestamp: Long.fromNumber(Date.now()),
-                    });
-                }
-
-                // // Pick up the streaming messages
-                // // Channel 11 & 12: RasterTileData + RasterTileSync(start & end) + RegionHistogramData
-                // let RegionHistogramDataChannel11: CARTA.RegionHistogramData[] = [];
-                // msgController.histogramStream.pipe(take(1)).subscribe(data => {
-                //     RegionHistogramDataChannel11.push(data)
-                // });
-                // let ContourImageDataChannel11 = await Stream(CARTA.ContourImageData,4)
-                // console.log(ContourImageDataChannel11);
-                // let RasterTileDataChannel11 = await Stream(CARTA.RasterTileData,3);
-                // console.log(RasterTileDataChannel11);
-
-                // let RegionHistogramDataChannel12: CARTA.RegionHistogramData[] = [];
-                // msgController.histogramStream.pipe(take(1)).subscribe(data => {
-                //     RegionHistogramDataChannel12.push(data)
-                // });
-                // let ContourImageDataChannel12 = await Stream(CARTA.ContourImageData,4)
-                // console.log(ContourImageDataChannel12);
-                // let RasterTileDataChannel12 = await Stream(CARTA.RasterTileData,3);
-                // console.log(RasterTileDataChannel12)
-            });
-
-            test(`Assert the last channel = StopAnimation.endFrame`, async () => {
-                msgController.stopAnimation(assertItem.stopAnimation);
-                msgController.setChannels(assertItem.setImageChannel[0]);
-                let lastRegionHistogramData1: CARTA.RegionHistogramData[] = [];
-                msgController.histogramStream.pipe(take(1)).subscribe({
-                    next: (data) => {
-                        lastRegionHistogramData1.push(data);
+                test(
+                    `File ${setImageChannel.fileId}: SET_IMAGE_CHANNELS returns RASTER_TILE_DATA`,
+                    async () => {
+                        let rasterResponse = Stream(
+                            CARTA.RasterTileData,
+                            setImageChannel.requiredTiles!.tiles!.length + 2
+                        );
+                        msgController.setChannels(setImageChannel);
+                        rasterTileData = (await rasterResponse).filter(
+                            (data: any) => data instanceof CARTA.RasterTileData
+                        );
                     },
-                });
-                let lastContourImageData1: CARTA.ContourImageData[] = [];
-                msgController.contourStream.pipe(take(2)).subscribe({
-                    next: (data) => {
-                        lastContourImageData1.push(data);
-                    },
-                });
-
-                let lastRasterTileData1 = await Stream(CARTA.RasterTileData, 3);
-
-                msgController.setChannels(assertItem.setImageChannel[1]);
-                let lastRegionHistogramData2: CARTA.RegionHistogramData[] = [];
-                msgController.histogramStream.pipe(take(1)).subscribe({
-                    next: (data) => {
-                        lastRegionHistogramData2.push(data);
-                    },
-                });
-                let lastContourImageData2: CARTA.ContourImageData[] = [];
-                msgController.contourStream.pipe(take(2)).subscribe({
-                    next: (data) => {
-                        lastContourImageData2.push(data);
-                    },
-                });
-
-                let lastRasterTileData2 = await Stream(CARTA.RasterTileData, 3);
-            });
-
-            test(`Received image channels should be in sequence`, async () => {
-                sequence.map((id, index) => {
-                    let channelId =
-                        index +
-                        assertItem.startAnimation.startFrame.channel +
-                        assertItem.startAnimation.deltaFrame.channel;
-                    expect(id).toEqual(channelId - 1);
-                });
-            });
-
-            test(`Assert a series of ContourImageData`, async () => {
-                for (let i = 2; i <= assertItem.stopAnimation.endFrame.channel; i++) {
-                    let testSet = contourImageData.filter((data) => data.progress == 1 && data.channel == i);
-                    expect(testSet.length).toEqual(assertItem.setContour[0].levels.length * assertItem.fileOpen.length);
-                    expect(testSet.filter((data) => data.fileId == 0).length).toEqual(
-                        assertItem.setContour[0].levels.length
-                    );
-                    expect(testSet.filter((data) => data.fileId == 1).length).toEqual(
-                        assertItem.setContour[1].levels.length
-                    );
-                }
-                expect(contourImageData.length).toEqual(
-                    assertItem.stopAnimation.endFrame.channel *
-                        assertItem.setContour[0].levels.length *
-                        assertItem.fileOpen.length
+                    changeChannelTimeout
                 );
-                contourImageData.map((data) => {
-                    expect(data.referenceFileId).toEqual(1);
+
+                test(`File ${setImageChannel.fileId}: RASTER_TILE_DATA.channel = ${setImageChannel.channel}`, () => {
+                    expect(rasterTileData.length).toEqual(1);
+                    expect(rasterTileData[0].fileId).toEqual(setImageChannel.fileId);
+                    expect(rasterTileData[0].channel).toEqual(setImageChannel.channel);
                 });
             });
         });
