@@ -2,7 +2,6 @@ import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import config from './config.json';
-import { take } from 'rxjs/operators';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
@@ -20,6 +19,7 @@ interface AssertItem {
     fittingResponse: CARTA.IFittingResponse[];
     stopFittingRequest: CARTA.IStopFitting;
     precisionDigits: number;
+    fluxPrecisionDigits: number;
     imageFittingCancelMessage: string;
     setRegion: CARTA.ISetRegion;
 }
@@ -87,6 +87,12 @@ let assertItem: AssertItem = {
                     pa: 0.01804504831105634,
                 },
             ],
+            // Integrated flux is only reported for images in Jy/beam or Jy/pixel (PR #1294);
+            // this image is Jy/beam with a beam, so it is filled in for every component.
+            integratedFluxValues: [3684.6304630680215],
+            integratedFluxErrors: [2.509768586180209],
+            offsetValue: 0,
+            offsetError: 0,
             success: true,
             log: 'Gaussian fitting with 1 component',
         },
@@ -95,6 +101,7 @@ let assertItem: AssertItem = {
         fileId: 0,
     },
     precisionDigits: 2,
+    fluxPrecisionDigits: 0,
     imageFittingCancelMessage: 'task cancelled',
     setRegion: {
         fileId: 0,
@@ -258,6 +265,23 @@ describe('IMAGE_FITTING_CANCEL test: Testing cancel function in image fitting.',
                         );
                         expect(response2.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[0].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response2.integratedFluxValues.length).toEqual(1);
+                        expect(response2.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response2.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response2.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response2.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response2.log).toContain(assertItem.fittingResponse[0].log);

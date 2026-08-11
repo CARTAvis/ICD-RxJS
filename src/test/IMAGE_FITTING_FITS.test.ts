@@ -20,6 +20,7 @@ interface AssertItem {
     fittingResponse: CARTA.IFittingResponse[];
     regionHistogramResponses: CARTA.IRegionHistogramData[];
     precisionDigits: number;
+    fluxPrecisionDigits: number;
     setRegion: CARTA.ISetRegion;
 }
 
@@ -281,6 +282,12 @@ let assertItem: AssertItem = {
                     pa: 0.002164788713961321,
                 },
             ],
+            // Integrated flux is only reported for images in Jy/beam or Jy/pixel (PR #1294);
+            // this image is Jy/beam with a beam, so it is filled in for every component.
+            integratedFluxValues: [3684.605371355909],
+            integratedFluxErrors: [0.38403598392889654],
+            offsetValue: 0,
+            offsetError: 0,
             success: true,
             log: 'Gaussian fitting with 1 component',
         },
@@ -301,6 +308,10 @@ let assertItem: AssertItem = {
                     pa: 0.12641955643752142,
                 },
             ],
+            integratedFluxValues: [3684.614127888691],
+            integratedFluxErrors: [22.42708791064442],
+            offsetValue: 0,
+            offsetError: 0,
             success: true,
             log: 'Gaussian fitting with 1 component',
         },
@@ -330,6 +341,7 @@ let assertItem: AssertItem = {
         },
     ],
     precisionDigits: 2,
+    fluxPrecisionDigits: 0,
     regionHistogramResponses: [
         {
             fileId: 1,
@@ -488,6 +500,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                             assertItem.fittingResponse[0].resultErrors[0].pa,
                             assertItem.precisionDigits
                         );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetError,
+                            assertItem.precisionDigits
+                        );
                         expect(response.log).toContain(assertItem.fittingResponse[0].log);
                     },
                     imageFittingTimeout
@@ -567,6 +596,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[1].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[1].log);
@@ -650,6 +696,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                             assertItem.fittingResponse[1].resultErrors[0].pa,
                             assertItem.precisionDigits
                         );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetError,
+                            assertItem.precisionDigits
+                        );
                         expect(response.log).toContain(assertItem.fittingResponse[1].log);
                     },
                     imageFittingTimeout
@@ -729,6 +792,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[1].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[1].log);
@@ -822,6 +902,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[0].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[0].log);
@@ -920,6 +1017,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[0].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[0].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[0].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[0].log);
@@ -1074,6 +1188,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[0].file}": Testing
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[1].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[1].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[1].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[1].log);
@@ -1272,6 +1403,23 @@ describe(`IMAGE_FITTING_FITS test with "${assertItem.fileOpen[1].file}":`, () =>
                         );
                         expect(response.resultErrors[0].pa).toBeCloseTo(
                             assertItem.fittingResponse[2].resultErrors[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.integratedFluxValues.length).toEqual(1);
+                        expect(response.integratedFluxValues[0]).toBeCloseTo(
+                            assertItem.fittingResponse[2].integratedFluxValues[0],
+                            assertItem.fluxPrecisionDigits
+                        );
+                        expect(response.integratedFluxErrors[0]).toBeCloseTo(
+                            assertItem.fittingResponse[2].integratedFluxErrors[0],
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetValue).toBeCloseTo(
+                            assertItem.fittingResponse[2].offsetValue,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.offsetError).toBeCloseTo(
+                            assertItem.fittingResponse[2].offsetError,
                             assertItem.precisionDigits
                         );
                         expect(response.log).toContain(assertItem.fittingResponse[2].log);
