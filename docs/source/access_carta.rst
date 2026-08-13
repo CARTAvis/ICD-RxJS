@@ -101,7 +101,7 @@ ACCESS_CARTA_KNOWN_SESSION
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_KNOWN_SESSION.test.ts>`__.
 
-This test verifies that connecting with a known (previously used) session ID results in a resumed session.
+This test verifies that connecting with a client-supplied session ID results in a resumed session. Any non-zero session ID is treated as a resume request, and the backend adopts the requested ID and echoes it back.
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
@@ -120,7 +120,11 @@ This test verifies that connecting with a known (previously used) session ID res
 
    - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
 
-   - REGISTER_VIEWER_ACK.message is a non-empty string
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting the requested session id
+
+   - REGISTER_VIEWER_ACK.server_feature_flags does not have the READ_ONLY bit set
+
+   - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, where platform is "macOS" or "Linux"
 
    - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
 

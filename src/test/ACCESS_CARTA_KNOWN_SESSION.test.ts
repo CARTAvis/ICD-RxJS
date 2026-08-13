@@ -16,6 +16,8 @@ let assertItem: AssertItem = {
     },
 };
 
+const platformStringKeys = ['release_info', 'deployment', 'architecture', 'platform'];
+
 export enum ConnectionStatus {
     CLOSED = 0,
     PENDING = 1,
@@ -280,19 +282,33 @@ describe(`ACCESS_CARTA_KNOWN_SESSION tests: Testing connections to the backend w
     });
 
     test('REGISTER_VIEWER_ACK.user_preferences = None', () => {
-        expect(RegisterViewerAckTemp.userPreferences).toMatchObject({});
+        expect(RegisterViewerAckTemp.userPreferences).toEqual({});
     });
 
     test('REGISTER_VIEWER_ACK.user_layouts = None', () => {
-        expect(RegisterViewerAckTemp.userLayouts).toMatchObject({});
+        expect(RegisterViewerAckTemp.userLayouts).toEqual({});
     });
 
-    test('REGISTER_VIEWER_ACK.message is a non-empty string', () => {
+    test(`REGISTER_VIEWER_ACK.message is a non-empty string reporting the requested session id`, () => {
         expect(RegisterViewerAckTemp.message).toBeDefined();
         expect(RegisterViewerAckTemp.message).not.toEqual('');
-        if (RegisterViewerAckTemp.message !== '') {
-            console.warn(`"REGISTER_VIEWER_ACK.message" returns: "${RegisterViewerAckTemp.message}" @${new Date()}`);
-        }
+        expect(RegisterViewerAckTemp.message).toContain(`${assertItem.register.sessionId}`);
+        console.log(`"REGISTER_VIEWER_ACK.message" returns: "${RegisterViewerAckTemp.message}" @${new Date()}`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.server_feature_flags does not report READ_ONLY`, () => {
+        expect(RegisterViewerAckTemp.serverFeatureFlags).toBeDefined();
+        expect(RegisterViewerAckTemp.serverFeatureFlags! & CARTA.ServerFeatureFlags.READ_ONLY).toEqual(0);
+    });
+
+    test(`REGISTER_VIEWER_ACK.platform_strings has ${platformStringKeys.join(', ')}`, () => {
+        const platformStrings = RegisterViewerAckTemp.platformStrings!;
+        expect(platformStrings).toBeDefined();
+        platformStringKeys.forEach((key) => {
+            expect(platformStrings[key]).toBeDefined();
+            expect(platformStrings[key]).not.toEqual('');
+        });
+        expect(['macOS', 'Linux']).toContain(platformStrings['platform']);
     });
 
     afterAll(async () => {
