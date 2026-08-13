@@ -135,7 +135,7 @@ ACCESS_CARTA_NO_CLIENT_FEATURE
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_NO_CLIENT_FEATURE.test.ts>`__.
 
-This test verifies that a connection without any client feature flags still succeeds.
+This test verifies that a connection without any client feature flags still succeeds, and that the acknowledgement is the same as for a default connection. The backend does not read ``client_feature_flags``, so no part of the response may depend on it.
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``)
 
@@ -150,9 +150,15 @@ This test verifies that a connection without any client feature flags still succ
 
    - REGISTER_VIEWER_ACK.success = True
 
-   - REGISTER_VIEWER_ACK.session_id is not None
+   - REGISTER_VIEWER_ACK.session_id is assigned by the backend (not 0)
 
    - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.NEW
+
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting the assigned session_id
+
+   - REGISTER_VIEWER_ACK.server_feature_flags does not have the READ_ONLY bit set
+
+   - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, where platform is "macOS" or "Linux"
 
    - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
 
