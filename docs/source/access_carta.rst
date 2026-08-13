@@ -46,15 +46,19 @@ This test verifies that a default connection to the backend succeeds and returns
 
    - REGISTER_VIEWER_ACK.success = True
 
-   - REGISTER_VIEWER_ACK.session_id is not None
+   - REGISTER_VIEWER_ACK.session_id is assigned by the backend (not 0)
 
-   - REGISTER_VIEWER_ACK.message is not empty
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.NEW
 
-   - REGISTER_VIEWER_ACK.platformStrings is not empty
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting the assigned session_id
 
-   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+   - REGISTER_VIEWER_ACK.server_feature_flags does not have the READ_ONLY bit set
 
-   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+   - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, where platform is "macOS" or "Linux"
+
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object), and server_feature_flags does not have the USER_PREFERENCES bit set
+
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
 
 ACCESS_CARTA_DEFAULT_CONCURRENT
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
