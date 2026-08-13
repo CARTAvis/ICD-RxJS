@@ -169,7 +169,7 @@ ACCESS_CARTA_SAME_ID_TWICE
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_SAME_ID_TWICE.test.ts>`__.
 
-This test verifies that sending REGISTER_VIEWER twice on the same connection with the same session ID results in a resumed session on the second attempt.
+This test verifies that sending REGISTER_VIEWER twice on the same connection with the same session ID results in a resumed session on both attempts. The two registrations take different branches in the backend: the first adopts the requested session ID, while the second finds the session already holding it, so the two acknowledgements report different messages.
 
 1. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) — first registration
 
@@ -180,6 +180,14 @@ This test verifies that sending REGISTER_VIEWER twice on the same connection wit
 
 2. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
+:red-text:`Check 1:` the first REGISTER_VIEWER_ACK should satisfy:
+
+   - REGISTER_VIEWER_ACK.success = True
+
+   - REGISTER_VIEWER_ACK.session_id = 9999
+
+   - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
+
 3. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) — second registration on same connection
 
    .. code-block:: text
@@ -189,13 +197,19 @@ This test verifies that sending REGISTER_VIEWER twice on the same connection wit
 
 4. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
 
-:red-text:`Check 1:` the second REGISTER_VIEWER_ACK should satisfy:
+:red-text:`Check 2:` the second REGISTER_VIEWER_ACK should satisfy:
 
    - REGISTER_VIEWER_ACK.success = True
 
    - REGISTER_VIEWER_ACK.session_id = 9999
 
    - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
+
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting the session id, and differs from the message of the first acknowledgement
+
+   - REGISTER_VIEWER_ACK.server_feature_flags does not have the READ_ONLY bit set, and is identical to the first acknowledgement
+
+   - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, is identical to the first acknowledgement, and platform is "macOS" or "Linux"
 
    - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
 

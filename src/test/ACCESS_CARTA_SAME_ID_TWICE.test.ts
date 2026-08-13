@@ -17,6 +17,8 @@ let assertItem: AssertItem = {
     },
 };
 
+const platformStringKeys = ['release_info', 'deployment', 'architecture', 'platform'];
+
 export enum ConnectionStatus {
     CLOSED = 0,
     PENDING = 1,
@@ -276,17 +278,24 @@ export class BackendService {
     }
 }
 
-describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing backend connection with default parameters`, () => {
+describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing REGISTER_VIEWER sent twice on one connection with the same session id`, () => {
     let client = new BackendService();
+    let FirstRegisterViewerAck: CARTA.IRegisterViewerAck;
     let RegisterViewerAckTemp: CARTA.IRegisterViewerAck;
     test(
         `send "REGISTER_VIEWER" to "${testServerUrl}" with session_id=${assertItem.register.sessionId} and receive "REGISTER_VIEWER_ACK"x2 within ${connectTimeout} ms`,
         async () => {
-            await client.connect(testServerUrl, assertItem.register.sessionId);
+            FirstRegisterViewerAck = await client.connect(testServerUrl, assertItem.register.sessionId);
             RegisterViewerAckTemp = await client.getRegisterViewerAck(assertItem.register.sessionId);
         },
         connectTimeout
     );
+
+    test(`the first REGISTER_VIEWER_ACK is a resumed session with session_id ${assertItem.register.sessionId}`, () => {
+        expect(FirstRegisterViewerAck.success).toBe(true);
+        expect(FirstRegisterViewerAck.sessionId).toEqual(assertItem.register.sessionId);
+        expect(FirstRegisterViewerAck.sessionType).toBe(CARTA.SessionType.RESUMED);
+    });
 
     test('REGISTER_VIEWER_ACK.success = True', () => {
         expect(RegisterViewerAckTemp.success).toBe(true);
@@ -300,12 +309,39 @@ describe(`ACCESS_CARTA_SAME_ID_TWICE tests: Testing backend connection with defa
         expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.RESUMED);
     });
 
+    test(`REGISTER_VIEWER_ACK.message reports the session id and differs from the first acknowledgement`, () => {
+        expect(RegisterViewerAckTemp.message).toBeDefined();
+        expect(RegisterViewerAckTemp.message).not.toEqual('');
+        expect(RegisterViewerAckTemp.message).toContain(`${assertItem.register.sessionId}`);
+        expect(FirstRegisterViewerAck.message).toContain(`${assertItem.register.sessionId}`);
+        expect(RegisterViewerAckTemp.message).not.toEqual(FirstRegisterViewerAck.message);
+        console.log(`The first "REGISTER_VIEWER_ACK.message" returns: "${FirstRegisterViewerAck.message}"`);
+        console.log(`The second "REGISTER_VIEWER_ACK.message" returns: "${RegisterViewerAckTemp.message}"`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.server_feature_flags does not report READ_ONLY`, () => {
+        expect(RegisterViewerAckTemp.serverFeatureFlags).toBeDefined();
+        expect(RegisterViewerAckTemp.serverFeatureFlags! & CARTA.ServerFeatureFlags.READ_ONLY).toEqual(0);
+        expect(RegisterViewerAckTemp.serverFeatureFlags).toEqual(FirstRegisterViewerAck.serverFeatureFlags);
+    });
+
+    test(`REGISTER_VIEWER_ACK.platform_strings has ${platformStringKeys.join(', ')}`, () => {
+        const platformStrings = RegisterViewerAckTemp.platformStrings!;
+        expect(platformStrings).toBeDefined();
+        platformStringKeys.forEach((key) => {
+            expect(platformStrings[key]).toBeDefined();
+            expect(platformStrings[key]).not.toEqual('');
+        });
+        expect(['macOS', 'Linux']).toContain(platformStrings['platform']);
+        expect(platformStrings).toEqual(FirstRegisterViewerAck.platformStrings);
+    });
+
     test('REGISTER_VIEWER_ACK.user_preferences = None', () => {
-        expect(RegisterViewerAckTemp.userPreferences).toMatchObject({});
+        expect(RegisterViewerAckTemp.userPreferences).toEqual({});
     });
 
     test('REGISTER_VIEWER_ACK.user_layouts = None', () => {
-        expect(RegisterViewerAckTemp.userLayouts).toMatchObject({});
+        expect(RegisterViewerAckTemp.userLayouts).toEqual({});
     });
 
     afterAll(async () => {
