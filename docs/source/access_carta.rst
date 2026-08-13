@@ -65,7 +65,7 @@ ACCESS_CARTA_DEFAULT_CONCURRENT
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/ACCESS_CARTA_DEFAULT_CONCURRENT.test.ts>`__.
 
-This test verifies that multiple concurrent connections (10 clients) to the backend all succeed, each receiving a unique session ID.
+This test verifies that multiple concurrent connections (10 clients) to the backend all succeed, each receiving a unique session ID. The 10 clients connect simultaneously, so the backend registers them in parallel rather than one after another.
 
 1. 10 clients each send: **REGISTER_VIEWER** (``RegisterViewer``)
 
@@ -80,15 +80,17 @@ This test verifies that multiple concurrent connections (10 clients) to the back
 
    - REGISTER_VIEWER_ACK.success = True
 
-   - REGISTER_VIEWER_ACK.session_id is not None
+   - REGISTER_VIEWER_ACK.session_id is assigned by the backend (not 0)
 
    - REGISTER_VIEWER_ACK.session_id is unique across all connections
 
    - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.NEW
 
-   - REGISTER_VIEWER_ACK.message is not empty
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting its own session_id
 
-   - REGISTER_VIEWER_ACK.platformStrings is not empty
+   - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries
+
+   - REGISTER_VIEWER_ACK.server_feature_flags and REGISTER_VIEWER_ACK.platform_strings are identical across all connections
 
    - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
 

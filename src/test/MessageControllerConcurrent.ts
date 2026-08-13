@@ -69,7 +69,7 @@ export class BackendService {
     public serverFeatureFlags: number;
     public serverUrl: string;
 
-    private connection: WebSocket;
+    public connection: WebSocket;
     private deferredMap: Map<number, Deferred<IBackendResponse>>;
     private eventCounter: number;
 
