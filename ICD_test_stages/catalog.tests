@@ -1,2 +1,3 @@
 src/test/CATALOG_GENERAL.test.ts
 src/test/CATALOG_FITS_VOT.test.ts
+src/test/CATALOG_LARGE.test.ts

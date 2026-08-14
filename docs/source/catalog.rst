@@ -128,6 +128,10 @@ This test verifies the general catalog workflow: listing, file info, opening, an
    - CATALOG_FILE_INFO_RESPONSE.file_info.file_size = 113559
    - Length of headers = 235
 
+   - CATALOG_FILE_INFO_RESPONSE.file_info.description reports the file name, "Column Count: 235", and the coordinate system of this catalog: "Coordinate System: FK5", "Epoch: J2000" and "Equinox: 2000"
+
+   - The headers place the sorted and filtered columns ("RA_d" and "OTYPE_S") inside the requested column_indices, since the requests name a column while the response keys its columns by index
+
 8. Frontend sends: **OPEN_CATALOG_FILE** (``OpenCatalogFile``)
 
    .. code-block:: protobuf
@@ -145,7 +149,12 @@ This test verifies the general catalog workflow: listing, file info, opening, an
    - OPEN_CATALOG_FILE_ACK.data_size = 29
    - OPEN_CATALOG_FILE_ACK.file_id = 1
    - OPEN_CATALOG_FILE_ACK.file_info.name = "artificial_catalog_J2000.xml"
+   - OPEN_CATALOG_FILE_ACK.file_info.type = VOTable
    - Length of headers = 235
+
+   - OPEN_CATALOG_FILE_ACK.preview_data has one entry per column (235), and every entry holds 29 rows: the request asks for 50 preview rows, which is more than the table holds, so the backend returns the whole table instead
+
+Every request below returns the whole subset in a single CATALOG_FILTER_RESPONSE, since the table holds only 29 rows. Each response reports file_id = 1, columns keyed by the requested column_indices, and one value per row of subset_data_size in every column.
 
 **Case 1: Sort by column**
 
@@ -163,21 +172,25 @@ This test verifies the general catalog workflow: listing, file info, opening, an
 :red-text:`Check 5:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - Length of columns = 10, progress = 1
-    - subsetDataSize = 29, filterDataSize = 29
+    - subsetDataSize = 29, filterDataSize = 29 (no filter is applied, so the whole table is returned)
 
-**Case 2: Filter by number (RA_d > 160)**
+    - The returned "RA_d" values are in ascending order
+
+**Case 2: Filter by number (RA_d >= 160)**
 
 11. Frontend sends: **CATALOG_FILTER_REQUEST** with numeric filter
 
     .. code-block:: protobuf
 
       file_id = 1
-      filter_configs = [{column_name: "RA_d", comparison_operator: 5, value: 160}]
+      filter_configs = [{column_name: "RA_d", comparison_operator: GreaterOrEqual, value: 160}]
       subset_data_size = 29
 
 :red-text:`Check 6:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - subsetDataSize = 26, filterDataSize = 26 (3 rows filtered out)
+
+    - Every returned "RA_d" value is greater than or equal to 160, and the number of returned rows equals the number of rows of the unfiltered table which meet that condition
 
 **Case 3: Filter by string (OTYPE_S contains "Star")**
 
@@ -193,6 +206,8 @@ This test verifies the general catalog workflow: listing, file info, opening, an
 
     - subsetDataSize = 24, filterDataSize = 24 (5 rows filtered out)
 
+    - Every returned "OTYPE_S" value contains "Star", and the number of returned rows equals the number of rows of the unfiltered table which meet that condition. The backend matches a case-sensitive substring rather than the whole value
+
 **Case 4: Combined filter + sort**
 
 13. Frontend sends: **CATALOG_FILTER_REQUEST** with both string and numeric filters, plus sorting
@@ -202,15 +217,17 @@ This test verifies the general catalog workflow: listing, file info, opening, an
       file_id = 1
       filter_configs = [
           {column_name: "OTYPE_S", sub_string: "Star"},
-          {column_name: "RA_d", comparison_operator: 5, value: 160}
+          {column_name: "RA_d", comparison_operator: GreaterOrEqual, value: 160}
       ]
       sort_column = "RA_d"
-      sorting_type = 0
+      sorting_type = Ascending
       subset_data_size = 29
 
 :red-text:`Check 8:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - subsetDataSize = 23, filterDataSize = 23 (6 rows filtered out by combined filters)
+
+    - Every returned row satisfies both filters at once, the returned "RA_d" values are in ascending order, and the two filters together keep fewer rows than either one alone
 
 CATALOG_FITS_VOT
 ~~~~~~~~~~~~~~~~
