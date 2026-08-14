@@ -20,7 +20,72 @@ interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
 
 interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
     lengthOfColumns: number;
-    fileid: number;
+    numberOfResponses: number;
+}
+
+// ColumnData carries every type other than String as binary, so a row of a column is a
+// fixed number of bytes rather than an element of an array.
+const bytesPerElement = new Map<CARTA.ColumnType, number>([
+    [CARTA.ColumnType.Uint8, 1],
+    [CARTA.ColumnType.Int8, 1],
+    [CARTA.ColumnType.Bool, 1],
+    [CARTA.ColumnType.Uint16, 2],
+    [CARTA.ColumnType.Int16, 2],
+    [CARTA.ColumnType.Uint32, 4],
+    [CARTA.ColumnType.Int32, 4],
+    [CARTA.ColumnType.Float, 4],
+    [CARTA.ColumnType.Uint64, 8],
+    [CARTA.ColumnType.Int64, 8],
+    [CARTA.ColumnType.Double, 8],
+]);
+
+// Rows are compared as raw payload, which works for every column type without having to
+// decode it. ProtobufProcessing cannot be used here because it needs the CARTACompute
+// WASM global for the 64 bit types.
+function columnSlice(column: CARTA.IColumnData, startRow: number, rowCount: number): (string | number)[] {
+    if (column.dataType === CARTA.ColumnType.String) {
+        return column.stringData!.slice(startRow, startRow + rowCount);
+    }
+    const elementSize = bytesPerElement.get(column.dataType!)!;
+    return Array.from(column.binaryData!.slice(startRow * elementSize, (startRow + rowCount) * elementSize));
+}
+
+function columnRowCount(column: CARTA.IColumnData): number {
+    if (column.dataType === CARTA.ColumnType.String) {
+        return column.stringData!.length;
+    }
+    return column.binaryData!.length / bytesPerElement.get(column.dataType!)!;
+}
+
+function assertCatalogFilterResponse(
+    responses: CARTA.ICatalogFilterResponse[],
+    expected: ICatalogFilterResponseExt,
+    request: CARTA.ICatalogFilterRequest
+) {
+    expect(responses.length).toEqual(expected.numberOfResponses);
+    const lastResponse = responses.slice(-1)[0];
+    expect(lastResponse.fileId).toEqual(expected.fileId);
+    expect(Object.keys(lastResponse.columns).length).toEqual(expected.lengthOfColumns);
+    expect(Object.keys(lastResponse.columns)).toEqual(request.columnIndices.map((columnIndex) => `${columnIndex}`));
+    expect(lastResponse.subsetDataSize).toEqual(expected.subsetDataSize);
+    expect(lastResponse.subsetEndIndex).toEqual(expected.subsetEndIndex);
+    expect(lastResponse.filterDataSize).toEqual(expected.filterDataSize);
+    expect(lastResponse.requestEndIndex).toEqual(expected.requestEndIndex);
+    expect(lastResponse.progress).toEqual(expected.progress);
+    Object.keys(lastResponse.columns).forEach((key) => {
+        expect(columnRowCount(lastResponse.columns[key])).toEqual(expected.subsetDataSize);
+    });
+}
+
+function requestCatalogFilter(
+    msgController: MessageController,
+    filterRequest: CARTA.ICatalogFilterRequest
+): Promise<CARTA.ICatalogFilterResponse[]> {
+    // The stream has to be subscribed before the request is sent, otherwise the first
+    // responses are dropped.
+    const catalogFilterStream = Stream(CARTA.CatalogFilterResponse);
+    msgController.setCatalogFilterRequest(filterRequest);
+    return catalogFilterStream;
 }
 
 interface AssertItem {
@@ -133,21 +198,23 @@ let assertItem: AssertItem = {
         subdirectories: [],
     },
     catalogFileInfoResponse: {
-        fileInfo: { name: 'COSMOSOPTCAT.vot', type: 1, fileSize: 1631311089 },
+        fileInfo: { name: 'COSMOSOPTCAT.vot', type: CARTA.CatalogFileType.VOTable, fileSize: 1631311089 },
         success: true,
         lengthOfHeaders: 62,
     },
     openCatalogFileAck: {
         dataSize: 918827,
         fileId: 1,
-        fileInfo: { name: 'COSMOSOPTCAT.vot', type: 1, fileSize: 1631311089 },
+        fileInfo: { name: 'COSMOSOPTCAT.vot', type: CARTA.CatalogFileType.VOTable, fileSize: 1631311089 },
         lengthOfHeaders: 62,
         success: true,
     },
     catalogFilterResponse: [
         {
+            // The whole table is streamed in chunks of at most 100000 rows
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 1,
+            numberOfResponses: 10,
             subsetDataSize: 18777,
             subsetEndIndex: 918827,
             filterDataSize: 918827,
@@ -155,8 +222,10 @@ let assertItem: AssertItem = {
             progress: 1,
         },
         {
+            // A window of 50 rows fits in one response
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 1,
+            numberOfResponses: 1,
             subsetDataSize: 50,
             subsetEndIndex: 100,
             filterDataSize: 918827,
@@ -165,7 +234,8 @@ let assertItem: AssertItem = {
         },
         {
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 1,
+            numberOfResponses: 1,
             subsetDataSize: 50,
             subsetEndIndex: 150,
             filterDataSize: 918827,
@@ -174,7 +244,8 @@ let assertItem: AssertItem = {
         },
         {
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 1,
+            numberOfResponses: 1,
             subsetDataSize: 50,
             subsetEndIndex: 200,
             filterDataSize: 918827,
@@ -183,6 +254,10 @@ let assertItem: AssertItem = {
         },
     ],
 };
+
+// The first chunk of the whole-table load, kept so that the progressive windows of part 2
+// can be compared against the rows the bulk load returned for the same table positions.
+let wholeTableFirstChunk: CARTA.ICatalogFilterResponse;
 
 let basepath: string;
 describe('Test for large-size CATALOG: load whole table at one time', () => {
@@ -283,38 +358,33 @@ describe('Test for large-size CATALOG: load whole table at one time', () => {
         openCatalogLargeTimeout
     );
 
+    let WholeTableResponse: CARTA.ICatalogFilterResponse[];
     test(
         `(Step 6) Request CatalogFilter: progress & check CatalogFilterResponse | `,
         async () => {
-            await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[0]);
-            let CatalogFilterResponse = await Stream(CARTA.CatalogFilterResponse);
-            for (let i = 0; i < CatalogFilterResponse.length; i++) {
-                console.log(
-                    `"${assertItem.catalogFileInfoReq.name}" CatalogFilterResponse progress :`,
-                    CatalogFilterResponse[i].progress
-                );
-            }
-            let lastCatalogFilterResponse = CatalogFilterResponse.slice(-1)[0];
-            expect(Object.keys(lastCatalogFilterResponse.columns).length).toEqual(
-                assertItem.catalogFilterResponse[0].lengthOfColumns
+            WholeTableResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[0]);
+            wholeTableFirstChunk = WholeTableResponse[0];
+            console.log(
+                `"${assertItem.catalogFileInfoReq.name}" CatalogFilterResponse progress :`,
+                WholeTableResponse.map((response) => response.progress)
             );
-            expect(lastCatalogFilterResponse.fileid).toEqual(assertItem.catalogFilterResponse[0].fileId);
-            expect(lastCatalogFilterResponse.subsetDataSize).toEqual(
-                assertItem.catalogFilterResponse[0].subsetDataSize
+            assertCatalogFilterResponse(
+                WholeTableResponse,
+                assertItem.catalogFilterResponse[0],
+                assertItem.catalogFilterReq[0]
             );
-            expect(lastCatalogFilterResponse.subsetEndIndex).toEqual(
-                assertItem.catalogFilterResponse[0].subsetEndIndex
-            );
-            expect(lastCatalogFilterResponse.filterDataSize).toEqual(
-                assertItem.catalogFilterResponse[0].filterDataSize
-            );
-            expect(lastCatalogFilterResponse.requestEndIndex).toEqual(
-                assertItem.catalogFilterResponse[0].requestEndIndex
-            );
-            expect(lastCatalogFilterResponse.progress).toEqual(assertItem.catalogFilterResponse[0].progress);
         },
         openCatalogLargeTimeout
     );
+
+    test(`(Step 6) the progress increases and reaches 1 only in the last CatalogFilterResponse | `, () => {
+        const progresses = WholeTableResponse.map((response) => response.progress);
+        progresses.slice(0, -1).forEach((progress, i) => {
+            expect(progress).toBeGreaterThan(0);
+            expect(progress).toBeLessThan(1);
+            expect(progresses[i + 1]).toBeGreaterThan(progress);
+        });
+    });
 
     afterAll(() => msgController.closeConnection());
 });
@@ -408,34 +478,50 @@ describe('Test for large-size CATALOG: Progressive load of rows', () => {
         openCatalogLargeTimeout
     );
 
+    let ProgressiveWindows: CARTA.ICatalogFilterResponse[] = [];
     for (let i = 1; i < 4; i++) {
         test(
             `(Step 6-${i - 1}) Request CatalogFilter: subsetStartIndex of ${assertItem.catalogFilterReq[i].subsetStartIndex} & check CatalogFilterResponse | `,
             async () => {
-                await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[i]);
-                let CatalogFilterResponse = await Stream(CARTA.CatalogFilterResponse);
-                let lastCatalogFilterResponse = CatalogFilterResponse.slice(-1)[0];
-                expect(Object.keys(lastCatalogFilterResponse.columns).length).toEqual(
-                    assertItem.catalogFilterResponse[i].lengthOfColumns
+                const CatalogFilterResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[i]);
+                ProgressiveWindows[i] = CatalogFilterResponse[0];
+                assertCatalogFilterResponse(
+                    CatalogFilterResponse,
+                    assertItem.catalogFilterResponse[i],
+                    assertItem.catalogFilterReq[i]
                 );
-                expect(lastCatalogFilterResponse.fileid).toEqual(assertItem.catalogFilterResponse[i].fileId);
-                expect(lastCatalogFilterResponse.subsetDataSize).toEqual(
-                    assertItem.catalogFilterResponse[i].subsetDataSize
+                // A window ends where the request asked it to, whatever its start index is
+                expect(CatalogFilterResponse[0].subsetEndIndex).toEqual(
+                    assertItem.catalogFilterReq[i].subsetStartIndex + assertItem.catalogFilterReq[i].subsetDataSize
                 );
-                expect(lastCatalogFilterResponse.subsetEndIndex).toEqual(
-                    assertItem.catalogFilterResponse[i].subsetEndIndex
-                );
-                expect(lastCatalogFilterResponse.filterDataSize).toEqual(
-                    assertItem.catalogFilterResponse[i].filterDataSize
-                );
-                expect(lastCatalogFilterResponse.requestEndIndex).toEqual(
-                    assertItem.catalogFilterResponse[i].requestEndIndex
-                );
-                expect(lastCatalogFilterResponse.progress).toEqual(assertItem.catalogFilterResponse[i].progress);
+                // Paging through the table does not change the number of rows it holds
+                expect(CatalogFilterResponse[0].filterDataSize).toEqual(assertItem.openCatalogFileAck.dataSize);
             },
             openCatalogLargeTimeout
         );
     }
+
+    test(`(Step 6) each window returns the rows the whole table load returned at the same position | `, () => {
+        expect(wholeTableFirstChunk).toBeDefined();
+        const wholeTableStartIndex = assertItem.catalogFilterReq[0].subsetStartIndex;
+        for (let i = 1; i < 4; i++) {
+            const request = assertItem.catalogFilterReq[i];
+            const offset = request.subsetStartIndex - wholeTableStartIndex;
+            Object.keys(ProgressiveWindows[i].columns).forEach((key) => {
+                expect(columnSlice(ProgressiveWindows[i].columns[key], 0, request.subsetDataSize)).toEqual(
+                    columnSlice(wholeTableFirstChunk.columns[key], offset, request.subsetDataSize)
+                );
+            });
+        }
+    });
+
+    test(`(Step 6) the three windows return three different sets of rows | `, () => {
+        const firstColumnKey = Object.keys(ProgressiveWindows[1].columns)[0];
+        const windowRows = [1, 2, 3].map((i) =>
+            JSON.stringify(columnSlice(ProgressiveWindows[i].columns[firstColumnKey], 0, 50))
+        );
+        expect(new Set(windowRows).size).toEqual(windowRows.length);
+    });
 
     afterAll(() => msgController.closeConnection());
 });

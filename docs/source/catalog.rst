@@ -389,10 +389,15 @@ This test verifies catalog operations with a large VOTable catalog (COSMOSOPTCAT
      subset_data_size = 918777
      subset_start_index = 50
 
-:red-text:`Check 3:` the CATALOG_FILTER_RESPONSE should satisfy:
+   The 918,777 requested rows exceed the 100000 rows the backend puts in one message, so they
+   are streamed as 10 CATALOG_FILTER_RESPONSE messages.
+
+:red-text:`Check 3:` the streamed CATALOG_FILTER_RESPONSE should satisfy:
 
    - Should arrive within 100000 ms
-   - subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827, progress = 1
+   - Exactly 10 messages are streamed, and the progress increases from message to message and equals 1 only in the last one
+   - Last message: subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827, progress = 1
+   - Every column of a message holds one value per row of its subsetDataSize
 
 **Part 2: Progressive load of rows**
 
@@ -411,7 +416,11 @@ This test verifies catalog operations with a large VOTable catalog (COSMOSOPTCAT
    - Request 1: subsetDataSize = 50, subsetEndIndex = 100, filterDataSize = 918827
    - Request 2: subsetDataSize = 50, subsetEndIndex = 150, filterDataSize = 918827
    - Request 3: subsetDataSize = 50, subsetEndIndex = 200, filterDataSize = 918827
-   - All with progress = 1
+   - All with progress = 1, in a single message, since a window of 50 rows fits in one message
+
+   - A window ends at subset_start_index + subset_data_size, and filterDataSize stays at the 918827 rows of the table, so paging through the table does not change the number of rows it reports
+
+   - The three windows return three different sets of rows, and each window returns exactly the rows which the whole table load of part 1 returned at the same position in the table. This is what makes progressive loading equivalent to loading the table at one time
 
 IMPORT_MULTIPLE_CATALOG
 ~~~~~~~~~~~~~~~~~~~~~~~
