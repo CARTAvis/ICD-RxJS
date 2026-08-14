@@ -217,7 +217,7 @@ CATALOG_FITS_VOT
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CATALOG_FITS_VOT.test.ts>`__.
 
-This test verifies catalog operations for both FITS and VOTable catalog formats using a large catalog (COSMOSOPTCAT with 918,827 entries), comparing results between the two formats.
+This test verifies catalog operations for both FITS and VOTable catalog formats using a large catalog (COSMOSOPTCAT with 918,827 entries), comparing results between the two formats. The same table is stored in both formats, so the two runs differ only in the file type and the file size, and every other part of the response has to agree.
 
 **For each catalog format (COSMOSOPTCAT.fits and COSMOSOPTCAT.vot):**
 
@@ -269,8 +269,12 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
 
 :red-text:`Check 3:` the CATALOG_FILE_INFO_RESPONSE should satisfy:
 
-   - COSMOSOPTCAT.fits: success = True, file_size = 444729600, description = "Count: 918827", headers length = 62
-   - COSMOSOPTCAT.vot: success = True, file_size = 1631311089, description = "Count: 918827", headers length = 62
+   - COSMOSOPTCAT.fits: success = True, file_info.type = FITSTable, file_size = 444729600, headers length = 62
+   - COSMOSOPTCAT.vot: success = True, file_info.type = VOTable, file_size = 1631311089, headers length = 62
+
+   - file_info.description reports the file name, "Column Count: 62" and "Row Count: 918827"
+
+   - the headers describe every column exactly once: their column_index values cover 0 to 61, each header has a non-empty name, and none has an UnsupportedType data type
 
 7. Frontend sends: **OPEN_CATALOG_FILE** (``OpenCatalogFile``)
 
@@ -286,6 +290,9 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
 
    - Should arrive within 100000 ms
    - Both formats: success = True, data_size = 918827, headers length = 62
+   - COSMOSOPTCAT.fits: file_id = 1, file_info.type = FITSTable; COSMOSOPTCAT.vot: file_id = 2, file_info.type = VOTable
+
+   - preview_data has one entry per column (62), and every entry holds preview_data_size (50) rows
 
 9. Frontend sends: **CATALOG_FILTER_REQUEST** (``CatalogFilterRequest``) to retrieve remaining rows
 
@@ -296,13 +303,25 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
      subset_data_size = 918777
      subset_start_index = 50
 
-10. Backend returns: **CATALOG_FILTER_RESPONSE** (``CatalogFilterResponse``)
+10. Backend streams: **CATALOG_FILTER_RESPONSE** (``CatalogFilterResponse``)
 
-:red-text:`Check 5:` the CATALOG_FILTER_RESPONSE should satisfy:
+    The requested subset is not returned in one message. The backend splits it into chunks of at
+    most 100000 rows, so the 918777 requested rows arrive as 10 messages: nine of 100000 rows and a
+    final one of 18777 rows.
+
+:red-text:`Check 5:` the streamed CATALOG_FILTER_RESPONSE should satisfy:
 
     - Should arrive within 100000 ms
-    - Length of columns = 10, progress = 1
-    - subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827
+
+    - Exactly 10 messages are streamed
+
+    - Every message: file_id = 1 / 2, filter_data_size = 918827, request_end_index = 918827, and the columns are keyed by the requested column_indices [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    - The chunks cover the requested subset without a gap or an overlap: each message begins where the previous one ended, subset_end_index - subset_data_size gives its first row, and every column in it carries subset_data_size rows
+
+    - The progress increases from message to message, stays below 1 until the last message, and equals 1 only in the last one
+
+    - Last message: subset_data_size = 18777, subset_end_index = 918827
 
 CATALOG_LARGE
 ~~~~~~~~~~~~~

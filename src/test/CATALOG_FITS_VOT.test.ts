@@ -12,15 +12,44 @@ let openCatalogLargeTimeout: number = config.timeout.openCatalogLarge;
 
 interface ICatalogFileInfoResponseExt extends CARTA.ICatalogFileInfoResponse {
     lengthOfHeaders: number;
+    descriptionKeywords: string[];
 }
 
 interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
     lengthOfHeaders: number;
+    lengthOfPreviewData: number;
 }
 
 interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
     lengthOfColumns: number;
-    fileid: number;
+    // The backend streams the requested subset in chunks of TableController's max_chunk_size
+    maxChunkSize: number;
+    numberOfResponses: number;
+}
+
+// ColumnData carries every type other than String as binary, so the number of rows in a
+// column has to be derived from the byte length of its payload.
+const bytesPerElement = new Map<CARTA.ColumnType, number>([
+    [CARTA.ColumnType.Uint8, 1],
+    [CARTA.ColumnType.Int8, 1],
+    [CARTA.ColumnType.Bool, 1],
+    [CARTA.ColumnType.Uint16, 2],
+    [CARTA.ColumnType.Int16, 2],
+    [CARTA.ColumnType.Uint32, 4],
+    [CARTA.ColumnType.Int32, 4],
+    [CARTA.ColumnType.Float, 4],
+    [CARTA.ColumnType.Uint64, 8],
+    [CARTA.ColumnType.Int64, 8],
+    [CARTA.ColumnType.Double, 8],
+]);
+
+function columnRowCount(column: CARTA.IColumnData): number {
+    if (column.dataType === CARTA.ColumnType.String) {
+        return column.stringData!.length;
+    }
+    const elementSize = bytesPerElement.get(column.dataType!)!;
+    expect(elementSize).toBeDefined();
+    return column.binaryData!.length / elementSize;
 }
 
 interface AssertItem {
@@ -107,29 +136,35 @@ let assertItem: AssertItem = {
         {
             fileInfo: {
                 name: 'COSMOSOPTCAT.fits',
+                type: CARTA.CatalogFileType.FITSTable,
                 fileSize: 444729600,
-                description: 'Count: 918827',
             },
             success: true,
             lengthOfHeaders: 62,
+            descriptionKeywords: ['Name: COSMOSOPTCAT.fits', 'Column Count: 62', 'Row Count: 918827'],
         },
         {
             fileInfo: {
                 name: 'COSMOSOPTCAT.vot',
-                type: 1,
+                type: CARTA.CatalogFileType.VOTable,
                 fileSize: 1631311089,
-                description: 'Count: 918827',
             },
             success: true,
             lengthOfHeaders: 62,
+            descriptionKeywords: ['Name: COSMOSOPTCAT.vot', 'Column Count: 62', 'Row Count: 918827'],
         },
     ],
     openCatalogFileAck: [
         {
             dataSize: 918827,
             fileId: 1,
-            fileInfo: { name: 'COSMOSOPTCAT.fits', fileSize: 444729600 },
+            fileInfo: {
+                name: 'COSMOSOPTCAT.fits',
+                type: CARTA.CatalogFileType.FITSTable,
+                fileSize: 444729600,
+            },
             lengthOfHeaders: 62,
+            lengthOfPreviewData: 62,
             success: true,
         },
         {
@@ -137,10 +172,11 @@ let assertItem: AssertItem = {
             fileId: 2,
             fileInfo: {
                 name: 'COSMOSOPTCAT.vot',
-                type: 1,
+                type: CARTA.CatalogFileType.VOTable,
                 fileSize: 1631311089,
             },
             lengthOfHeaders: 62,
+            lengthOfPreviewData: 62,
             success: true,
         },
     ],
@@ -171,7 +207,9 @@ let assertItem: AssertItem = {
     catalogFilterResponse: [
         {
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 1,
+            maxChunkSize: 100000,
+            numberOfResponses: 10,
             subsetDataSize: 18777,
             subsetEndIndex: 918827,
             filterDataSize: 918827,
@@ -180,7 +218,9 @@ let assertItem: AssertItem = {
         },
         {
             lengthOfColumns: 10,
-            fileid: 1,
+            fileId: 2,
+            maxChunkSize: 100000,
+            numberOfResponses: 10,
             subsetDataSize: 18777,
             subsetEndIndex: 918827,
             filterDataSize: 918827,
@@ -264,30 +304,43 @@ assertItem.catalogFileInfoReq.map((data, index) => {
             );
         });
 
+        let CatalogFileInfoAck: CARTA.ICatalogFileInfoResponse;
         test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
-            let CatalogFileInfoAck = await msgController.getCatalogFileInfo(
+            CatalogFileInfoAck = await msgController.getCatalogFileInfo(
                 assertItem.catalogFileInfoReq[index].directory,
                 assertItem.catalogFileInfoReq[index].name
             );
             expect(CatalogFileInfoAck.success).toEqual(assertItem.catalogFileInfoResponse[index].success);
             expect(CatalogFileInfoAck.fileInfo.name).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.name);
-            if (CatalogFileInfoAck.fileInfo.type) {
-                expect(CatalogFileInfoAck.fileInfo.type).toEqual(
-                    assertItem.catalogFileInfoResponse[index].fileInfo.type
-                );
-            }
+            // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
+            expect(CatalogFileInfoAck.fileInfo.type).toEqual(assertItem.catalogFileInfoResponse[index].fileInfo.type);
             expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(
                 assertItem.catalogFileInfoResponse[index].fileInfo.fileSize
             );
+            assertItem.catalogFileInfoResponse[index].descriptionKeywords.forEach((keyword) => {
+                expect(CatalogFileInfoAck.fileInfo.description).toContain(keyword);
+            });
             expect(CatalogFileInfoAck.headers.length).toEqual(
                 assertItem.catalogFileInfoResponse[index].lengthOfHeaders
             );
         });
 
+        test(`(Step 4) CATALOG_FILE_INFO_RESPONSE.headers describe every column once | `, () => {
+            const columnIndices = CatalogFileInfoAck.headers.map((header) => header.columnIndex);
+            expect(columnIndices.slice().sort((a, b) => a - b)).toEqual(
+                Array.from({ length: assertItem.catalogFileInfoResponse[index].lengthOfHeaders }, (_, i) => i)
+            );
+            CatalogFileInfoAck.headers.forEach((header) => {
+                expect(header.name).not.toEqual('');
+                expect(header.dataType).not.toEqual(CARTA.ColumnType.UnsupportedType);
+            });
+        });
+
+        let CatalogFileAck: CARTA.IOpenCatalogFileAck;
         test(
             `(Step 5) Request CatalogFile & check CatalogFileAck | `,
             async () => {
-                let CatalogFileAck = await msgController.loadCatalogFile(
+                CatalogFileAck = await msgController.loadCatalogFile(
                     assertItem.openCatalogFile[index].directory,
                     assertItem.openCatalogFile[index].name,
                     assertItem.openCatalogFile[index].fileId,
@@ -297,9 +350,8 @@ assertItem.catalogFileInfoReq.map((data, index) => {
                 expect(CatalogFileAck.dataSize).toEqual(assertItem.openCatalogFileAck[index].dataSize);
                 expect(CatalogFileAck.fileId).toEqual(assertItem.openCatalogFileAck[index].fileId);
                 expect(CatalogFileAck.fileInfo.name).toEqual(assertItem.openCatalogFileAck[index].fileInfo.name);
-                if (CatalogFileAck.fileInfo.type) {
-                    expect(CatalogFileAck.fileInfo.type).toEqual(assertItem.openCatalogFileAck[index].fileInfo.type);
-                }
+                // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
+                expect(CatalogFileAck.fileInfo.type).toEqual(assertItem.openCatalogFileAck[index].fileInfo.type);
                 expect(CatalogFileAck.fileInfo.fileSize.low).toEqual(
                     assertItem.openCatalogFileAck[index].fileInfo.fileSize
                 );
@@ -308,38 +360,84 @@ assertItem.catalogFileInfoReq.map((data, index) => {
             openCatalogLargeTimeout
         );
 
+        test(`(Step 5) OPEN_CATALOG_FILE_ACK.preview_data holds ${assertItem.openCatalogFile[0].previewDataSize} rows of every column | `, () => {
+            const previewData = CatalogFileAck.previewData;
+            expect(Object.keys(previewData).length).toEqual(assertItem.openCatalogFileAck[index].lengthOfPreviewData);
+            Object.keys(previewData).forEach((key) => {
+                expect(columnRowCount(previewData[key])).toEqual(assertItem.openCatalogFile[index].previewDataSize);
+            });
+        });
+
+        let CatalogFilterResponse: CARTA.ICatalogFilterResponse[];
         test(
-            `(Step 6) Request CatalogFilter: Sorting & check CatalogFilterResponse | `,
+            `(Step 6) Request CatalogFilter & receive ${assertItem.catalogFilterResponse[0].numberOfResponses} streamed CatalogFilterResponse | `,
             async () => {
-                await msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[index]);
-                let CatalogFilterResponse = await Stream(CARTA.CatalogFilterResponse);
-                for (let i = 0; i < CatalogFilterResponse.length; i++) {
-                    console.log(
-                        `"${assertItem.catalogFileInfoReq[index].name}" CatalogFilterResponse progress :`,
-                        CatalogFilterResponse[i].progress
-                    );
-                }
-                let lastCatalogFilterResponse = CatalogFilterResponse.slice(-1)[0];
-                expect(Object.keys(lastCatalogFilterResponse.columns).length).toEqual(
-                    assertItem.catalogFilterResponse[index].lengthOfColumns
+                // The stream has to be subscribed before the request is sent, otherwise the
+                // first chunks are dropped and only the tail of the stream is asserted.
+                const catalogFilterStream = Stream(CARTA.CatalogFilterResponse);
+                msgController.setCatalogFilterRequest(assertItem.catalogFilterReq[index]);
+                CatalogFilterResponse = await catalogFilterStream;
+                console.log(
+                    `"${assertItem.catalogFileInfoReq[index].name}" CatalogFilterResponse progress :`,
+                    CatalogFilterResponse.map((response) => response.progress)
                 );
-                expect(lastCatalogFilterResponse.fileid).toEqual(assertItem.catalogFilterResponse[index].fileId);
-                expect(lastCatalogFilterResponse.subsetDataSize).toEqual(
-                    assertItem.catalogFilterResponse[index].subsetDataSize
-                );
-                expect(lastCatalogFilterResponse.subsetEndIndex).toEqual(
-                    assertItem.catalogFilterResponse[index].subsetEndIndex
-                );
-                expect(lastCatalogFilterResponse.filterDataSize).toEqual(
-                    assertItem.catalogFilterResponse[index].filterDataSize
-                );
-                expect(lastCatalogFilterResponse.requestEndIndex).toEqual(
-                    assertItem.catalogFilterResponse[index].requestEndIndex
-                );
-                expect(lastCatalogFilterResponse.progress).toEqual(assertItem.catalogFilterResponse[index].progress);
+                expect(CatalogFilterResponse.length).toEqual(assertItem.catalogFilterResponse[index].numberOfResponses);
             },
             openCatalogLargeTimeout
         );
+
+        test(`(Step 6) every CatalogFilterResponse reports the requested catalog and the whole filtered table | `, () => {
+            CatalogFilterResponse.forEach((response) => {
+                expect(response.fileId).toEqual(assertItem.catalogFilterResponse[index].fileId);
+                expect(response.filterDataSize).toEqual(assertItem.catalogFilterResponse[index].filterDataSize);
+                expect(response.requestEndIndex).toEqual(assertItem.catalogFilterResponse[index].requestEndIndex);
+                expect(Object.keys(response.columns)).toEqual(
+                    assertItem.catalogFilterReq[index].columnIndices.map((columnIndex) => `${columnIndex}`)
+                );
+            });
+        });
+
+        test(`(Step 6) the streamed chunks cover the requested subset without a gap or an overlap | `, () => {
+            const maxChunkSize = assertItem.catalogFilterResponse[index].maxChunkSize;
+            let expectedStartIndex = assertItem.catalogFilterReq[index].subsetStartIndex;
+            let remainingRows = assertItem.catalogFilterReq[index].subsetDataSize;
+            CatalogFilterResponse.forEach((response) => {
+                const expectedChunkSize = Math.min(maxChunkSize, remainingRows);
+                expect(response.subsetDataSize).toEqual(expectedChunkSize);
+                // The frontend derives the row offset of a chunk from these two fields, so a
+                // chunk has to continue exactly where the previous one ended.
+                expect(response.subsetEndIndex - response.subsetDataSize).toEqual(expectedStartIndex);
+                Object.keys(response.columns).forEach((key) => {
+                    expect(columnRowCount(response.columns[key])).toEqual(expectedChunkSize);
+                });
+                expectedStartIndex += expectedChunkSize;
+                remainingRows -= expectedChunkSize;
+            });
+            expect(remainingRows).toEqual(0);
+        });
+
+        test(`(Step 6) the progress increases and reaches 1 only in the last CatalogFilterResponse | `, () => {
+            const progresses = CatalogFilterResponse.map((response) => response.progress);
+            progresses.slice(0, -1).forEach((progress, i) => {
+                expect(progress).toBeGreaterThan(0);
+                expect(progress).toBeLessThan(1);
+                expect(progresses[i + 1]).toBeGreaterThan(progress);
+            });
+            expect(progresses.slice(-1)[0]).toEqual(assertItem.catalogFilterResponse[index].progress);
+        });
+
+        test(`(Step 6) the last CatalogFilterResponse ends the requested subset | `, () => {
+            const lastCatalogFilterResponse = CatalogFilterResponse.slice(-1)[0];
+            expect(Object.keys(lastCatalogFilterResponse.columns).length).toEqual(
+                assertItem.catalogFilterResponse[index].lengthOfColumns
+            );
+            expect(lastCatalogFilterResponse.subsetDataSize).toEqual(
+                assertItem.catalogFilterResponse[index].subsetDataSize
+            );
+            expect(lastCatalogFilterResponse.subsetEndIndex).toEqual(
+                assertItem.catalogFilterResponse[index].subsetEndIndex
+            );
+        });
 
         afterAll(() => msgController.closeConnection());
     });
