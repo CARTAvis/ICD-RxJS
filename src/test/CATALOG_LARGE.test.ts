@@ -1,5 +1,11 @@
 import { CARTA } from 'carta-protobuf';
-import { Stream } from './MyClient';
+import {
+    Stream,
+    columnSlice,
+    assertCatalogFilterResponse,
+    requestCatalogFilter,
+    ICatalogFilterResponseExt,
+} from './MyClient';
 import { MessageController, ConnectionStatus } from './MessageController';
 import config from './config.json';
 
@@ -16,76 +22,6 @@ interface ICatalogFileInfoResponseExt extends CARTA.ICatalogFileInfoResponse {
 
 interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
     lengthOfHeaders: number;
-}
-
-interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
-    lengthOfColumns: number;
-    numberOfResponses: number;
-}
-
-// ColumnData carries every type other than String as binary, so a row of a column is a
-// fixed number of bytes rather than an element of an array.
-const bytesPerElement = new Map<CARTA.ColumnType, number>([
-    [CARTA.ColumnType.Uint8, 1],
-    [CARTA.ColumnType.Int8, 1],
-    [CARTA.ColumnType.Bool, 1],
-    [CARTA.ColumnType.Uint16, 2],
-    [CARTA.ColumnType.Int16, 2],
-    [CARTA.ColumnType.Uint32, 4],
-    [CARTA.ColumnType.Int32, 4],
-    [CARTA.ColumnType.Float, 4],
-    [CARTA.ColumnType.Uint64, 8],
-    [CARTA.ColumnType.Int64, 8],
-    [CARTA.ColumnType.Double, 8],
-]);
-
-// Rows are compared as raw payload, which works for every column type without having to
-// decode it. ProtobufProcessing cannot be used here because it needs the CARTACompute
-// WASM global for the 64 bit types.
-function columnSlice(column: CARTA.IColumnData, startRow: number, rowCount: number): (string | number)[] {
-    if (column.dataType === CARTA.ColumnType.String) {
-        return column.stringData!.slice(startRow, startRow + rowCount);
-    }
-    const elementSize = bytesPerElement.get(column.dataType!)!;
-    return Array.from(column.binaryData!.slice(startRow * elementSize, (startRow + rowCount) * elementSize));
-}
-
-function columnRowCount(column: CARTA.IColumnData): number {
-    if (column.dataType === CARTA.ColumnType.String) {
-        return column.stringData!.length;
-    }
-    return column.binaryData!.length / bytesPerElement.get(column.dataType!)!;
-}
-
-function assertCatalogFilterResponse(
-    responses: CARTA.ICatalogFilterResponse[],
-    expected: ICatalogFilterResponseExt,
-    request: CARTA.ICatalogFilterRequest
-) {
-    expect(responses.length).toEqual(expected.numberOfResponses);
-    const lastResponse = responses.slice(-1)[0];
-    expect(lastResponse.fileId).toEqual(expected.fileId);
-    expect(Object.keys(lastResponse.columns).length).toEqual(expected.lengthOfColumns);
-    expect(Object.keys(lastResponse.columns)).toEqual(request.columnIndices.map((columnIndex) => `${columnIndex}`));
-    expect(lastResponse.subsetDataSize).toEqual(expected.subsetDataSize);
-    expect(lastResponse.subsetEndIndex).toEqual(expected.subsetEndIndex);
-    expect(lastResponse.filterDataSize).toEqual(expected.filterDataSize);
-    expect(lastResponse.requestEndIndex).toEqual(expected.requestEndIndex);
-    expect(lastResponse.progress).toEqual(expected.progress);
-    Object.keys(lastResponse.columns).forEach((key) => {
-        expect(columnRowCount(lastResponse.columns[key])).toEqual(expected.subsetDataSize);
-    });
-}
-
-function requestCatalogFilter(
-    msgController: MessageController,
-    filterRequest: CARTA.ICatalogFilterRequest
-): Promise<CARTA.ICatalogFilterResponse[]> {
-    // The stream has to be subscribed before the request is sent, otherwise the first
-    // responses are dropped.
-    const catalogFilterStream = Stream(CARTA.CatalogFilterResponse);
-    msgController.setCatalogFilterRequest(filterRequest);
-    return catalogFilterStream;
 }
 
 interface AssertItem {
@@ -362,7 +298,7 @@ describe('Test for large-size CATALOG: load whole table at one time', () => {
     test(
         `(Step 6) Request CatalogFilter: progress & check CatalogFilterResponse | `,
         async () => {
-            WholeTableResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[0]);
+            WholeTableResponse = await requestCatalogFilter(assertItem.catalogFilterReq[0]);
             wholeTableFirstChunk = WholeTableResponse[0];
             console.log(
                 `"${assertItem.catalogFileInfoReq.name}" CatalogFilterResponse progress :`,
@@ -483,7 +419,7 @@ describe('Test for large-size CATALOG: Progressive load of rows', () => {
         test(
             `(Step 6-${i - 1}) Request CatalogFilter: subsetStartIndex of ${assertItem.catalogFilterReq[i].subsetStartIndex} & check CatalogFilterResponse | `,
             async () => {
-                const CatalogFilterResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[i]);
+                const CatalogFilterResponse = await requestCatalogFilter(assertItem.catalogFilterReq[i]);
                 ProgressiveWindows[i] = CatalogFilterResponse[0];
                 assertCatalogFilterResponse(
                     CatalogFilterResponse,

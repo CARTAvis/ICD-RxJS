@@ -1,5 +1,14 @@
 import { CARTA } from 'carta-protobuf';
-import { checkConnection, Stream } from './MyClient';
+import {
+    checkConnection,
+    Stream,
+    columnRowCount,
+    stringColumn,
+    doubleColumn,
+    assertCatalogFilterResponse,
+    requestCatalogFilter,
+    ICatalogFilterResponseExt,
+} from './MyClient';
 import { MessageController } from './MessageController';
 import config from './config.json';
 
@@ -17,44 +26,6 @@ interface ICatalogFileInfoResponseExt extends CARTA.ICatalogFileInfoResponse {
 interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
     lengthOfHeaders: number;
     lengthOfPreviewData: number;
-}
-
-interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
-    lengthOfColumns: number;
-    numberOfResponses: number;
-}
-
-// ColumnData carries every type other than String as binary, so the number of rows in a
-// column has to be derived from the byte length of its payload.
-const bytesPerElement = new Map<CARTA.ColumnType, number>([
-    [CARTA.ColumnType.Uint8, 1],
-    [CARTA.ColumnType.Int8, 1],
-    [CARTA.ColumnType.Bool, 1],
-    [CARTA.ColumnType.Uint16, 2],
-    [CARTA.ColumnType.Int16, 2],
-    [CARTA.ColumnType.Uint32, 4],
-    [CARTA.ColumnType.Int32, 4],
-    [CARTA.ColumnType.Float, 4],
-    [CARTA.ColumnType.Uint64, 8],
-    [CARTA.ColumnType.Int64, 8],
-    [CARTA.ColumnType.Double, 8],
-]);
-
-function columnRowCount(column: CARTA.IColumnData): number {
-    if (column.dataType === CARTA.ColumnType.String) {
-        return column.stringData!.length;
-    }
-    return column.binaryData!.length / bytesPerElement.get(column.dataType!)!;
-}
-
-function stringColumn(column: CARTA.IColumnData): string[] {
-    expect(column.dataType).toEqual(CARTA.ColumnType.String);
-    return column.stringData!;
-}
-
-function doubleColumn(column: CARTA.IColumnData): number[] {
-    expect(column.dataType).toEqual(CARTA.ColumnType.Double);
-    return Array.from(new Float64Array(column.binaryData!.slice().buffer));
 }
 
 interface AssertItem {
@@ -253,37 +224,6 @@ let assertItem: AssertItem = {
     ],
 };
 
-function assertCatalogFilterResponse(
-    responses: CARTA.ICatalogFilterResponse[],
-    expected: ICatalogFilterResponseExt,
-    requestedColumnIndices: number[]
-) {
-    expect(responses.length).toEqual(expected.numberOfResponses);
-    const response = responses[0];
-    expect(response.fileId).toEqual(expected.fileId);
-    expect(Object.keys(response.columns).length).toEqual(expected.lengthOfColumns);
-    expect(Object.keys(response.columns)).toEqual(requestedColumnIndices.map((columnIndex) => `${columnIndex}`));
-    expect(response.subsetDataSize).toEqual(expected.subsetDataSize);
-    expect(response.subsetEndIndex).toEqual(expected.subsetEndIndex);
-    expect(response.filterDataSize).toEqual(expected.filterDataSize);
-    expect(response.requestEndIndex).toEqual(expected.requestEndIndex);
-    expect(response.progress).toEqual(expected.progress);
-    Object.keys(response.columns).forEach((key) => {
-        expect(columnRowCount(response.columns[key])).toEqual(expected.subsetDataSize);
-    });
-}
-
-function requestCatalogFilter(
-    msgController: MessageController,
-    filterRequest: CARTA.ICatalogFilterRequest
-): Promise<CARTA.ICatalogFilterResponse[]> {
-    // The stream has to be subscribed before the request is sent, otherwise the response
-    // is dropped and the promise never settles.
-    const catalogFilterStream = Stream(CARTA.CatalogFilterResponse);
-    msgController.setCatalogFilterRequest(filterRequest);
-    return catalogFilterStream;
-}
-
 let basepath: string;
 describe('Test for general CATALOG related messages:', () => {
     const msgController = MessageController.Instance;
@@ -418,11 +358,11 @@ describe('Test for general CATALOG related messages:', () => {
 
         let SortedResponse: CARTA.ICatalogFilterResponse[];
         test(`(Step 6) Request CatalogFilter: Sorting & check CatalogFilterResponse | `, async () => {
-            SortedResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[0]);
+            SortedResponse = await requestCatalogFilter(assertItem.catalogFilterReq[0]);
             assertCatalogFilterResponse(
                 SortedResponse,
                 assertItem.catalogFilterResponse[0],
-                assertItem.catalogFilterReq[0].columnIndices
+                assertItem.catalogFilterReq[0]
             );
         });
 
@@ -434,11 +374,11 @@ describe('Test for general CATALOG related messages:', () => {
 
         let NumberFilteredResponse: CARTA.ICatalogFilterResponse[];
         test(`(Step 7) Request CatalogFilter: Filter(number) & check CatalogFilterResponse | `, async () => {
-            NumberFilteredResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[1]);
+            NumberFilteredResponse = await requestCatalogFilter(assertItem.catalogFilterReq[1]);
             assertCatalogFilterResponse(
                 NumberFilteredResponse,
                 assertItem.catalogFilterResponse[1],
-                assertItem.catalogFilterReq[1].columnIndices
+                assertItem.catalogFilterReq[1]
             );
         });
 
@@ -458,11 +398,11 @@ describe('Test for general CATALOG related messages:', () => {
 
         let StringFilteredResponse: CARTA.ICatalogFilterResponse[];
         test(`(Step 8) Request CatalogFilter: Filter(string) & check CatalogFilterResponse | `, async () => {
-            StringFilteredResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[2]);
+            StringFilteredResponse = await requestCatalogFilter(assertItem.catalogFilterReq[2]);
             assertCatalogFilterResponse(
                 StringFilteredResponse,
                 assertItem.catalogFilterResponse[2],
-                assertItem.catalogFilterReq[2].columnIndices
+                assertItem.catalogFilterReq[2]
             );
         });
 
@@ -482,11 +422,11 @@ describe('Test for general CATALOG related messages:', () => {
 
         let SortedAndFilteredResponse: CARTA.ICatalogFilterResponse[];
         test(`(Step 9) Request CatalogFilter: Sorting when Filter(string+number) is applied & check CatalogFilterResponse | `, async () => {
-            SortedAndFilteredResponse = await requestCatalogFilter(msgController, assertItem.catalogFilterReq[3]);
+            SortedAndFilteredResponse = await requestCatalogFilter(assertItem.catalogFilterReq[3]);
             assertCatalogFilterResponse(
                 SortedAndFilteredResponse,
                 assertItem.catalogFilterResponse[3],
-                assertItem.catalogFilterReq[3].columnIndices
+                assertItem.catalogFilterReq[3]
             );
         });
 

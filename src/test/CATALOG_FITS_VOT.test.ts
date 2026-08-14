@@ -1,5 +1,5 @@
 import { CARTA } from 'carta-protobuf';
-import { Stream } from './MyClient';
+import { Stream, columnRowCount, ICatalogFilterResponseExt } from './MyClient';
 import { MessageController, ConnectionStatus } from './MessageController';
 import config from './config.json';
 
@@ -20,36 +20,9 @@ interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
     lengthOfPreviewData: number;
 }
 
-interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
-    lengthOfColumns: number;
+interface ICatalogFilterResponseExtLocal extends ICatalogFilterResponseExt {
     // The backend streams the requested subset in chunks of TableController's max_chunk_size
     maxChunkSize: number;
-    numberOfResponses: number;
-}
-
-// ColumnData carries every type other than String as binary, so the number of rows in a
-// column has to be derived from the byte length of its payload.
-const bytesPerElement = new Map<CARTA.ColumnType, number>([
-    [CARTA.ColumnType.Uint8, 1],
-    [CARTA.ColumnType.Int8, 1],
-    [CARTA.ColumnType.Bool, 1],
-    [CARTA.ColumnType.Uint16, 2],
-    [CARTA.ColumnType.Int16, 2],
-    [CARTA.ColumnType.Uint32, 4],
-    [CARTA.ColumnType.Int32, 4],
-    [CARTA.ColumnType.Float, 4],
-    [CARTA.ColumnType.Uint64, 8],
-    [CARTA.ColumnType.Int64, 8],
-    [CARTA.ColumnType.Double, 8],
-]);
-
-function columnRowCount(column: CARTA.IColumnData): number {
-    if (column.dataType === CARTA.ColumnType.String) {
-        return column.stringData!.length;
-    }
-    const elementSize = bytesPerElement.get(column.dataType!)!;
-    expect(elementSize).toBeDefined();
-    return column.binaryData!.length / elementSize;
 }
 
 interface AssertItem {
@@ -66,7 +39,7 @@ interface AssertItem {
     openCatalogFile: CARTA.IOpenCatalogFile[];
     openCatalogFileAck: IOpenCatalogFileAckExt[];
     catalogFilterReq: CARTA.ICatalogFilterRequest[];
-    catalogFilterResponse: ICatalogFilterResponseExt[];
+    catalogFilterResponse: ICatalogFilterResponseExtLocal[];
 }
 
 let assertItem: AssertItem = {
