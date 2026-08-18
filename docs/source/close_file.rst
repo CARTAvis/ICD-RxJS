@@ -485,7 +485,12 @@ CLOSE_FILE_MULTI_FILES
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLOSE_FILE_MULTI_FILES.test.ts>`__.
 
-This test verifies that multiple files can be closed in various orders and combinations, and that the backend remains alive and responsive after each scenario.
+This test verifies that multiple files can be closed in various orders and combinations, that closing one file leaves the
+files which are still open untouched, and that the backend remains alive and responsive after each scenario.
+
+CLOSE_FILE is not acknowledged in the ICD, so a closed file is probed with a **SET_SPATIAL_REQUIREMENTS** naming it. A file
+which is still open answers with **SPATIAL_PROFILE_DATA**; a file which has been closed answers with **ERROR_DATA** and
+nothing else.
 
 1. Frontend sends: **OPEN_FILE** (``OpenFile``) for 3 files
 
@@ -497,44 +502,80 @@ This test verifies that multiple files can be closed in various orders and combi
 
 2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA** for each file
 
+:red-text:`Check 1:` for each of the three files:
+
+   - OPEN_FILE_ACK.success = True
+   - OPEN_FILE_ACK.file_info.name = the requested file name
+   - OPEN_FILE_ACK.file_id and REGION_HISTOGRAM_DATA.file_id = the requested file_id
+
 3. For each file: Frontend sends **ADD_REQUIRED_TILES**, **SET_CURSOR**, and **SET_SPATIAL_REQUIREMENTS**
+
+:red-text:`Check 2:` for each of the three files:
+
+   - Every RASTER_TILE_DATA and RASTER_TILE_SYNC carries the file_id of the file it was requested for
+   - The stream opens with RasterTileSync.end_sync = False and closes with RasterTileSync.end_sync = True,
+     whose tile_count = 1
+   - SPATIAL_PROFILE_DATA.file_id = the requested file_id, region_id = 0, and the profiles are the requested
+     coordinates ["x", "y"]
 
 **Case 1: Close files in reverse order (2 -> 1 -> 0)**
 
-4. Frontend sends: **CLOSE_FILE** (file_id = 2), then verifies remaining files respond to spatial requirements
+4. Frontend sends: **CLOSE_FILE** (file_id = 2)
 
-5. Frontend sends: **CLOSE_FILE** (file_id = 1), then verifies remaining file responds
+:red-text:`Check 3:` CLOSE_FILE draws no message of its own (message count stable for 500 ms)
 
-6. Frontend sends: **CLOSE_FILE** (file_id = 0)
+5. Frontend sends: **SET_SPATIAL_REQUIREMENTS** for file_id = 2, then for file_id = 0 and file_id = 1
 
-:red-text:`Check 1:` after all files closed:
+:red-text:`Check 4:` the closed file is gone and the others are unaffected:
 
-   - Backend should remain alive: FILE_LIST_RESPONSE.success = True
+   - The backend returns ERROR_DATA for file_id = 2, with severity = DEBUG, tags = ["spatial"] and
+     message = "File id 2 not found"
+   - No SPATIAL_PROFILE_DATA follows for file_id = 2 (the error is the only message received)
+   - file_id = 0 and file_id = 1 each return SPATIAL_PROFILE_DATA under their own file_id
+
+6. Frontend sends: **CLOSE_FILE** (file_id = 1)
+
+:red-text:`Check 5:` file_id = 1 now returns "File id 1 not found", while file_id = 0 still returns
+SPATIAL_PROFILE_DATA under file_id = 0
+
+7. Frontend sends: **CLOSE_FILE** (file_id = 0)
+
+:red-text:`Check 6:` file_id = 0 now returns "File id 0 not found"
+
+:red-text:`Check 7:` after all files closed:
+
+   - Backend should remain alive: FILE_LIST_RESPONSE.success = True and FILE_LIST_RESPONSE.directory
+     should contain "set_QA"
    - No additional ICD messages should arrive (message count stable for 500 ms)
 
 **Case 2: Close two files simultaneously, then close the last**
 
-7. Reopen all 3 files with the same setup
+8. Reopen all 3 files with the same setup, repeating Check 1 and Check 2
 
-8. Frontend sends: **CLOSE_FILE** (file_id = 0) and **CLOSE_FILE** (file_id = 1) simultaneously
+9. Frontend sends: **CLOSE_FILE** (file_id = 0) and **CLOSE_FILE** (file_id = 1) simultaneously
 
-:red-text:`Check 2:` after simultaneous close:
+:red-text:`Check 8:` after simultaneous close:
 
    - No additional ICD messages should arrive (message count stable for 500 ms)
+   - file_id = 0 and file_id = 1 each return their own "File id N not found" and no SPATIAL_PROFILE_DATA
+   - file_id = 2 still returns SPATIAL_PROFILE_DATA under file_id = 2
 
-9. Frontend sends: **CLOSE_FILE** (file_id = 2)
+10. Frontend sends: **CLOSE_FILE** (file_id = 2)
 
-:red-text:`Check 3:` the backend should remain alive:
+:red-text:`Check 9:` the backend should remain alive:
 
-   - FILE_LIST_RESPONSE.success = True
+    - FILE_LIST_RESPONSE.success = True
+    - file_id = 2 now returns "File id 2 not found"
+    - No additional ICD messages should arrive (message count stable for 500 ms)
 
 **Case 3: Close all three files simultaneously**
 
-10. Reopen all 3 files with the same setup
+11. Reopen all 3 files with the same setup, repeating Check 1 and Check 2
 
-11. Frontend sends: **CLOSE_FILE** for file_id = 0, 1, and 2 simultaneously
+12. Frontend sends: **CLOSE_FILE** for file_id = 0, 1, and 2 simultaneously
 
-:red-text:`Check 4:` after simultaneous close of all files:
+:red-text:`Check 10:` after simultaneous close of all files:
 
-    - Backend should remain alive: FILE_LIST_RESPONSE.success = True
     - No additional ICD messages should arrive (message count stable for 500 ms)
+    - Each of file_id = 0, 1 and 2 returns its own "File id N not found" and no SPATIAL_PROFILE_DATA
+    - Backend should remain alive: FILE_LIST_RESPONSE.success = True
