@@ -194,7 +194,26 @@ CONCAT_ERROR_MESSAGE
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CONCAT_ERROR_MESSAGE.test.ts>`__.
 
-This test verifies that attempting to concatenate incompatible Stokes images returns appropriate error messages.
+This test verifies that a **CONCAT_STOKES_FILES** request which cannot be satisfied is refused with an
+explanatory message, that the refusal costs nothing else, and that the session is unharmed by it.
+
+Every refusal travels back the same way: the backend answers with a **CONCAT_STOKES_FILES_ACK**
+carrying ``success = False`` and the reason in ``message``, and it opens no image. Because that ack is
+the whole of the answer, each case is followed by two further checks. The first watches the connection
+for 500 ms to confirm that no **REGION_HISTOGRAM_DATA** or raster data was streamed for an image which
+was never opened. The second sends a **SET_SPATIAL_REQUIREMENTS** naming the requested ``file_id``: a
+file id which is genuinely free draws ``ERROR_DATA`` reading "File id 0 not found", so this is what
+shows that the refused request left no half-opened image behind. The frontend leaves its own file
+counter unchanged when the request is rejected, so a file id which was quietly consumed would put the
+two sides out of step.
+
+The six refusals below cover every rejection ``StokesFilesConnector`` can raise for the images in
+``set_QA``. A seventh case then concatenates a valid pair to show the session still works.
+
+The test opens with **FILE_LIST_REQUEST**, first against ``$BASE`` to resolve the base path the
+Stokes file directories are then prefixed with, and again against ``set_QA`` to verify that every
+image the cases name is on disk — apart from the one Case 6 deliberately invents. Without that, any
+of the refusals below could be a missing file wearing a different case title.
 
 **Case 1: Inconsistent image shapes (Q + axis-degeneracy U)**
 
@@ -209,9 +228,17 @@ This test verifies that attempting to concatenate incompatible Stokes images ret
          {file: "IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits", polarizationType: 3}
      ]
 
-:red-text:`Check 1:` the error response should contain:
+:red-text:`Check 1:` the CONCAT_STOKES_FILES_ACK should satisfy:
 
-   - Error message containing "are not consistent!"
+   - success = False
+   - message contains "Image shapes or axes are not consistent!"
+
+:red-text:`Check 2:` no further message should arrive within 500 ms.
+
+:red-text:`Check 3:` a SET_SPATIAL_REQUIREMENTS for file_id = 0 should draw ERROR_DATA:
+
+   - severity = DEBUG, tags = ["spatial"]
+   - message = "File id 0 not found"
 
 **Case 2: Duplicate Stokes type (Q + axis-degeneracy Q)**
 
@@ -226,6 +253,123 @@ This test verifies that attempting to concatenate incompatible Stokes images ret
          {file: "IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits", polarizationType: 2}
      ]
 
-:red-text:`Check 2:` the error response should contain:
+:red-text:`Check 4:` the CONCAT_STOKES_FILES_ACK should satisfy:
 
-   - Error message containing "Duplicate Stokes type found"
+   - success = False
+   - message contains "Duplicate Stokes type found!"
+
+:red-text:`Checks 5 and 6:` as Checks 2 and 3.
+
+**Case 3: A single file, too few to concatenate**
+
+3. Frontend sends: **CONCAT_STOKES_FILES** (``ConcatStokesFiles``) within 3000 ms
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     render_mode = RASTER
+     stokes_files = [
+         {file: "IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits", polarizationType: 2}
+     ]
+
+:red-text:`Check 7:` the CONCAT_STOKES_FILES_ACK should satisfy:
+
+   - success = False
+   - message contains "Need at least two files to concatenate!"
+
+:red-text:`Checks 8 and 9:` as Checks 2 and 3.
+
+**Case 4: Mixed file types (FITS + CASA image)**
+
+4. Frontend sends: **CONCAT_STOKES_FILES** (``ConcatStokesFiles``) within 3000 ms
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     render_mode = RASTER
+     stokes_files = [
+         {file: "IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits", polarizationType: 2},
+         {file: "M17_SWex.image", polarizationType: 3}
+     ]
+
+:red-text:`Check 10:` the CONCAT_STOKES_FILES_ACK should satisfy:
+
+   - success = False
+   - message contains "Different file types can not be concatenated!"
+
+:red-text:`Checks 11 and 12:` as Checks 2 and 3.
+
+**Case 5: A hypercube with a gap in the Stokes axis (I, Q, V)**
+
+5. Frontend sends: **CONCAT_STOKES_FILES** (``ConcatStokesFiles``) within 3000 ms
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     render_mode = RASTER
+     stokes_files = [
+         {file: "IRCp10216_sci.spw0.cube.I.manual.pbcor.fits", polarizationType: 1},
+         {file: "IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits", polarizationType: 2},
+         {file: "IRCp10216_sci.spw0.cube.V.manual.pbcor.fits", polarizationType: 4}
+     ]
+
+The Stokes types are checked for contiguity only when more than two files are given. I, Q and V map to
+FITS Stokes values 1, 2 and 4, which are not evenly spaced, so the hypercube is refused by name.
+
+:red-text:`Check 13:` the CONCAT_STOKES_FILES_ACK should satisfy:
+
+   - success = False
+   - message contains "Hypercube IQV is not allowed!"
+
+:red-text:`Checks 14 and 15:` as Checks 2 and 3.
+
+**Case 6: A file which is not on disk**
+
+6. Frontend sends: **CONCAT_STOKES_FILES** (``ConcatStokesFiles``) within 3000 ms
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     render_mode = RASTER
+     stokes_files = [
+         {file: "IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits", polarizationType: 2},
+         {file: "no_such_stokes_image.fits", polarizationType: 3}
+     ]
+
+:red-text:`Check 16:` the CONCAT_STOKES_FILES_ACK should satisfy:
+
+   - success = False
+   - message contains "no_such_stokes_image.fits does not exist."
+
+:red-text:`Checks 17 and 18:` as Checks 2 and 3.
+
+**Case 7: A valid concatenation after the refusals (Q + U)**
+
+7. Frontend sends: **CONCAT_STOKES_FILES** (``ConcatStokesFiles``) within 3000 ms
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     render_mode = RASTER
+     stokes_files = [
+         {file: "IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits", polarizationType: 2},
+         {file: "IRCp10216_sci.spw0.cube.U.manual.pbcor.fits", polarizationType: 3}
+     ]
+
+Each refusal above opens image loaders before it gives up, and they are held until
+``StokesFilesConnector::ClearCache`` runs. This case would be refused as a duplicate Stokes type if
+that clean-up were skipped, so it also covers the recovery path.
+
+:red-text:`Check 19:` the CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should satisfy:
+
+   - success = True, openFileAck.success = True
+   - openFileAck.fileId = 0
+   - openFileAck.fileInfo.name = "IRCp10216_sci.spw0.cube.hypercube_QU.manual.pbcor.fits"
+   - REGION_HISTOGRAM_DATA.fileId = 0
+
+:red-text:`Check 20:` a SET_SPATIAL_REQUIREMENTS for file_id = 0 followed by a **SET_CURSOR** at
+(128, 128) should now draw SPATIAL_PROFILE_DATA instead of the error of Check 3:
+
+   - fileId = 0, regionId = 0
+   - x = 128, y = 128
+   - the profile coordinates are ["x", "y"] as requested
