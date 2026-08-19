@@ -180,7 +180,7 @@ CONCAT_STOKES_IMAGES_AXIS_DEGENERACY
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CONCAT_STOKES_IMAGES_AXIS_DEGENERACY.test.ts>`__.
 
-This test covers the same 5 combinations as CONCAT_STOKES_IMAGES, but uses axis-degeneracy-dropped ("dropdeg") versions of the Stokes images. This verifies that the backend correctly handles images where degenerate axes have been removed. It checks only the first Stokes plane of each hypercube; it does not walk the Stokes axis the way CONCAT_STOKES_IMAGES does.
+This test covers the same 5 combinations as CONCAT_STOKES_IMAGES, in the same 5 steps and with the same per-plane checks, but uses axis-degeneracy-dropped ("dropdeg") versions of the Stokes images. This verifies that the backend correctly handles images where degenerate axes have been removed.
 
 **Input files** (from ``set_QA`` directory):
 
@@ -189,43 +189,50 @@ This test covers the same 5 combinations as CONCAT_STOKES_IMAGES, but uses axis-
 - ``IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits`` (polarizationType = 3)
 - ``IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits`` (polarizationType = 4)
 
-The same 5 cases are tested with the same expected results:
+These four inputs carry **no Stokes axis of their own**, which is the premise of this test: ``DoConcat`` takes its ``stokes_axis < 0`` branch, builds a Stokes coordinate, and extends every image before it can concatenate them. The FILE_INFO_RESPONSE step therefore checks the inputs really are degenerate-axis-dropped, so the test cannot quietly turn into a copy of CONCAT_STOKES_IMAGES:
+
+   - dimensions = 3, width = 256, height = 256, depth = 480, stokes = 1
+
+Dropping a degenerate axis changes the shape of the file, not its pixels, so the four reference histograms are exactly those tabulated for CONCAT_STOKES_IMAGES above, and the planes of each hypercube are identified against them the same way.
+
+The same 5 cases are tested, each requested in reverse order and expected back sorted:
 
 .. list-table:: Expected results per combination
    :header-rows: 1
-   :widths: 20 40 10 10
+   :widths: 16 34 16 10 10
 
    * - Case
      - Output file name
+     - Stokes axis
      - Stokes
      - Beam table length
    * - I,Q,U,V
      - hypercube_IQUV.dropdeg.manual.pbcor.fits
+     - I, Q, U, V
      - 4
      - 1920
    * - I,V
      - hypercube_IV.dropdeg.manual.pbcor.fits
+     - I, V
      - 2
      - 960
    * - Q,U
      - hypercube_QU.dropdeg.manual.pbcor.fits
+     - Q, U
      - 2
      - 960
    * - I,Q,U
      - hypercube_IQU.dropdeg.manual.pbcor.fits
+     - I, Q, U
      - 3
      - 1440
    * - Q,U,V
      - hypercube_QUV.dropdeg.manual.pbcor.fits
+     - Q, U, V
      - 3
      - 1440
 
-All output files have dimensions = 4, width = 256, height = 256, depth = 480.
-
-The REGION_HISTOGRAM_DATA values are identical to CONCAT_STOKES_IMAGES:
-
-- Stokes I first component (Cases 1, 2, 4): binWidth = 0.004779, mean = 0.001407, stdDev = 0.053684
-- Stokes Q first component (Cases 3, 5): binWidth = 0.000163, mean = -0.000037, stdDev = 0.003869
+All output files have dimensions = 4, width = 256, height = 256, depth = 480 — the Stokes axis being the one the concatenation added.
 
 CONCAT_ERROR_MESSAGE
 ~~~~~~~~~~~~~~~~~~~~

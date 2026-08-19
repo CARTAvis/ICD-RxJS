@@ -1,6 +1,6 @@
 import { CARTA } from 'carta-protobuf';
 import config from './config.json';
-import { checkConnection } from './MyClient';
+import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 
 let testServerUrl: string = config.serverURL0;
@@ -8,321 +8,158 @@ let testSubdirectory: string = config.path.QA;
 let connectTimeout: number = config.timeout.connection;
 let openFileTimeout = config.timeout.openFile;
 let concatStokeTimeout = config.timeout.concatStokes;
+let changeChannelTimeout = config.timeout.changeChannel;
 
-interface ConcatStokesFilesAckExt extends CARTA.IConcatStokesFilesAck {
-    OpenFileAckBeamLength: number;
+type StokesLetter = 'I' | 'Q' | 'U' | 'V';
+
+// One "dropdeg" Stokes cube, and the REGION_HISTOGRAM_DATA the backend answers with when that cube
+// is opened on its own. The four histograms are what tells the planes of a hypercube apart, so the
+// test can say which image ended up on which Stokes plane rather than only counting the planes.
+// They are the same values as in CONCAT_STOKES_IMAGES: dropping the degenerate axis changes the
+// shape of the file, not its pixels.
+interface StokesImage {
+    file: string;
+    polarizationType: CARTA.PolarizationType;
+    histogram: CARTA.IHistogram;
+}
+
+interface ConcatCase {
+    title: string;
+    // StokesFilesConnector iterates its loaders in polarization order, so the Stokes axis it builds
+    // is sorted no matter how the request was ordered. Every case is requested out of order to hold
+    // the backend to that.
+    requestOrder: StokesLetter[];
+    expectedPlanes: StokesLetter[];
+    hypercubeName: string;
 }
 
 interface AssertItem {
-    filelist: CARTA.IFileListRequest;
-    fileInfoReq: CARTA.IFileInfoRequest[];
-    ConcatReq: CARTA.IConcatStokesFiles;
-    RegionHistogramDataResponseIQUV: CARTA.IRegionHistogramData;
-    ConcatReqIV: CARTA.IConcatStokesFiles;
-    RegionHistogramDataResponseIV: CARTA.IRegionHistogramData;
-    ConcatReqQU: CARTA.IConcatStokesFiles;
-    RegionHistogramDataResponseQU: CARTA.IRegionHistogramData;
-    ConcatReqIQU: CARTA.IConcatStokesFiles;
-    RegionHistogramDataResponseIQU: CARTA.IRegionHistogramData;
-    ConcatReqQUV: CARTA.IConcatStokesFiles;
-    RegionHistogramDataResponseQUV: CARTA.IRegionHistogramData;
-    ConcatResponse: ConcatStokesFilesAckExt[];
+    fileList: CARTA.IFileListRequest;
+    stokesImages: Record<StokesLetter, StokesImage>;
+    concatCases: ConcatCase[];
+    fileId: number;
+    renderMode: CARTA.RenderMode;
+    // The inputs carry no Stokes axis of their own, which is the premise of this test: DoConcat has
+    // to build a Stokes coordinate and extend every image before it can concatenate them.
+    inputShape: { dimensions: number; width: number; height: number; depth: number; stokes: number };
+    hypercubeShape: { dimensions: number; width: number; height: number; depth: number };
+    regionHistogram: { regionId: number; progress: number; numBins: number; histogramNumBins: number };
+    requiredTiles: CARTA.IAddRequiredTiles;
+    precisionDigits: number;
 }
 
 let assertItem: AssertItem = {
-    filelist: { directory: testSubdirectory },
-    fileInfoReq: [
-        {
+    fileList: { directory: testSubdirectory },
+    stokesImages: {
+        I: {
             file: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
-            hdu: '',
+            polarizationType: CARTA.PolarizationType.I,
+            histogram: {
+                binWidth: 0.004779201466590166,
+                firstBinCenter: -0.11032065749168396,
+                mean: 0.0014072911570091893,
+                stdDev: 0.05368401551544901,
+            },
         },
-        {
+        Q: {
             file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-            hdu: '',
+            polarizationType: CARTA.PolarizationType.Q,
+            histogram: {
+                binWidth: 0.00016267175669781864,
+                firstBinCenter: -0.018377140164375305,
+                mean: -0.00003742659352908538,
+                stdDev: 0.003869341538017443,
+            },
         },
-        {
+        U: {
             file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-            hdu: '',
+            polarizationType: CARTA.PolarizationType.U,
+            histogram: {
+                binWidth: 0.00016493673319928348,
+                firstBinCenter: -0.02082323282957077,
+                mean: 0.00012091044507226787,
+                stdDev: 0.004009951489450122,
+            },
         },
-        {
+        V: {
             file: 'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
-            hdu: '',
+            polarizationType: CARTA.PolarizationType.V,
+            histogram: {
+                binWidth: 0.00016941891226451844,
+                firstBinCenter: -0.020163865759968758,
+                mean: 0.000017799031213005305,
+                stdDev: 0.003931388177191896,
+            },
+        },
+    },
+    concatCases: [
+        {
+            title: 'Case 1: Combine I, Q, U & V',
+            requestOrder: ['V', 'U', 'Q', 'I'],
+            expectedPlanes: ['I', 'Q', 'U', 'V'],
+            hypercubeName: 'IRCp10216_sci.spw0.cube.hypercube_IQUV.dropdeg.manual.pbcor.fits',
+        },
+        {
+            title: 'Case 2: Combine I & V',
+            requestOrder: ['V', 'I'],
+            expectedPlanes: ['I', 'V'],
+            hypercubeName: 'IRCp10216_sci.spw0.cube.hypercube_IV.dropdeg.manual.pbcor.fits',
+        },
+        {
+            title: 'Case 3: Combine Q & U',
+            requestOrder: ['U', 'Q'],
+            expectedPlanes: ['Q', 'U'],
+            hypercubeName: 'IRCp10216_sci.spw0.cube.hypercube_QU.dropdeg.manual.pbcor.fits',
+        },
+        {
+            title: 'Case 4: Combine I, Q & U',
+            requestOrder: ['U', 'Q', 'I'],
+            expectedPlanes: ['I', 'Q', 'U'],
+            hypercubeName: 'IRCp10216_sci.spw0.cube.hypercube_IQU.dropdeg.manual.pbcor.fits',
+        },
+        {
+            title: 'Case 5: Combine Q, U & V',
+            requestOrder: ['V', 'U', 'Q'],
+            expectedPlanes: ['Q', 'U', 'V'],
+            hypercubeName: 'IRCp10216_sci.spw0.cube.hypercube_QUV.dropdeg.manual.pbcor.fits',
         },
     ],
-    ConcatReq: {
+    fileId: 0,
+    renderMode: CARTA.RenderMode.RASTER,
+    inputShape: { dimensions: 3, width: 256, height: 256, depth: 480, stokes: 1 },
+    hypercubeShape: { dimensions: 4, width: 256, height: 256, depth: 480 },
+    regionHistogram: { regionId: -1, progress: 1, numBins: -1, histogramNumBins: 256 },
+    requiredTiles: {
         fileId: 0,
-        renderMode: 0,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
-                polarizationType: 4,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-                polarizationType: 3,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-                polarizationType: 2,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
-                polarizationType: 1,
-            },
-        ],
+        tiles: [0],
+        compressionType: CARTA.CompressionType.ZFP,
+        compressionQuality: 11,
     },
-    RegionHistogramDataResponseIQUV: {
-        progress: 1,
-        regionId: -1,
-        config: {
-            numBins: -1,
-        },
-        histograms: {
-            binWidth: 0.004779201466590166,
-            firstBinCenter: -0.11032065749168396,
-            numBins: 256,
-            stdDev: 0.05368401551544911,
-            mean: 0.0014072911570091893,
-        },
-    },
-    ConcatReqIV: {
-        fileId: 0,
-        renderMode: 0,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
-                polarizationType: 4,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
-                polarizationType: 1,
-            },
-        ],
-    },
-    RegionHistogramDataResponseIV: {
-        progress: 1,
-        regionId: -1,
-        config: {
-            numBins: -1,
-        },
-        histograms: {
-            binWidth: 0.004779201466590166,
-            firstBinCenter: -0.11032065749168396,
-            numBins: 256,
-            stdDev: 0.05368401551544911,
-            mean: 0.0014072911570091893,
-        },
-    },
-    ConcatReqQU: {
-        fileId: 0,
-        renderMode: 0,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-                polarizationType: 3,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-                polarizationType: 2,
-            },
-        ],
-    },
-    RegionHistogramDataResponseQU: {
-        progress: 1,
-        regionId: -1,
-        config: {
-            numBins: -1,
-        },
-        histograms: {
-            binWidth: 0.00016267175669781864,
-            firstBinCenter: -0.018377140164375305,
-            numBins: 256,
-            stdDev: 0.0038693415380174558,
-            mean: -0.00003742659352908538,
-        },
-    },
-    ConcatReqIQU: {
-        fileId: 0,
-        renderMode: 0,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-                polarizationType: 3,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-                polarizationType: 2,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
-                polarizationType: 1,
-            },
-        ],
-    },
-    RegionHistogramDataResponseIQU: {
-        progress: 1,
-        regionId: -1,
-        config: {
-            numBins: -1,
-        },
-        histograms: {
-            binWidth: 0.004779201466590166,
-            firstBinCenter: -0.11032065749168396,
-            numBins: 256,
-            stdDev: 0.05368401551544911,
-            mean: 0.0014072911570091893,
-        },
-    },
-    ConcatReqQUV: {
-        fileId: 0,
-        renderMode: 0,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.fits',
-                polarizationType: 4,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-                polarizationType: 3,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-                polarizationType: 2,
-            },
-        ],
-    },
-    RegionHistogramDataResponseQUV: {
-        progress: 1,
-        regionId: -1,
-        config: {
-            numBins: -1,
-        },
-        histograms: {
-            binWidth: 0.00016267175669781864,
-            firstBinCenter: -0.018377140164375305,
-            numBins: 256,
-            stdDev: 0.0038693415380174558,
-            mean: -0.00003742659352908538,
-        },
-    },
-    ConcatResponse: [
-        {
-            success: true,
-            openFileAck: {
-                success: true,
-                fileInfo: {
-                    name: 'IRCp10216_sci.spw0.cube.hypercube_IQUV.dropdeg.manual.pbcor.fits',
-                },
-                fileInfoExtended: {
-                    depth: 480,
-                    dimensions: 4,
-                    height: 256,
-                    stokes: 4,
-                    width: 256,
-                },
-            },
-            OpenFileAckBeamLength: 1920,
-        },
-        {
-            success: true,
-            openFileAck: {
-                success: true,
-                fileInfo: {
-                    name: 'IRCp10216_sci.spw0.cube.hypercube_IV.dropdeg.manual.pbcor.fits',
-                },
-                fileInfoExtended: {
-                    depth: 480,
-                    dimensions: 4,
-                    height: 256,
-                    stokes: 2,
-                    width: 256,
-                },
-            },
-            OpenFileAckBeamLength: 960,
-        },
-        {
-            success: true,
-            openFileAck: {
-                success: true,
-                fileInfo: {
-                    name: 'IRCp10216_sci.spw0.cube.hypercube_QU.dropdeg.manual.pbcor.fits',
-                },
-                fileInfoExtended: {
-                    depth: 480,
-                    dimensions: 4,
-                    height: 256,
-                    stokes: 2,
-                    width: 256,
-                },
-            },
-            OpenFileAckBeamLength: 960,
-        },
-        {
-            success: true,
-            openFileAck: {
-                success: true,
-                fileInfo: {
-                    name: 'IRCp10216_sci.spw0.cube.hypercube_IQU.dropdeg.manual.pbcor.fits',
-                },
-                fileInfoExtended: {
-                    depth: 480,
-                    dimensions: 4,
-                    height: 256,
-                    stokes: 3,
-                    width: 256,
-                },
-            },
-            OpenFileAckBeamLength: 1440,
-        },
-        {
-            success: true,
-            openFileAck: {
-                success: true,
-                fileInfo: {
-                    name: 'IRCp10216_sci.spw0.cube.hypercube_QUV.dropdeg.manual.pbcor.fits',
-                },
-                fileInfoExtended: {
-                    depth: 480,
-                    dimensions: 4,
-                    height: 256,
-                    stokes: 3,
-                    width: 256,
-                },
-            },
-            OpenFileAckBeamLength: 1440,
-        },
-    ],
+    precisionDigits: 6,
 };
 
 let basepath: string;
+
+// The whole point of a hypercube is that the plane the viewer asks for is the image which went into
+// it, so each plane is compared against the histogram of the single-Stokes cube it came from.
+function assertHistogramMatchesStokesImage(
+    regionHistogramData: CARTA.IRegionHistogramData,
+    stokesLetter: StokesLetter
+) {
+    const expected = assertItem.stokesImages[stokesLetter].histogram;
+    expect(regionHistogramData.fileId).toEqual(assertItem.fileId);
+    expect(regionHistogramData.regionId).toEqual(assertItem.regionHistogram.regionId);
+    expect(regionHistogramData.progress).toEqual(assertItem.regionHistogram.progress);
+    expect(regionHistogramData.config!.numBins).toEqual(assertItem.regionHistogram.numBins);
+    expect(regionHistogramData.histograms!.numBins).toEqual(assertItem.regionHistogram.histogramNumBins);
+    expect(regionHistogramData.histograms!.binWidth).toBeCloseTo(expected.binWidth!, assertItem.precisionDigits);
+    expect(regionHistogramData.histograms!.firstBinCenter).toBeCloseTo(
+        expected.firstBinCenter!,
+        assertItem.precisionDigits
+    );
+    expect(regionHistogramData.histograms!.mean).toBeCloseTo(expected.mean!, assertItem.precisionDigits);
+    expect(regionHistogramData.histograms!.stdDev).toBeCloseTo(expected.stdDev!, assertItem.precisionDigits);
+}
 
 describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-degeneracy stokes images into a single image.', () => {
     const msgController = MessageController.Instance;
@@ -335,514 +172,115 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
     test(`Get the base path and prefix the image directory with it |`, async () => {
         const fileListResponse = await msgController.getFileList('$BASE', 0);
         basepath = fileListResponse.directory;
-        assertItem.filelist.directory = basepath + '/' + assertItem.filelist.directory;
+        assertItem.fileList.directory = basepath + '/' + assertItem.fileList.directory;
     });
 
-    describe(`Case 1: Combine I,Q,U,V |`, () => {
-        test(`(Step 1) Assert FileListRequest |`, async () => {
-            let FileListResponse = await msgController.getFileList(assertItem.filelist.directory, 0);
-            expect(FileListResponse.success).toEqual(true);
-        });
+    assertItem.concatCases.forEach((concatCase) => {
+        describe(`${concatCase.title} |`, () => {
+            let concatStokesResponse: CARTA.IConcatStokesFilesAck;
 
-        assertItem.fileInfoReq.map((input, index) => {
+            test(`(Step 1) FILE_LIST_RESPONSE should list the input images |`, async () => {
+                const fileListResponse = await msgController.getFileList(assertItem.fileList.directory!, 0);
+                expect(fileListResponse.success).toEqual(true);
+                const fileNames = fileListResponse.files!.map((file) => file.name);
+                concatCase.requestOrder.forEach((stokesLetter) =>
+                    expect(fileNames).toContain(assertItem.stokesImages[stokesLetter].file)
+                );
+            });
+
+            concatCase.requestOrder.forEach((stokesLetter, index) => {
+                test(
+                    `(Step 2-${index + 1}) FILE_INFO_RESPONSE for the Stokes ${stokesLetter} cube should show a dropped Stokes axis within ${openFileTimeout} ms | `,
+                    async () => {
+                        const stokesImage = assertItem.stokesImages[stokesLetter];
+                        const fileInfoResponse = await msgController.getFileInfo(
+                            assertItem.fileList.directory!,
+                            stokesImage.file,
+                            ''
+                        );
+                        expect(fileInfoResponse.success).toEqual(true);
+                        expect(fileInfoResponse.fileInfo!.name).toEqual(stokesImage.file);
+                        // The inputs have to really be degenerate-axis-dropped, otherwise this test
+                        // would quietly become a copy of CONCAT_STOKES_IMAGES.
+                        const fileInfoExtended = fileInfoResponse.fileInfoExtended!['0'];
+                        expect(fileInfoExtended.dimensions).toEqual(assertItem.inputShape.dimensions);
+                        expect(fileInfoExtended.width).toEqual(assertItem.inputShape.width);
+                        expect(fileInfoExtended.height).toEqual(assertItem.inputShape.height);
+                        expect(fileInfoExtended.depth).toEqual(assertItem.inputShape.depth);
+                        expect(fileInfoExtended.stokes).toEqual(assertItem.inputShape.stokes);
+                    },
+                    openFileTimeout
+                );
+            });
+
             test(
-                `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
+                `(Step 3) CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should arrive within ${concatStokeTimeout} ms | `,
                 async () => {
-                    let FileInfoResponse = await msgController.getFileInfo(
-                        assertItem.filelist.directory,
-                        input.file,
-                        input.hdu
+                    msgController.closeFile(-1);
+                    const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+                    concatStokesResponse = await msgController.loadStokeFiles(
+                        concatCase.requestOrder.map((stokesLetter) => ({
+                            directory: assertItem.fileList.directory,
+                            hdu: '',
+                            file: assertItem.stokesImages[stokesLetter].file,
+                            polarizationType: assertItem.stokesImages[stokesLetter].polarizationType,
+                        })),
+                        assertItem.fileId,
+                        assertItem.renderMode
                     );
-                    expect(FileInfoResponse.success).toEqual(true);
+                    const regionHistogramData = await regionHistogramDataStream;
+                    // The hypercube opens on its first plane, which is the lowest polarization of
+                    // the set rather than the one which happened to be requested first.
+                    expect(regionHistogramData[0].stokes).toEqual(0);
+                    assertHistogramMatchesStokesImage(regionHistogramData[0], concatCase.expectedPlanes[0]);
                 },
-                openFileTimeout
+                concatStokeTimeout
             );
-        });
 
-        let ConcatStokesResponse: any = [];
-        test(
-            `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
-            async () => {
-                assertItem.ConcatReq.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReq.stokesFiles[index].directory = assertItem.filelist.directory;
-                });
-                msgController.closeFile(-1);
-                let regionHistogramDataArray = [];
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data);
-                            resolve(regionHistogramDataArray);
-                        },
-                    });
-                });
-                ConcatStokesResponse = await msgController.loadStokeFiles(
-                    assertItem.ConcatReq.stokesFiles,
-                    assertItem.ConcatReq.fileId,
-                    assertItem.ConcatReq.renderMode
+            test(`(Step 4) CONCAT_STOKES_FILES_ACK should describe the hypercube | `, () => {
+                const openFileAck = concatStokesResponse.openFileAck!;
+                const fileInfoExtended = openFileAck.fileInfoExtended!;
+                expect(concatStokesResponse.success).toEqual(true);
+                expect(openFileAck.success).toEqual(true);
+                expect(openFileAck.fileId).toEqual(assertItem.fileId);
+                expect(openFileAck.fileInfo!.name).toEqual(concatCase.hypercubeName);
+                // The inputs were three-dimensional; the Stokes axis below is one DoConcat added.
+                expect(fileInfoExtended.dimensions).toEqual(assertItem.hypercubeShape.dimensions);
+                expect(fileInfoExtended.width).toEqual(assertItem.hypercubeShape.width);
+                expect(fileInfoExtended.height).toEqual(assertItem.hypercubeShape.height);
+                expect(fileInfoExtended.depth).toEqual(assertItem.hypercubeShape.depth);
+                expect(fileInfoExtended.stokes).toEqual(concatCase.expectedPlanes.length);
+                // StokesFilesConnector::DoConcat rebuilds the beam table as one beam per channel per
+                // Stokes plane, so its length is the shape of the hypercube restated.
+                expect(openFileAck.beamTable!.length).toEqual(
+                    assertItem.hypercubeShape.depth * concatCase.expectedPlanes.length
                 );
-                let RegionHistogramData = await regionHistogramDataPromise;
+            });
 
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.RegionHistogramDataResponseIQUV.regionId);
-                expect(RegionHistogramData[0].progress).toEqual(assertItem.RegionHistogramDataResponseIQUV.progress);
-                expect(RegionHistogramData[0].config.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIQUV.config.numBins
+            // Plane 0 was covered by the histogram which came with the ack. The remaining planes are
+            // reached with SET_IMAGE_CHANNELS, which is what the Stokes selector in the frontend
+            // sends. A concatenation which put the images on the wrong planes, or which silently
+            // repeated one of them, fails here and nowhere else.
+            concatCase.expectedPlanes.slice(1).forEach((stokesLetter, index) => {
+                const stokes = index + 1;
+                test(
+                    `(Step 5-${stokes}) Stokes plane ${stokes} should hold the ${stokesLetter} image within ${changeChannelTimeout} ms | `,
+                    async () => {
+                        const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+                        msgController.setChannels({
+                            fileId: assertItem.fileId,
+                            channel: 0,
+                            stokes: stokes,
+                            requiredTiles: assertItem.requiredTiles,
+                        });
+                        const regionHistogramData = await regionHistogramDataStream;
+                        expect(regionHistogramData[0].stokes).toEqual(stokes);
+                        expect(regionHistogramData[0].channel).toEqual(0);
+                        assertHistogramMatchesStokesImage(regionHistogramData[0], stokesLetter);
+                    },
+                    changeChannelTimeout
                 );
-                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQUV.histograms.binWidth,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQUV.histograms.firstBinCenter,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQUV.histograms.mean,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIQUV.histograms.numBins
-                );
-                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQUV.histograms.stdDev,
-                    assertItem.precisionDigits
-                );
-            },
-            concatStokeTimeout
-        );
-
-        test(`(Step 3) Check CONCAT_STOKES_FILES_ACK response | `, () => {
-            expect(ConcatStokesResponse.success).toEqual(assertItem.ConcatResponse[0].success);
-            expect(ConcatStokesResponse.openFileAck.success).toEqual(assertItem.ConcatResponse[0].openFileAck.success);
-            expect(ConcatStokesResponse.openFileAck.beamTable.length).toEqual(
-                assertItem.ConcatResponse[0].OpenFileAckBeamLength
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfo.name).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfo.name
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.dimensions).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfoExtended.dimensions
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.stokes).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfoExtended.stokes
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.width).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfoExtended.width
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.height).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfoExtended.height
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.depth).toEqual(
-                assertItem.ConcatResponse[0].openFileAck.fileInfoExtended.depth
-            );
-        });
-    });
-
-    describe(`Case 2: Combine I & V |`, () => {
-        test(`(Step 1) Assert FileListRequest |`, async () => {
-            let FileListResponse = await msgController.getFileList(assertItem.filelist.directory, 0);
-            expect(FileListResponse.success).toEqual(true);
-        });
-
-        let FileInfoResponse: any = [];
-        let inputIndex = [0, 3];
-        inputIndex.map((input, index) => {
-            test(
-                `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
-                async () => {
-                    FileInfoResponse = await msgController.getFileInfo(
-                        assertItem.filelist.directory,
-                        assertItem.fileInfoReq[input].file,
-                        assertItem.fileInfoReq[input].hdu
-                    );
-                    expect(FileInfoResponse.success).toEqual(true);
-                },
-                openFileTimeout
-            );
-        });
-
-        let ConcatStokesResponse: any = [];
-        test(
-            `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
-            async () => {
-                assertItem.ConcatReqIV.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqIV.stokesFiles[index].directory = assertItem.filelist.directory;
-                });
-                msgController.closeFile(-1);
-                let regionHistogramDataArray = [];
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data);
-                            resolve(regionHistogramDataArray);
-                        },
-                    });
-                });
-                ConcatStokesResponse = await msgController.loadStokeFiles(
-                    assertItem.ConcatReqIV.stokesFiles,
-                    assertItem.ConcatReqIV.fileId,
-                    assertItem.ConcatReqIV.renderMode
-                );
-                let RegionHistogramData = await regionHistogramDataPromise;
-
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.RegionHistogramDataResponseIV.regionId);
-                expect(RegionHistogramData[0].progress).toEqual(assertItem.RegionHistogramDataResponseIV.progress);
-                expect(RegionHistogramData[0].config.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIV.config.numBins
-                );
-                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIV.histograms.binWidth,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIV.histograms.firstBinCenter,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIV.histograms.mean,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIV.histograms.numBins
-                );
-                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIV.histograms.stdDev,
-                    assertItem.precisionDigits
-                );
-            },
-            concatStokeTimeout
-        );
-
-        test(`(Step 3) Check CONCAT_STOKES_FILES_ACK response | `, () => {
-            expect(ConcatStokesResponse.success).toEqual(assertItem.ConcatResponse[1].success);
-            expect(ConcatStokesResponse.openFileAck.success).toEqual(assertItem.ConcatResponse[1].openFileAck.success);
-            expect(ConcatStokesResponse.openFileAck.beamTable.length).toEqual(
-                assertItem.ConcatResponse[1].OpenFileAckBeamLength
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfo.name).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfo.name
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.dimensions).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfoExtended.dimensions
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.stokes).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfoExtended.stokes
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.width).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfoExtended.width
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.height).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfoExtended.height
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.depth).toEqual(
-                assertItem.ConcatResponse[1].openFileAck.fileInfoExtended.depth
-            );
-        });
-    });
-
-    describe(`Case 3: Combine Q & U |`, () => {
-        test(`(Step 1) Assert FileListRequest |`, async () => {
-            let FileListResponse = await msgController.getFileList(assertItem.filelist.directory, 0);
-            expect(FileListResponse.success).toEqual(true);
-        });
-
-        let FileInfoResponse: any = [];
-        let inputIndex = [1, 2];
-        inputIndex.map((input, index) => {
-            test(
-                `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
-                async () => {
-                    FileInfoResponse = await msgController.getFileInfo(
-                        assertItem.filelist.directory,
-                        assertItem.fileInfoReq[input].file,
-                        assertItem.fileInfoReq[input].hdu
-                    );
-                    expect(FileInfoResponse.success).toEqual(true);
-                },
-                openFileTimeout
-            );
-        });
-
-        let ConcatStokesResponse: any = [];
-        test(
-            `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
-            async () => {
-                assertItem.ConcatReqQU.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqQU.stokesFiles[index].directory = assertItem.filelist.directory;
-                });
-                msgController.closeFile(-1);
-                let regionHistogramDataArray = [];
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data);
-                            resolve(regionHistogramDataArray);
-                        },
-                    });
-                });
-                ConcatStokesResponse = await msgController.loadStokeFiles(
-                    assertItem.ConcatReqQU.stokesFiles,
-                    assertItem.ConcatReqQU.fileId,
-                    assertItem.ConcatReqQU.renderMode
-                );
-                let RegionHistogramData = await regionHistogramDataPromise;
-
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.RegionHistogramDataResponseQU.regionId);
-                expect(RegionHistogramData[0].progress).toEqual(assertItem.RegionHistogramDataResponseQU.progress);
-                expect(RegionHistogramData[0].config.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseQU.config.numBins
-                );
-                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQU.histograms.binWidth,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQU.histograms.firstBinCenter,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQU.histograms.mean,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseQU.histograms.numBins
-                );
-                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQU.histograms.stdDev,
-                    assertItem.precisionDigits
-                );
-            },
-            concatStokeTimeout
-        );
-
-        test(`(Step 3) Check CONCAT_STOKES_FILES_ACK response | `, () => {
-            expect(ConcatStokesResponse.success).toEqual(assertItem.ConcatResponse[2].success);
-            expect(ConcatStokesResponse.openFileAck.success).toEqual(assertItem.ConcatResponse[2].openFileAck.success);
-            expect(ConcatStokesResponse.openFileAck.beamTable.length).toEqual(
-                assertItem.ConcatResponse[2].OpenFileAckBeamLength
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfo.name).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfo.name
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.dimensions).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfoExtended.dimensions
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.stokes).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfoExtended.stokes
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.width).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfoExtended.width
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.height).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfoExtended.height
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.depth).toEqual(
-                assertItem.ConcatResponse[2].openFileAck.fileInfoExtended.depth
-            );
-        });
-    });
-
-    describe(`Case 4: Combine I, Q & U |`, () => {
-        test(`(Step 1) Assert FileListRequest |`, async () => {
-            let FileListResponse = await msgController.getFileList(assertItem.filelist.directory, 0);
-            expect(FileListResponse.success).toEqual(true);
-        });
-
-        let FileInfoResponse: any = [];
-        let inputIndex = [0, 1, 2];
-        inputIndex.map((input, index) => {
-            test(
-                `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
-                async () => {
-                    FileInfoResponse = await msgController.getFileInfo(
-                        assertItem.filelist.directory,
-                        assertItem.fileInfoReq[input].file,
-                        assertItem.fileInfoReq[input].hdu
-                    );
-                    expect(FileInfoResponse.success).toEqual(true);
-                },
-                openFileTimeout
-            );
-        });
-
-        let ConcatStokesResponse: any = [];
-        test(
-            `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
-            async () => {
-                assertItem.ConcatReqIQU.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqIQU.stokesFiles[index].directory = assertItem.filelist.directory;
-                });
-                msgController.closeFile(-1);
-                let regionHistogramDataArray = [];
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data);
-                            resolve(regionHistogramDataArray);
-                        },
-                    });
-                });
-                ConcatStokesResponse = await msgController.loadStokeFiles(
-                    assertItem.ConcatReqIQU.stokesFiles,
-                    assertItem.ConcatReqIQU.fileId,
-                    assertItem.ConcatReqIQU.renderMode
-                );
-                let RegionHistogramData = await regionHistogramDataPromise;
-
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.RegionHistogramDataResponseIQU.regionId);
-                expect(RegionHistogramData[0].progress).toEqual(assertItem.RegionHistogramDataResponseIQU.progress);
-                expect(RegionHistogramData[0].config.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIQU.config.numBins
-                );
-                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQU.histograms.binWidth,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQU.histograms.firstBinCenter,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQU.histograms.mean,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseIQU.histograms.numBins
-                );
-                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseIQU.histograms.stdDev,
-                    assertItem.precisionDigits
-                );
-            },
-            concatStokeTimeout
-        );
-
-        test(`(Step 3) Check CONCAT_STOKES_FILES_ACK response | `, () => {
-            expect(ConcatStokesResponse.success).toEqual(assertItem.ConcatResponse[3].success);
-            expect(ConcatStokesResponse.openFileAck.success).toEqual(assertItem.ConcatResponse[3].openFileAck.success);
-            expect(ConcatStokesResponse.openFileAck.beamTable.length).toEqual(
-                assertItem.ConcatResponse[3].OpenFileAckBeamLength
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfo.name).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfo.name
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.dimensions).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfoExtended.dimensions
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.stokes).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfoExtended.stokes
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.width).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfoExtended.width
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.height).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfoExtended.height
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.depth).toEqual(
-                assertItem.ConcatResponse[3].openFileAck.fileInfoExtended.depth
-            );
-        });
-    });
-
-    describe(`Case 5: Combine Q, U & V |`, () => {
-        test(`(Step 1) Assert FileListRequest |`, async () => {
-            let FileListResponse = await msgController.getFileList(assertItem.filelist.directory, 0);
-            expect(FileListResponse.success).toEqual(true);
-        });
-
-        let FileInfoResponse: any = [];
-        let inputIndex = [1, 2, 3];
-        inputIndex.map((input, index) => {
-            test(
-                `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
-                async () => {
-                    FileInfoResponse = await msgController.getFileInfo(
-                        assertItem.filelist.directory,
-                        assertItem.fileInfoReq[input].file,
-                        assertItem.fileInfoReq[input].hdu
-                    );
-                    expect(FileInfoResponse.success).toEqual(true);
-                },
-                openFileTimeout
-            );
-        });
-
-        let ConcatStokesResponse: any = [];
-        test(
-            `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
-            async () => {
-                assertItem.ConcatReqQUV.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqQUV.stokesFiles[index].directory = assertItem.filelist.directory;
-                });
-                msgController.closeFile(-1);
-                let regionHistogramDataArray = [];
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramDataArray.push(data);
-                            resolve(regionHistogramDataArray);
-                        },
-                    });
-                });
-                ConcatStokesResponse = await msgController.loadStokeFiles(
-                    assertItem.ConcatReqQUV.stokesFiles,
-                    assertItem.ConcatReqQUV.fileId,
-                    assertItem.ConcatReqQUV.renderMode
-                );
-                let RegionHistogramData = await regionHistogramDataPromise;
-
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.RegionHistogramDataResponseQUV.regionId);
-                expect(RegionHistogramData[0].progress).toEqual(assertItem.RegionHistogramDataResponseQUV.progress);
-                expect(RegionHistogramData[0].config.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseQUV.config.numBins
-                );
-                expect(RegionHistogramData[0].histograms.binWidth).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQUV.histograms.binWidth,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.firstBinCenter).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQUV.histograms.firstBinCenter,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.mean).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQUV.histograms.mean,
-                    assertItem.precisionDigits
-                );
-                expect(RegionHistogramData[0].histograms.numBins).toEqual(
-                    assertItem.RegionHistogramDataResponseQUV.histograms.numBins
-                );
-                expect(RegionHistogramData[0].histograms.stdDev).toBeCloseTo(
-                    assertItem.RegionHistogramDataResponseQUV.histograms.stdDev,
-                    assertItem.precisionDigits
-                );
-            },
-            concatStokeTimeout
-        );
-
-        test(`(Step 3) Check CONCAT_STOKES_FILES_ACK response | `, () => {
-            expect(ConcatStokesResponse.success).toEqual(assertItem.ConcatResponse[4].success);
-            expect(ConcatStokesResponse.openFileAck.success).toEqual(assertItem.ConcatResponse[4].openFileAck.success);
-            expect(ConcatStokesResponse.openFileAck.beamTable.length).toEqual(
-                assertItem.ConcatResponse[4].OpenFileAckBeamLength
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfo.name).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfo.name
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.dimensions).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfoExtended.dimensions
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.stokes).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfoExtended.stokes
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.width).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfoExtended.width
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.height).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfoExtended.height
-            );
-            expect(ConcatStokesResponse.openFileAck.fileInfoExtended.depth).toEqual(
-                assertItem.ConcatResponse[4].openFileAck.fileInfoExtended.depth
-            );
+            });
         });
     });
 
