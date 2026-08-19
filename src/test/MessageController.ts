@@ -393,6 +393,10 @@ export class MessageController {
 
         const isReconnection: boolean = url === this.serverUrl;
         let connectionAttempts = 0;
+        // A socket which is refused or unreachable reports why through onerror, but it is onclose
+        // which decides whether to retry. The reason is kept here so that the rejection raised once
+        // the attempts run out can still say what went wrong, rather than only "code=1006".
+        let lastConnectionError: string = '';
         this.connectionDropped = false;
         this.connectionStatus = ConnectionStatus.PENDING;
         this.serverUrl = url;
@@ -412,12 +416,19 @@ export class MessageController {
                     if (wasNeverActive) {
                         const def = this.deferredMap.get(requestId);
                         if (def) {
-                            def.reject(new Error(`WebSocket closed before connect: code=${ev.code} reason=${ev.reason}`));
+                            const attempts = connectionAttempts + 1;
+                            const reason = lastConnectionError || `code=${ev.code} reason=${ev.reason}`;
+                            def.reject(
+                                new Error(`Could not connect to ${url} after ${attempts} attempt(s): ${reason}`)
+                            );
                             this.deferredMap.delete(requestId);
                         }
                     }
                 } else {
                     connectionAttempts++;
+                    console.log(
+                        `Connection to ${url} failed (${lastConnectionError || `code=${ev.code}`}), retrying ${connectionAttempts}/${MessageController.MaxConnectionAttempts} in ${MessageController.ConnectionAttemptDelay} ms`
+                    );
                     setTimeout(() => {
                         const newConnection = new WebSocket(url);
                         newConnection.binaryType = 'arraybuffer';
@@ -456,13 +467,13 @@ export class MessageController {
             }
         });
 
+        // `ws` reports a refused or unreachable socket by emitting error and then close, so this
+        // handler runs before every retry in onclose. Rejecting here would settle the promise on the
+        // first failure and leave MaxConnectionAttempts unreachable, which is why the reason is only
+        // recorded and the decision to give up is left to onclose.
         this.connection.onerror = (ev) => {
-            console.log(ev);
-            const def = this.deferredMap.get(requestId);
-            if (def) {
-                def.reject(new Error(`WebSocket connection error to ${url}`));
-                this.deferredMap.delete(requestId);
-            }
+            const error = (ev as any)?.error;
+            lastConnectionError = error?.code ? `${error.code} ${url}` : ((ev as any)?.message ?? 'WebSocket error');
         };
 
         return await deferredResponse.promise;
