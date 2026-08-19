@@ -4,4 +4,5 @@ src/test/FILEINFO_FITS_MULTIHDU.test.ts
 src/test/FILEINFO_EXCEPTIONS.test.ts
 src/test/OPEN_SWAPPED_IMAGES.test.ts
 src/test/CONCAT_STOKES_IMAGES.test.ts
+src/test/CONCAT_STOKES_IMAGES_AXIS_DEGENERACY.test.ts
 src/test/CONCAT_ERROR_MESSAGE.test.ts

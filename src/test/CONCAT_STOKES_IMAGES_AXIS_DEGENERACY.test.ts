@@ -322,6 +322,8 @@ let assertItem: AssertItem = {
     ],
 };
 
+let basepath: string;
+
 describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-degeneracy stokes images into a single image.', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
@@ -329,6 +331,12 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
     }, connectTimeout);
 
     checkConnection();
+
+    test(`Get the base path and prefix the image directory with it |`, async () => {
+        const fileListResponse = await msgController.getFileList('$BASE', 0);
+        basepath = fileListResponse.directory;
+        assertItem.filelist.directory = basepath + '/' + assertItem.filelist.directory;
+    });
 
     describe(`Case 1: Combine I,Q,U,V |`, () => {
         test(`(Step 1) Assert FileListRequest |`, async () => {
@@ -340,7 +348,11 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             test(
                 `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
                 async () => {
-                    let FileInfoResponse = await msgController.getFileInfo(testSubdirectory, input.file, input.hdu);
+                    let FileInfoResponse = await msgController.getFileInfo(
+                        assertItem.filelist.directory,
+                        input.file,
+                        input.hdu
+                    );
                     expect(FileInfoResponse.success).toEqual(true);
                 },
                 openFileTimeout
@@ -352,7 +364,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
             async () => {
                 assertItem.ConcatReq.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReq.stokesFiles[index].directory = testSubdirectory;
+                    assertItem.ConcatReq.stokesFiles[index].directory = assertItem.filelist.directory;
                 });
                 msgController.closeFile(-1);
                 let regionHistogramDataArray = [];
@@ -439,7 +451,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                 `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
                 async () => {
                     FileInfoResponse = await msgController.getFileInfo(
-                        testSubdirectory,
+                        assertItem.filelist.directory,
                         assertItem.fileInfoReq[input].file,
                         assertItem.fileInfoReq[input].hdu
                     );
@@ -454,7 +466,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
             async () => {
                 assertItem.ConcatReqIV.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqIV.stokesFiles[index].directory = testSubdirectory;
+                    assertItem.ConcatReqIV.stokesFiles[index].directory = assertItem.filelist.directory;
                 });
                 msgController.closeFile(-1);
                 let regionHistogramDataArray = [];
@@ -541,7 +553,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                 `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
                 async () => {
                     FileInfoResponse = await msgController.getFileInfo(
-                        testSubdirectory,
+                        assertItem.filelist.directory,
                         assertItem.fileInfoReq[input].file,
                         assertItem.fileInfoReq[input].hdu
                     );
@@ -556,7 +568,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
             async () => {
                 assertItem.ConcatReqQU.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqQU.stokesFiles[index].directory = testSubdirectory;
+                    assertItem.ConcatReqQU.stokesFiles[index].directory = assertItem.filelist.directory;
                 });
                 msgController.closeFile(-1);
                 let regionHistogramDataArray = [];
@@ -643,7 +655,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                 `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
                 async () => {
                     FileInfoResponse = await msgController.getFileInfo(
-                        testSubdirectory,
+                        assertItem.filelist.directory,
                         assertItem.fileInfoReq[input].file,
                         assertItem.fileInfoReq[input].hdu
                     );
@@ -658,7 +670,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
             async () => {
                 assertItem.ConcatReqIQU.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqIQU.stokesFiles[index].directory = testSubdirectory;
+                    assertItem.ConcatReqIQU.stokesFiles[index].directory = assertItem.filelist.directory;
                 });
                 msgController.closeFile(-1);
                 let regionHistogramDataArray = [];
@@ -745,7 +757,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                 `FILE_INFO_RESPONSE-${index + 1} should arrive within ${openFileTimeout} ms" | `,
                 async () => {
                     FileInfoResponse = await msgController.getFileInfo(
-                        testSubdirectory,
+                        assertItem.filelist.directory,
                         assertItem.fileInfoReq[input].file,
                         assertItem.fileInfoReq[input].hdu
                     );
@@ -760,7 +772,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             `(Step 2) Modify assert concatenate directory and request CONCAT_STOKES_FILES_ACK within ${concatStokeTimeout} ms | `,
             async () => {
                 assertItem.ConcatReqQUV.stokesFiles.map((input, index) => {
-                    assertItem.ConcatReqQUV.stokesFiles[index].directory = testSubdirectory;
+                    assertItem.ConcatReqQUV.stokesFiles[index].directory = assertItem.filelist.directory;
                 });
                 msgController.closeFile(-1);
                 let regionHistogramDataArray = [];
