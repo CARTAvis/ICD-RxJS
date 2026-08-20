@@ -58,8 +58,18 @@ export class MessageController {
     private static readonly IcdVersion = icdVersion;
     private static readonly DefaultFeatureFlags =
         CARTA.ClientFeatureFlags.WEB_ASSEMBLY | CARTA.ClientFeatureFlags.WEB_GL;
-    private static readonly MaxConnectionAttempts = 15;
     private static readonly ConnectionAttemptDelay = 1000;
+    // Retrying a fixed number of times bounds nothing: an attempt against a refused port fails in
+    // a few milliseconds, but one whose packets are dropped stays pending for as long as the OS
+    // allows, so a count says nothing about how long connect() can run. What has to be bounded is
+    // the wall clock, because config.timeout.connection is also the jest timeout of the beforeAll
+    // block which calls connect(). Retrying within a budget derived from that value keeps the two
+    // in step: a backend which never arrives is reported by the rejection raised below, rather
+    // than by jest killing the hook first and losing the reason.
+    private static readonly ConnectionBudget = config.timeout.connection * 0.9;
+    // Bounding the handshake turns an unreachable host into an ordinary retry instead of a single
+    // attempt which outlives the whole budget.
+    private static readonly HandshakeTimeout = 2000;
 
     @observable connectionStatus: ConnectionStatus;
     readonly loggingEnabled: boolean;
@@ -393,24 +403,26 @@ export class MessageController {
 
         const isReconnection: boolean = url === this.serverUrl;
         let connectionAttempts = 0;
+        const retryDeadline = Date.now() + MessageController.ConnectionBudget;
         // A socket which is refused or unreachable reports why through onerror, but it is onclose
         // which decides whether to retry. The reason is kept here so that the rejection raised once
-        // the attempts run out can still say what went wrong, rather than only "code=1006".
+        // the budget runs out can still say what went wrong, rather than only "code=1006".
         let lastConnectionError: string = '';
         this.connectionDropped = false;
         this.connectionStatus = ConnectionStatus.PENDING;
         this.serverUrl = url;
-        this.connection = new WebSocket(url);
+        this.connection = new WebSocket(url, { handshakeTimeout: MessageController.HandshakeTimeout });
         this.connection.binaryType = 'arraybuffer';
         this.connection.onmessage = this.messageHandler.bind(this);
         this.connection.onclose = (ev: CloseEvent) =>
             runInAction(() => {
+                // A further retry costs the delay plus, in the worst case, a whole handshake timeout.
+                // Both are charged against the budget before the retry is scheduled, so that the
+                // rejection always lands inside config.timeout.connection instead of just after it.
+                const nextAttemptCost = MessageController.ConnectionAttemptDelay + MessageController.HandshakeTimeout;
+                const budgetExhausted = Date.now() + nextAttemptCost > retryDeadline;
                 // Only change to closed connection if the connection was originally active or this is a reconnection
-                if (
-                    this.connectionStatus === ConnectionStatus.ACTIVE ||
-                    isReconnection ||
-                    connectionAttempts >= MessageController.MaxConnectionAttempts
-                ) {
+                if (this.connectionStatus === ConnectionStatus.ACTIVE || isReconnection || budgetExhausted) {
                     const wasNeverActive = this.connectionStatus !== ConnectionStatus.ACTIVE;
                     this.connectionStatus = ConnectionStatus.CLOSED;
                     if (wasNeverActive) {
@@ -426,11 +438,14 @@ export class MessageController {
                     }
                 } else {
                     connectionAttempts++;
+                    const budgetLeft = Math.round(retryDeadline - Date.now());
                     console.log(
-                        `Connection to ${url} failed (${lastConnectionError || `code=${ev.code}`}), retrying ${connectionAttempts}/${MessageController.MaxConnectionAttempts} in ${MessageController.ConnectionAttemptDelay} ms`
+                        `Connection to ${url} failed (${lastConnectionError || `code=${ev.code}`}), retry ${connectionAttempts} in ${MessageController.ConnectionAttemptDelay} ms (${budgetLeft} ms of budget left)`
                     );
                     setTimeout(() => {
-                        const newConnection = new WebSocket(url);
+                        const newConnection = new WebSocket(url, {
+                            handshakeTimeout: MessageController.HandshakeTimeout,
+                        });
                         newConnection.binaryType = 'arraybuffer';
                         newConnection.onopen = this.connection.onopen;
                         newConnection.onerror = this.connection.onerror;
@@ -469,8 +484,8 @@ export class MessageController {
 
         // `ws` reports a refused or unreachable socket by emitting error and then close, so this
         // handler runs before every retry in onclose. Rejecting here would settle the promise on the
-        // first failure and leave MaxConnectionAttempts unreachable, which is why the reason is only
-        // recorded and the decision to give up is left to onclose.
+        // first failure and leave the retry budget unspent, which is why the reason is only recorded
+        // and the decision to give up is left to onclose.
         this.connection.onerror = (ev) => {
             const error = (ev as any)?.error;
             lastConnectionError = error?.code ? `${error.code} ${url}` : ((ev as any)?.message ?? 'WebSocket error');
