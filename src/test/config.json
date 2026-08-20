@@ -27,7 +27,7 @@
         "pvTimeout": 200000
     },
     "timeout": {
-        "connection": 1100,
+        "connection": 16000,
         "listFile": 1200,
         "openFile": 6000,
         "readFile": 6000,
