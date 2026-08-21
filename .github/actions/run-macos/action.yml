@@ -59,7 +59,7 @@ runs:
           fi
         done
         if [ -n "$backend_died" ]; then
-          echo "carta_backend stopped listening during $backend_died"
+          echo "carta_backend stopped listening during $backend_died; abandoning the rest of the stage"
           remaining_tests=()
           for skipped_test in "${skipped_tests[@]}"; do
             if [ -n "$skipped_test" ]; then
