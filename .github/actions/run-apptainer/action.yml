@@ -56,24 +56,37 @@ runs:
               --no_database \
               --no_log \
               --verbosity=5 >> $LOG_FILE 2>&1 & \
-            CARTA_BACKEND_PID=\$(pgrep -f 'carta_backend.*${{ inputs.port }}' | head -n 1) && \
-            echo 'carta_backend started with PID' \$CARTA_BACKEND_PID && \
+            # pgrep matches as soon as the backend forks, which is before it binds the port
+            bash $BUILD_DIR/ICD-RxJS/scripts/wait_for_backend.sh ${{ inputs.port }} 120 $LOG_FILE && \
+            echo 'carta_backend is listening with PID' \$(pgrep -f 'carta_backend.*${{ inputs.port }}' | head -n 1) && \
             # Run the ICD tests
             cd $BUILD_DIR/ICD-RxJS && \
             pwd && \
             cat $TEST_STAGE && \
             failed_tests=() && \
+            backend_died='' && \
             mapfile -t test_files < $TEST_STAGE && \
             for test_file in \"\${test_files[@]}\"; do
               if [ -n \"\$test_file\" ]; then  # Skip empty lines
                 if ! CI=true npm test -- \"\$test_file\"; then
                   failed_tests+=(\"\$test_file\")
                 fi
+                # A backend which has died takes every remaining file in the stage with it, each
+                # reporting a connection failure instead of the crash which actually caused it.
+                if ! bash scripts/wait_for_backend.sh ${{ inputs.port }} 0 $LOG_FILE; then
+                  backend_died=\"\$test_file\"
+                  break
+                fi
               fi
             done && \
+            if [ -n \"\$backend_died\" ]; then
+              echo \"carta_backend stopped listening during \$backend_died; abandoning the rest of the stage\"
+            fi && \
             if [ \${#failed_tests[@]} -ne 0 ]; then
               echo \"The following tests failed:\" && \
-              printf '%s\n' \"\${failed_tests[@]}\" && \
+              printf '%s\n' \"\${failed_tests[@]}\"
+            fi && \
+            if [ \${#failed_tests[@]} -ne 0 ] || [ -n \"\$backend_died\" ]; then
               exit 1
             fi"
       shell: bash
