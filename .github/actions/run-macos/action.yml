@@ -30,6 +30,8 @@ runs:
         --verbosity=5 >> "$LOG_FILE" 2>&1 &
         echo "CARTA_BACKEND_PID=$!" >> $GITHUB_ENV
         echo "CARTA_LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
+        # A PID only says the backend forked; the tests need the port to be bound.
+        bash $GITHUB_WORKSPACE/ICD-RxJS/scripts/wait_for_backend.sh ${{ inputs.port }} 120 "$LOG_FILE"
       shell: bash
 
     - name: ICD tests
@@ -37,18 +39,30 @@ runs:
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
         failed_tests=()
+        backend_died=''
         mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
         for test_file in "${test_files[@]}"; do
           if [ -n "$test_file" ]; then
             if ! CI=true npm test -- "$test_file"; then
               failed_tests+=("$test_file")
             fi
-            sleep 3 && pgrep carta_backend
+            sleep 3
+            # A backend which has died takes every remaining file in the stage with it, each
+            # reporting a connection failure instead of the crash which actually caused it.
+            if ! bash scripts/wait_for_backend.sh ${{ inputs.port }} 0 "$CARTA_LOG_FILE"; then
+              backend_died="$test_file"
+              break
+            fi
           fi
         done
+        if [ -n "$backend_died" ]; then
+          echo "carta_backend stopped listening during $backend_died; abandoning the rest of the stage"
+        fi
         if [ ${#failed_tests[@]} -ne 0 ]; then
           echo "The following tests failed:"
           printf '%s\n' "${failed_tests[@]}"
+        fi
+        if [ ${#failed_tests[@]} -ne 0 ] || [ -n "$backend_died" ]; then
           exit 1
         fi
       shell: bash
