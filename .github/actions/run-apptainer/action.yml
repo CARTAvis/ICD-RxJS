@@ -73,7 +73,12 @@ runs:
                   fi
                   restarts=\$((restarts + 1))
                   echo \"carta_backend crashed after \$test_file; restarting (\$restarts of \$max_restarts)\"
-                  if ! bash scripts/start_backend.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} $LOG_FILE; then
+                  # A restart gets a shorter budget than the 120s cold start. The binary is warm by
+                  # now, and the job itself is capped: three restarts at the full budget would spend
+                  # the cap on waiting and get the stage cancelled before it could report anything,
+                  # which is exactly how this showed up -- an exit 143 in the middle of a restart.
+                  # 90s still leaves 30s an attempt, which is what the old harness allowed a restart.
+                  if ! bash scripts/start_backend.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} $LOG_FILE 90; then
                     echo \"carta_backend could not be restarted; abandoning the rest of the stage\"
                     skipped_tests=(\"\${test_files[@]:\$((test_index + 1))}\")
                     break
