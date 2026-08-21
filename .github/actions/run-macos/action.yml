@@ -17,21 +17,10 @@ runs:
 
     - name: Start the carta-backend
       run: |
-        SRC_DIR=$GITHUB_WORKSPACE/source
-        BUILD_DIR=$GITHUB_WORKSPACE/build
         LOG_FILE="/tmp/carta_icd_macos_${{ inputs.test_stage_name }}.log"
-        cd $BUILD_DIR
-        ASAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan.supp \
-        LSAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan-leaks.supp \
-        ASAN_SYMBOLIZER_PATH=llvm-symbolizer \
-        ./carta_backend /images --top_level_folder /images \
-        --port ${{ inputs.port }} \
-        --omp_threads=4 --debug_no_auth --no_frontend --no_database --no_log \
-        --verbosity=5 >> "$LOG_FILE" 2>&1 &
-        echo "CARTA_BACKEND_PID=$!" >> $GITHUB_ENV
         echo "CARTA_LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
-        # A PID only says the backend forked; the tests need the port to be bound.
-        bash $GITHUB_WORKSPACE/ICD-RxJS/scripts/wait_for_backend.sh ${{ inputs.port }} 120 "$LOG_FILE"
+        bash $GITHUB_WORKSPACE/ICD-RxJS/scripts/start_backend.sh \
+          $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build ${{ inputs.port }} "$LOG_FILE"
       shell: bash
 
     - name: ICD tests
@@ -39,8 +28,10 @@ runs:
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
         failed_tests=()
-        backend_died=''
+        crash_sites=()
         skipped_tests=()
+        restarts=0
+        max_restarts=3
         mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
         for test_index in "${!test_files[@]}"; do
           test_file="${test_files[$test_index]}"
@@ -51,31 +42,45 @@ runs:
             sleep 3
             # A backend which has died takes every remaining file in the stage with it, each
             # reporting a connection failure instead of the crash which actually caused it.
+            # The tests hold no state in the backend -- every file connects and loads for
+            # itself -- so a fresh backend lets the rest of the stage run for real.
             if ! bash scripts/wait_for_backend.sh ${{ inputs.port }} 0 "$CARTA_LOG_FILE"; then
-              backend_died="$test_file"
-              skipped_tests=("${test_files[@]:$((test_index + 1))}")
-              break
+              crash_sites+=("$test_file")
+              if [ "$restarts" -ge "$max_restarts" ]; then
+                echo "carta_backend crashed after $test_file and has already been restarted $restarts times; abandoning the rest of the stage"
+                skipped_tests=("${test_files[@]:$((test_index + 1))}")
+                break
+              fi
+              restarts=$((restarts + 1))
+              echo "carta_backend crashed after $test_file; restarting ($restarts of $max_restarts)"
+              if ! bash scripts/start_backend.sh \
+                     $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build ${{ inputs.port }} "$CARTA_LOG_FILE"; then
+                echo "carta_backend could not be restarted; abandoning the rest of the stage"
+                skipped_tests=("${test_files[@]:$((test_index + 1))}")
+                break
+              fi
             fi
           fi
         done
-        if [ -n "$backend_died" ]; then
-          echo "carta_backend stopped listening during $backend_died; abandoning the rest of the stage"
-          remaining_tests=()
-          for skipped_test in "${skipped_tests[@]}"; do
-            if [ -n "$skipped_test" ]; then
-              remaining_tests+=("$skipped_test")
-            fi
-          done
-          if [ ${#remaining_tests[@]} -ne 0 ]; then
-            echo "The following tests did not run:"
-            printf '  %s\n' "${remaining_tests[@]}"
+        if [ ${#crash_sites[@]} -ne 0 ]; then
+          echo "carta_backend crashed after:"
+          printf '  %s\n' "${crash_sites[@]}"
+        fi
+        remaining_tests=()
+        for skipped_test in "${skipped_tests[@]}"; do
+          if [ -n "$skipped_test" ]; then
+            remaining_tests+=("$skipped_test")
           fi
+        done
+        if [ ${#remaining_tests[@]} -ne 0 ]; then
+          echo "The following tests did not run:"
+          printf '  %s\n' "${remaining_tests[@]}"
         fi
         if [ ${#failed_tests[@]} -ne 0 ]; then
           echo "The following tests failed:"
           printf '%s\n' "${failed_tests[@]}"
         fi
-        if [ ${#failed_tests[@]} -ne 0 ] || [ -n "$backend_died" ]; then
+        if [ ${#failed_tests[@]} -ne 0 ] || [ ${#crash_sites[@]} -ne 0 ]; then
           exit 1
         fi
       shell: bash
@@ -91,7 +96,8 @@ runs:
     - name: Stop carta-backend
       if: always()
       run: |
-        if [ -n "${{ env.CARTA_BACKEND_PID }}" ]; then
-          kill ${{ env.CARTA_BACKEND_PID }} || true
-        fi
+        # Matched by port rather than by a PID recorded at startup: the stage may have restarted
+        # the backend after a crash, in which case that PID is long gone and killing it would
+        # leave the replacement running on the runner.
+        pkill -f "carta_backend.*${{ inputs.port }}" || true
       shell: bash
