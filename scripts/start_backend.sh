@@ -41,12 +41,35 @@ fi
 # directory the caller happens to be in.
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Matched on the executable and its --port argument rather than on "carta_backend" and the port
+# number appearing anywhere in a command line. Apptainer shares the host PID space, so this scan
+# also sees `apptainer exec ... /bin/bash -c "<the whole stage loop>"` -- and that script mentions
+# carta_backend in one line and the port in another, which `carta_backend.*$port` matches, since a
+# POSIX regex crosses newlines. The loose pattern therefore matched the very process running this
+# script, and clear_port killed the stage it was restarting the backend for. The stage loop has no
+# --port in it, and no shell is named carta_backend, so requiring both makes only a real backend
+# match. (macOS never showed this: its pgrep does not match across the newlines.)
+backend_pattern="(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+$port([[:space:]]|\$)"
+
 # pgrep is not guaranteed to be in a container image, so fall back to plain ps.
 backend_pids() {
     if command -v pgrep >/dev/null 2>&1; then
-        pgrep -f "carta_backend.*$port"
+        pgrep -f "$backend_pattern"
     else
-        ps -eo pid=,args= 2>/dev/null | awk -v pat="carta_backend.*$port" '$0 ~ pat {print $1}'
+        # By field rather than by a regex over the whole line: the pattern would otherwise appear
+        # in awk's own command line, and awk would report the process doing the matching.
+        ps -eo pid=,args= 2>/dev/null | awk -v port="$port" '
+            {
+                argv0 = 0
+                for (i = 2; i <= NF; i++)
+                    if ($i ~ /(^|\/)carta_backend$/) { argv0 = i; break }
+                if (argv0)
+                    for (i = argv0 + 1; i <= NF; i++)
+                        if (($i == "--port" && $(i + 1) == port) || $i == "--port=" port) {
+                            print $1
+                            break
+                        }
+            }'
     fi
 }
 
