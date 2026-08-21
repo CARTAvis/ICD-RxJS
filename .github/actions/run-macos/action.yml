@@ -39,7 +39,6 @@ runs:
             if ! CI=true npm test -- "$test_file"; then
               failed_tests+=("$test_file")
             fi
-            sleep 3
             # A backend which has died takes every remaining file in the stage with it, each
             # reporting a connection failure instead of the crash which actually caused it.
             # The tests hold no state in the backend -- every file connects and loads for
