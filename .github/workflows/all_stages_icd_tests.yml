@@ -231,7 +231,7 @@ jobs:
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -286,7 +286,7 @@ jobs:
   Animator-ICD-Tests:
     name: Animator ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -341,7 +341,7 @@ jobs:
   Region-Statistics-ICD-Tests:
     name: Region Statistics ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -396,7 +396,7 @@ jobs:
   Region-Manipulation-ICD-Tests:
     name: Region Manipulation ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -561,7 +561,7 @@ jobs:
   Raster-Tiles-ICD-Tests:
     name: Raster Tiles ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -616,7 +616,7 @@ jobs:
   Catalog-ICD-Tests:
     name: Catalog ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -671,7 +671,7 @@ jobs:
   Moment-ICD-Tests:
     name: Moment ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -726,7 +726,7 @@ jobs:
   Match-ICD-Tests:
     name: Match ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -781,7 +781,7 @@ jobs:
   Close-File-ICD-Tests:
     name: Close File ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -891,7 +891,7 @@ jobs:
   Vector-Overlay-ICD-Tests:
     name: Vector Overlay ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -946,7 +946,7 @@ jobs:
   Resume-ICD-Tests:
     name: Resume ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
