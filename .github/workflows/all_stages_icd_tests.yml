@@ -231,7 +231,7 @@ jobs:
   File-Browser-ICD-Tests:
     name: File-Browser ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -270,13 +270,13 @@ jobs:
       # macOS steps
       - name: File Browser ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'file_browser'
       # Linux steps
       - name: File Browser ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -286,7 +286,7 @@ jobs:
   Animator-ICD-Tests:
     name: Animator ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -325,13 +325,13 @@ jobs:
       # macOS steps
       - name: Animator ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'animator'
       # Linux steps
       - name: Animator ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -341,7 +341,7 @@ jobs:
   Region-Statistics-ICD-Tests:
     name: Region Statistics ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -380,13 +380,13 @@ jobs:
       # macOS steps
       - name: Region-Statistics ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'region_statistics'
       # Linux steps
       - name: Region-Statistics ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -396,7 +396,7 @@ jobs:
   Region-Manipulation-ICD-Tests:
     name: Region Manipulation ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -435,13 +435,13 @@ jobs:
       # macOS steps
       - name: Region Manipulation ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'region_manipulation'
       # Linux steps
       - name: Region Manipulation ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -490,13 +490,13 @@ jobs:
       # macOS steps
       - name: Cube Histogram ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'cube_histogram'
       # Linux steps
       - name: Cube Histogram ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -545,13 +545,13 @@ jobs:
       # macOS steps
       - name: PV Generator ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'pv_generator'
       # Linux steps
       - name: PV Generator ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -561,7 +561,7 @@ jobs:
   Raster-Tiles-ICD-Tests:
     name: Raster Tiles ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -600,13 +600,13 @@ jobs:
       # macOS steps
       - name: Raster Tiles ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'raster_tiles'
       # Linux steps
       - name: Raster Tiles ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -616,7 +616,7 @@ jobs:
   Catalog-ICD-Tests:
     name: Catalog ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -655,13 +655,13 @@ jobs:
       # macOS steps
       - name: Catalog ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'catalog'
       # Linux steps
       - name: Catalog ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -671,7 +671,7 @@ jobs:
   Moment-ICD-Tests:
     name: Moment ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -710,13 +710,13 @@ jobs:
       # macOS steps
       - name: Moment ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'moment'
       # Linux steps
       - name: Moment ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -726,7 +726,7 @@ jobs:
   Match-ICD-Tests:
     name: Match ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -765,13 +765,13 @@ jobs:
       # macOS steps
       - name: Match ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'match'
       # Linux steps
       - name: Match ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -781,7 +781,7 @@ jobs:
   Close-File-ICD-Tests:
     name: Close File ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -820,13 +820,13 @@ jobs:
       # macOS steps
       - name: Close File ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'close_file'
       # Linux steps
       - name: Close File ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -875,13 +875,13 @@ jobs:
       # macOS steps
       - name: Image Fitting ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'image_fitting'
       # Linux steps
       - name: Image Fitting ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -891,7 +891,7 @@ jobs:
   Vector-Overlay-ICD-Tests:
     name: Vector Overlay ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -930,13 +930,13 @@ jobs:
       # macOS steps
       - name: Vector Overlay ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'vector_overlay'
       # Linux steps
       - name: Vector Overlay ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}
@@ -946,7 +946,7 @@ jobs:
   Resume-ICD-Tests:
     name: Resume ${{ matrix.os_version }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -985,13 +985,13 @@ jobs:
       # macOS steps
       - name: Resume ICD tests
         if: matrix.os == 'macos'
-        uses: ./source/.github/actions/run-macos
+        uses: ./ICD-RxJS/.github/actions/run-macos
         with:
           test_stage_name: 'resume'
       # Linux steps
       - name: Resume ICD tests
         if: matrix.os == 'linux'
-        uses: ./source/.github/actions/run-apptainer
+        uses: ./ICD-RxJS/.github/actions/run-apptainer
         with:
           os_version: ${{ matrix.os_version }}
           image: ${{ matrix.image }}

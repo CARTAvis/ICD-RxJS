@@ -28,16 +28,23 @@ runs:
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
         failed_tests=()
+        retried_tests=()
         crash_sites=()
         skipped_tests=()
         restarts=0
         max_restarts=3
-        mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
+        # Read with a loop rather than mapfile: macOS ships bash 3.2, which does not have it. The
+        # `|| [ -n "$line" ]` keeps the last entry of a file with no trailing newline.
+        test_files=()
+        while IFS= read -r line || [ -n "$line" ]; do
+          test_files+=("$line")
+        done < ICD_test_stages/${{ inputs.test_stage_name }}.tests
         for test_index in "${!test_files[@]}"; do
           test_file="${test_files[$test_index]}"
           if [ -n "$test_file" ]; then
+            first_attempt_failed=''
             if ! CI=true npm test -- "$test_file"; then
-              failed_tests+=("$test_file")
+              first_attempt_failed=yes
             fi
             # A backend which has died takes every remaining file in the stage with it, each
             # reporting a connection failure instead of the crash which actually caused it.
@@ -52,11 +59,27 @@ runs:
               fi
               restarts=$((restarts + 1))
               echo "carta_backend crashed after $test_file; restarting ($restarts of $max_restarts)"
+              # A restart gets a shorter budget than the 120s cold start. The binary is warm by now,
+              # and the job itself is capped: three restarts at the full budget would spend the cap
+              # on waiting and get the stage cancelled before it could report anything. 90s still
+              # leaves 30s an attempt, which is what the old harness allowed a restart.
               if ! bash scripts/start_backend.sh \
-                     $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build ${{ inputs.port }} "$CARTA_LOG_FILE"; then
+                     $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build ${{ inputs.port }} "$CARTA_LOG_FILE" 90; then
                 echo "carta_backend could not be restarted; abandoning the rest of the stage"
                 skipped_tests=("${test_files[@]:$((test_index + 1))}")
                 break
+              fi
+            fi
+            # The retry comes after the liveness check so that a file which failed because the
+            # backend died underneath it is retried against the replacement rather than against
+            # nothing. One retry, reported either way: the harness this replaces retried silently,
+            # which made a file that failed once and passed once look exactly like a clean one.
+            if [ -n "$first_attempt_failed" ]; then
+              echo "$test_file failed; retrying once"
+              if CI=true npm test -- "$test_file"; then
+                retried_tests+=("$test_file")
+              else
+                failed_tests+=("$test_file")
               fi
             fi
           fi
@@ -64,6 +87,10 @@ runs:
         if [ ${#crash_sites[@]} -ne 0 ]; then
           echo "carta_backend crashed after:"
           printf '  %s\n' "${crash_sites[@]}"
+        fi
+        if [ ${#retried_tests[@]} -ne 0 ]; then
+          echo "The following tests failed once and passed on a retry:"
+          printf '  %s\n' "${retried_tests[@]}"
         fi
         remaining_tests=()
         for skipped_test in "${skipped_tests[@]}"; do
@@ -97,6 +124,8 @@ runs:
       run: |
         # Matched by port rather than by a PID recorded at startup: the stage may have restarted
         # the backend after a crash, in which case that PID is long gone and killing it would
-        # leave the replacement running on the runner.
-        pkill -f "carta_backend.*${{ inputs.port }}" || true
+        # leave the replacement running on the runner. The executable and its --port argument are
+        # both required so that this can only match a backend, never a shell whose command line
+        # happens to mention carta_backend and the port.
+        pkill -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)" || true
       shell: bash
