@@ -40,8 +40,10 @@ runs:
         cd $ICD_DIR
         failed_tests=()
         backend_died=''
+        skipped_tests=()
         mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
-        for test_file in "${test_files[@]}"; do
+        for test_index in "${!test_files[@]}"; do
+          test_file="${test_files[$test_index]}"
           if [ -n "$test_file" ]; then
             if ! CI=true npm test -- "$test_file"; then
               failed_tests+=("$test_file")
@@ -51,12 +53,23 @@ runs:
             # reporting a connection failure instead of the crash which actually caused it.
             if ! bash scripts/wait_for_backend.sh ${{ inputs.port }} 0 "$CARTA_LOG_FILE"; then
               backend_died="$test_file"
+              skipped_tests=("${test_files[@]:$((test_index + 1))}")
               break
             fi
           fi
         done
         if [ -n "$backend_died" ]; then
           echo "carta_backend stopped listening during $backend_died; abandoning the rest of the stage"
+          remaining_tests=()
+          for skipped_test in "${skipped_tests[@]}"; do
+            if [ -n "$skipped_test" ]; then
+              remaining_tests+=("$skipped_test")
+            fi
+          done
+          if [ ${#remaining_tests[@]} -ne 0 ]; then
+            echo "The following tests did not run:"
+            printf '  %s\n' "${remaining_tests[@]}"
+          fi
         fi
         if [ ${#failed_tests[@]} -ne 0 ]; then
           echo "The following tests failed:"
