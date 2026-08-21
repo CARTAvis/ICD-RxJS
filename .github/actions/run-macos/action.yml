@@ -28,6 +28,7 @@ runs:
         ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
         cd $ICD_DIR
         failed_tests=()
+        retried_tests=()
         crash_sites=()
         skipped_tests=()
         restarts=0
@@ -41,8 +42,9 @@ runs:
         for test_index in "${!test_files[@]}"; do
           test_file="${test_files[$test_index]}"
           if [ -n "$test_file" ]; then
+            first_attempt_failed=''
             if ! CI=true npm test -- "$test_file"; then
-              failed_tests+=("$test_file")
+              first_attempt_failed=yes
             fi
             # A backend which has died takes every remaining file in the stage with it, each
             # reporting a connection failure instead of the crash which actually caused it.
@@ -68,11 +70,27 @@ runs:
                 break
               fi
             fi
+            # The retry comes after the liveness check so that a file which failed because the
+            # backend died underneath it is retried against the replacement rather than against
+            # nothing. One retry, reported either way: the harness this replaces retried silently,
+            # which made a file that failed once and passed once look exactly like a clean one.
+            if [ -n "$first_attempt_failed" ]; then
+              echo "$test_file failed; retrying once"
+              if CI=true npm test -- "$test_file"; then
+                retried_tests+=("$test_file")
+              else
+                failed_tests+=("$test_file")
+              fi
+            fi
           fi
         done
         if [ ${#crash_sites[@]} -ne 0 ]; then
           echo "carta_backend crashed after:"
           printf '  %s\n' "${crash_sites[@]}"
+        fi
+        if [ ${#retried_tests[@]} -ne 0 ]; then
+          echo "The following tests failed once and passed on a retry:"
+          printf '  %s\n' "${retried_tests[@]}"
         fi
         remaining_tests=()
         for skipped_test in "${skipped_tests[@]}"; do
