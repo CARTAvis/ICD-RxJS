@@ -26,12 +26,18 @@ runs:
         TEST_STAGE="$BUILD_DIR/ICD-RxJS/ICD_test_stages/${{ inputs.test_stage_name }}.tests"
         LOG_FILE="/tmp/carta_icd_${{ inputs.os_version }}_${{ inputs.test_stage_name }}.log"
         
-        # Function to cleanup backend process
+        # Function to cleanup backend process.
+        #
+        # Matched on the executable and its --port argument, not on "carta_backend" and the port
+        # appearing anywhere in a command line: this scan also sees the host's own
+        # `apptainer exec ... /bin/bash -c "<the whole stage loop>"`, whose command line mentions
+        # both, and killing that tears the container down instead of the backend.
         cleanup() {
-          local backend_pid=$(pgrep -f "carta_backend.*${{ inputs.port }}" | head -n 1)
-          if [ ! -z "$backend_pid" ]; then
-            echo "Cleaning up carta_backend (PID: $backend_pid)"
-            kill -9 "$backend_pid" || true
+          local backend_pids
+          backend_pids=$(pgrep -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)")
+          if [ -n "$backend_pids" ]; then
+            echo "Cleaning up carta_backend (PID: $(echo $backend_pids | tr '\n' ' '))"
+            kill -9 $backend_pids || true
           fi
         }
         

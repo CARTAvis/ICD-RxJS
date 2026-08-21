@@ -106,6 +106,8 @@ runs:
       run: |
         # Matched by port rather than by a PID recorded at startup: the stage may have restarted
         # the backend after a crash, in which case that PID is long gone and killing it would
-        # leave the replacement running on the runner.
-        pkill -f "carta_backend.*${{ inputs.port }}" || true
+        # leave the replacement running on the runner. The executable and its --port argument are
+        # both required so that this can only match a backend, never a shell whose command line
+        # happens to mention carta_backend and the port.
+        pkill -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)" || true
       shell: bash
