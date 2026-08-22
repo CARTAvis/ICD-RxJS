@@ -23,7 +23,7 @@ runs:
     
         SRC_DIR=$GITHUB_WORKSPACE/source
         BUILD_DIR=$GITHUB_WORKSPACE/build-${{ inputs.os_version }}
-        TEST_STAGE="$BUILD_DIR/ICD-RxJS/ICD_test_stages/${{ inputs.test_stage_name }}.tests"
+        SCRIPT_DIR="$BUILD_DIR/ICD-RxJS/scripts"
         LOG_FILE="/tmp/carta_icd_${{ inputs.os_version }}_${{ inputs.test_stage_name }}.log"
         
         # Function to cleanup backend process.
@@ -32,13 +32,18 @@ runs:
         # appearing anywhere in a command line: this scan also sees the host's own
         # `apptainer exec ... /bin/bash -c "<the whole stage loop>"`, whose command line mentions
         # both, and killing that tears the container down instead of the backend.
+        # `|| true` and the final `return 0` because this runs from a trap under `set -e`: pgrep
+        # exits 1 when it matches nothing, and the status of the last command a trap runs becomes
+        # the status of the step. A stage which passed but left no backend to clean up would
+        # otherwise be reported as a failure.
         cleanup() {
           local backend_pids
-          backend_pids=$(pgrep -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)")
+          backend_pids=$(pgrep -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)" || true)
           if [ -n "$backend_pids" ]; then
             echo "Cleaning up carta_backend (PID: $(echo $backend_pids | tr '\n' ' '))"
             kill -9 $backend_pids || true
           fi
+          return 0
         }
         
         # Set trap for cleanup
@@ -49,88 +54,8 @@ runs:
           --bind /images:/images \
           --pwd $BUILD_DIR \
           ${{ inputs.image }} /bin/bash -c "\
-            bash $BUILD_DIR/ICD-RxJS/scripts/start_backend.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} $LOG_FILE && \
-            # Run the ICD tests
-            cd $BUILD_DIR/ICD-RxJS && \
-            pwd && \
-            cat $TEST_STAGE && \
-            failed_tests=() && \
-            retried_tests=() && \
-            crash_sites=() && \
-            skipped_tests=() && \
-            restarts=0 && \
-            max_restarts=3 && \
-            mapfile -t test_files < $TEST_STAGE && \
-            for test_index in \"\${!test_files[@]}\"; do
-              test_file=\"\${test_files[\$test_index]}\"
-              if [ -n \"\$test_file\" ]; then  # Skip empty lines
-                first_attempt_failed=''
-                if ! CI=true npm test -- \"\$test_file\"; then
-                  first_attempt_failed=yes
-                fi
-                # A backend which has died takes every remaining file in the stage with it, each
-                # reporting a connection failure instead of the crash which actually caused it.
-                # The tests hold no state in the backend -- every file connects and loads for
-                # itself -- so a fresh backend lets the rest of the stage run for real.
-                if ! bash scripts/wait_for_backend.sh ${{ inputs.port }} 0 $LOG_FILE; then
-                  crash_sites+=(\"\$test_file\")
-                  if [ \"\$restarts\" -ge \"\$max_restarts\" ]; then
-                    echo \"carta_backend crashed after \$test_file and has already been restarted \$restarts times; abandoning the rest of the stage\"
-                    skipped_tests=(\"\${test_files[@]:\$((test_index + 1))}\")
-                    break
-                  fi
-                  restarts=\$((restarts + 1))
-                  echo \"carta_backend crashed after \$test_file; restarting (\$restarts of \$max_restarts)\"
-                  # A restart gets a shorter budget than the 120s cold start. The binary is warm by
-                  # now, and the job itself is capped: three restarts at the full budget would spend
-                  # the cap on waiting and get the stage cancelled before it could report anything,
-                  # which is exactly how this showed up -- an exit 143 in the middle of a restart.
-                  # 90s still leaves 30s an attempt, which is what the old harness allowed a restart.
-                  if ! bash scripts/start_backend.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} $LOG_FILE 90; then
-                    echo \"carta_backend could not be restarted; abandoning the rest of the stage\"
-                    skipped_tests=(\"\${test_files[@]:\$((test_index + 1))}\")
-                    break
-                  fi
-                fi
-                # The retry comes after the liveness check so that a file which failed because the
-                # backend died underneath it is retried against the replacement rather than against
-                # nothing. One retry, reported either way: the harness this replaces retried
-                # silently, which made a file that failed once and passed once look like a clean one.
-                if [ -n \"\$first_attempt_failed\" ]; then
-                  echo \"\$test_file failed; retrying once\"
-                  if CI=true npm test -- \"\$test_file\"; then
-                    retried_tests+=(\"\$test_file\")
-                  else
-                    failed_tests+=(\"\$test_file\")
-                  fi
-                fi
-              fi
-            done && \
-            if [ \${#crash_sites[@]} -ne 0 ]; then
-              echo \"carta_backend crashed after:\"
-              printf '  %s\n' \"\${crash_sites[@]}\"
-            fi && \
-            if [ \${#retried_tests[@]} -ne 0 ]; then
-              echo \"The following tests failed once and passed on a retry:\"
-              printf '  %s\n' \"\${retried_tests[@]}\"
-            fi && \
-            remaining_tests=() && \
-            for skipped_test in \"\${skipped_tests[@]}\"; do
-              if [ -n \"\$skipped_test\" ]; then
-                remaining_tests+=(\"\$skipped_test\")
-              fi
-            done && \
-            if [ \${#remaining_tests[@]} -ne 0 ]; then
-              echo \"The following tests did not run:\"
-              printf '  %s\n' \"\${remaining_tests[@]}\"
-            fi && \
-            if [ \${#failed_tests[@]} -ne 0 ]; then
-              echo \"The following tests failed:\" && \
-              printf '%s\n' \"\${failed_tests[@]}\"
-            fi && \
-            if [ \${#failed_tests[@]} -ne 0 ] || [ \${#crash_sites[@]} -ne 0 ]; then
-              exit 1
-            fi"
+            bash $SCRIPT_DIR/start_backend.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} $LOG_FILE && \
+            bash $SCRIPT_DIR/run_test_stage.sh $SRC_DIR $BUILD_DIR ${{ inputs.port }} ${{ inputs.test_stage_name }} $LOG_FILE"
       shell: bash
 
     - name: Upload backend log on failure
