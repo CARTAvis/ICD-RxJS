@@ -92,9 +92,9 @@ This test verifies that multiple concurrent connections (10 clients) to the back
 
    - REGISTER_VIEWER_ACK.server_feature_flags and REGISTER_VIEWER_ACK.platform_strings are identical across all connections
 
-   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object), and server_feature_flags does not have the USER_PREFERENCES bit set
 
-   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
 
 ACCESS_CARTA_KNOWN_SESSION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,9 +126,9 @@ This test verifies that connecting with a client-supplied session ID results in 
 
    - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, where platform is "macOS" or "Linux"
 
-   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object), and server_feature_flags does not have the USER_PREFERENCES bit set
 
-   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
 
 ACCESS_CARTA_NO_CLIENT_FEATURE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,9 +160,9 @@ This test verifies that a connection without any client feature flags still succ
 
    - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, where platform is "macOS" or "Linux"
 
-   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object), and server_feature_flags does not have the USER_PREFERENCES bit set
 
-   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
 
 ACCESS_CARTA_SAME_ID_TWICE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,6 +188,8 @@ This test verifies that sending REGISTER_VIEWER twice on the same connection wit
 
    - REGISTER_VIEWER_ACK.session_type = CARTA.SessionType.RESUMED
 
+   - REGISTER_VIEWER_ACK.message is a non-empty string reporting the requested session id
+
 3. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) — second registration on same connection
 
    .. code-block:: text
@@ -211,6 +213,6 @@ This test verifies that sending REGISTER_VIEWER twice on the same connection wit
 
    - REGISTER_VIEWER_ACK.platform_strings has non-empty release_info, deployment, architecture and platform entries, is identical to the first acknowledgement, and platform is "macOS" or "Linux"
 
-   - REGISTER_VIEWER_ACK.user_preferences = None (empty object)
+   - REGISTER_VIEWER_ACK.user_preferences = None (empty object), and server_feature_flags does not have the USER_PREFERENCES bit set
 
-   - REGISTER_VIEWER_ACK.user_layouts = None (empty object)
+   - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
