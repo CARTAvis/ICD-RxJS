@@ -136,8 +136,18 @@ export class BackendService {
         // setInterval(this.sendPing, 5000);
     }
 
+    /**
+     * `sessionId` defaults to the id this service already holds — 0 before the first
+     * REGISTER_VIEWER_ACK, and the assigned id afterwards, so a reconnection resumes.
+     * The ACCESS_CARTA tests pass both arguments explicitly to register a known session id
+     * or to register with no client feature at all.
+     */
     @action('connect')
-    async connect(url: string): Promise<CARTA.IRegisterViewerAck> {
+    async connect(
+        url: string,
+        sessionId: number = this.sessionId,
+        clientFeatureFlags: number = BackendService.DefaultFeatureFlags
+    ): Promise<CARTA.IRegisterViewerAck> {
         if (this.connection) {
             this.connection.onclose = null;
             this.connection.close();
@@ -188,8 +198,8 @@ export class BackendService {
             }
             this.connectionStatus = ConnectionStatus.ACTIVE;
             const message = CARTA.RegisterViewer.create({
-                sessionId: this.sessionId,
-                clientFeatureFlags: BackendService.DefaultFeatureFlags,
+                sessionId,
+                clientFeatureFlags,
             });
             // observer map is cleared, so that old subscriptions don't get incorrectly fired
 
@@ -214,6 +224,30 @@ export class BackendService {
             this.connection.close();
         }
     };
+
+    /** Send REGISTER_VIEWER again on a connection that is already registered. */
+    async getRegisterViewerAck(
+        sessionId: number = this.sessionId,
+        clientFeatureFlags: number = BackendService.DefaultFeatureFlags
+    ): Promise<CARTA.IRegisterViewerAck> {
+        if (this.connectionStatus !== ConnectionStatus.ACTIVE) {
+            throw new Error('Not connected');
+        } else {
+            const message = CARTA.RegisterViewer.create({
+                sessionId,
+                clientFeatureFlags,
+            });
+            const requestId = this.eventCounter;
+            this.logEvent(CARTA.EventType.REGISTER_VIEWER, requestId, message, false);
+            if (this.sendEvent(CARTA.EventType.REGISTER_VIEWER, CARTA.RegisterViewer.encode(message).finish())) {
+                const deferredResponse = new Deferred<CARTA.IRegisterViewerAck>();
+                this.deferredMap.set(requestId, deferredResponse);
+                return await deferredResponse.promise;
+            } else {
+                throw new Error('Could not send event');
+            }
+        }
+    }
 
     async getFileList(directory: string, filterMode: CARTA.FileListFilterMode): Promise<CARTA.IFileListResponse> {
         if (this.connectionStatus !== ConnectionStatus.ACTIVE) {

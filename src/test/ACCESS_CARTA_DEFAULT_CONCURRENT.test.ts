@@ -2,27 +2,33 @@ import { CARTA } from 'carta-protobuf';
 import { BackendService } from './MessageControllerConcurrent';
 import config from './config.json';
 import WebSocket from 'ws';
+import {
+    CONNECTION_TIMEOUT,
+    PLATFORM_STRING_KEYS,
+    TEST_SERVER_URL,
+    expectAssignedSessionId,
+    expectMessageReportingSessionId,
+    expectNoUserLayouts,
+    expectNoUserPreferences,
+    expectPlatformStrings,
+} from './AccessHelpers';
 
-let testServerUrl = config.serverURL0;
-let connectTimeout = config.timeout.connection;
 let testNumber = config.repeat.concurrent;
-
-const platformStringKeys = ['release_info', 'deployment', 'architecture', 'platform'];
 
 let client: BackendService[] = [];
 let RegisterViewerAckResponse: CARTA.IRegisterViewerAck[] = [];
 
 describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connections to the backend.`, () => {
     test(
-        `establish ${testNumber} concurrent connections to "${testServerUrl}".`,
+        `establish ${testNumber} concurrent connections to "${TEST_SERVER_URL}".`,
         async () => {
             client = Array.from({ length: testNumber }, () => new BackendService());
-            RegisterViewerAckResponse = await Promise.all(client.map((item) => item.connect(testServerUrl)));
+            RegisterViewerAckResponse = await Promise.all(client.map((item) => item.connect(TEST_SERVER_URL)));
             client.forEach((item) => {
                 expect(item.connection.readyState).toBe(WebSocket.OPEN);
             });
         },
-        connectTimeout
+        CONNECTION_TIMEOUT
     );
 
     test(`assert every REGISTER_VIEWER_ACK.success is True.`, () => {
@@ -32,10 +38,7 @@ describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connectio
     });
 
     test(`assert every REGISTER_VIEWER_ACK.session_id is assigned by the backend.`, () => {
-        RegisterViewerAckResponse.forEach((item) => {
-            expect(item.sessionId).toBeDefined();
-            expect(item.sessionId).not.toEqual(0);
-        });
+        RegisterViewerAckResponse.forEach(expectAssignedSessionId);
     });
 
     test(`assert every REGISTER_VIEWER_ACK.session_id is unique.`, () => {
@@ -52,21 +55,12 @@ describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connectio
 
     test(`assert every REGISTER_VIEWER_ACK.message reports its own session_id`, () => {
         RegisterViewerAckResponse.forEach((item) => {
-            expect(item.message).toBeDefined();
-            expect(item.message).not.toEqual('');
-            expect(item.message).toContain(`${item.sessionId}`);
+            expectMessageReportingSessionId(item, item.sessionId!);
         });
     });
 
-    test(`assert every REGISTER_VIEWER_ACK.platform_strings has ${platformStringKeys.join(', ')}`, () => {
-        RegisterViewerAckResponse.forEach((item) => {
-            const platformStrings = item.platformStrings!;
-            expect(platformStrings).toBeDefined();
-            platformStringKeys.forEach((key) => {
-                expect(platformStrings[key]).toBeDefined();
-                expect(platformStrings[key]).not.toEqual('');
-            });
-        });
+    test(`assert every REGISTER_VIEWER_ACK.platform_strings has ${PLATFORM_STRING_KEYS.join(', ')}`, () => {
+        RegisterViewerAckResponse.forEach(expectPlatformStrings);
     });
 
     test(`assert every REGISTER_VIEWER_ACK reports the same server information`, () => {
@@ -78,15 +72,11 @@ describe(`ACCESS_CARTA_DEFAULT_CONCURRENT: Testing multiple concurrent connectio
     });
 
     test('assert every REGISTER_VIEWER_ACK.user_preferences = None', () => {
-        RegisterViewerAckResponse.forEach((item) => {
-            expect(item.userPreferences).toEqual({});
-        });
+        RegisterViewerAckResponse.forEach(expectNoUserPreferences);
     });
 
     test('assert every REGISTER_VIEWER_ACK.user_layouts = None', () => {
-        RegisterViewerAckResponse.forEach((item) => {
-            expect(item.userLayouts).toEqual({});
-        });
+        RegisterViewerAckResponse.forEach(expectNoUserLayouts);
     });
 
     afterAll(() => {
