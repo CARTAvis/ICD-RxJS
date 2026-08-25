@@ -1,13 +1,16 @@
 import { CARTA } from 'carta-protobuf';
-import { checkConnection, Stream } from './MyClient';
+import { checkConnection } from './MyClient';
 import { MessageController } from './MessageController';
-import config from './config.json';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+import {
+    CONNECTION_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertNoFurtherMessage,
+    testBackendIsAlive,
+    testBasePath,
+    testOpenFile,
+    testTilesAndProfiles,
+} from './CloseFileHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -18,9 +21,9 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: TEST_SUBDIRECTORY },
     openFile: {
-        directory: testSubdirectory,
+        directory: TEST_SUBDIRECTORY,
         file: 'M17_SWex.fits',
         hdu: '',
         fileId: 0,
@@ -43,79 +46,24 @@ let assertItem: AssertItem = {
     },
 };
 
-let basepath: string;
 describe('Test for Close single file:', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
-            await msgController.connect(testServerUrl);
-        }, connectTimeout);
+            await msgController.connect(TEST_SERVER_URL);
+        }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList('$BASE', 0);
-            basepath = fileListResponse.directory;
-            assertItem.openFile.directory = basepath + '/' + assertItem.openFile.directory;
-            assertItem.filelist.directory = basepath + '/' + assertItem.filelist.directory;
-        });
+        testBasePath([assertItem.openFile, assertItem.filelist]);
+        testOpenFile('(Step 1)', assertItem.openFile, -1);
+        testTilesAndProfiles('(Step 2)', assertItem.addRequiredTiles, assertItem.setCursor, assertItem.setSpatialReq);
 
-        test(
-            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `,
-            async () => {
-                msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles.tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor.fileId,
-                    assertItem.setCursor.point.x,
-                    assertItem.setCursor.point.y
-                );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end + 1 Tile returned
-            },
-            readFileTimeout
-        );
-
-        test(`(Step 3) close image and check there is no receiving message`, (done) => {
+        test(`(Step 3) close image and check there is no receiving message`, async () => {
             msgController.closeFile(0);
-
-            let receiveNumberCurrent = msgController.messageReceiving();
-            setTimeout(() => {
-                let receiveNumberLatter = msgController.messageReceiving();
-                expect(receiveNumberCurrent).toEqual(receiveNumberLatter);
-                done();
-            }, 1000);
+            await assertNoFurtherMessage(msgController.messageReceiving());
         });
 
-        test(`(Step 4) close image & the backend is still alive`, async () => {
-            let BackendStatus = await msgController.getFileList(
-                assertItem.filelist.directory,
-                assertItem.filelist.filterMode
-            );
-            expect(BackendStatus).toBeDefined();
-            expect(BackendStatus.success).toBe(true);
-            expect(BackendStatus.directory).toContain('set_QA');
-        });
+        testBackendIsAlive(assertItem.filelist);
 
         afterAll(() => msgController.closeConnection());
     });

@@ -1,16 +1,18 @@
 import { CARTA } from 'carta-protobuf';
-import { Stream } from './MyClient';
-import { MessageController, ConnectionStatus } from './MessageController';
-import config from './config.json';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
-// CLOSE_FILE is not acknowledged in the ICD, so the only thing which can be observed
-// directly after it is silence. This is how long silence is waited for.
-let quietTime: number = config.timeout.messageEvent;
+import { checkConnection, Stream } from './MyClient';
+import { MessageController } from './MessageController';
+import {
+    CONNECTION_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertNoFurtherMessage,
+    assertSpatialProfile,
+    testBackendIsAlive,
+    testBasePath,
+    testOpenFile,
+    testTilesAndProfiles,
+} from './CloseFileHelpers';
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -27,24 +29,24 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: TEST_SUBDIRECTORY },
     fileOpen: [
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.fits',
             hdu: '',
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.hdf5',
             hdu: '',
             fileId: 1,
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.image',
             hdu: '0',
             fileId: 2,
@@ -119,26 +121,10 @@ let assertItem: AssertItem = {
     },
 };
 
-// The backend has to have sent nothing since the count was taken.
-async function assertNoFurtherMessage(expectedMessageCount: number) {
-    const msgController = MessageController.Instance;
-    await new Promise((resolve) => setTimeout(resolve, quietTime));
-    expect(msgController.messageReceiving()).toEqual(expectedMessageCount);
-}
-
-// Ask a file which should still be open for its spatial profile. The file id on the
-// response is the point of the check: closing one file must neither silence another file
-// nor redirect its stream.
+// Ask a file which should still be open for its spatial profile. Closing one file must
+// neither silence another file nor redirect its stream.
 async function assertFileIsOpen(fileId: number) {
-    const msgController = MessageController.Instance;
-    const spatialProfileDataStream = Stream(CARTA.SpatialProfileData, 1);
-    msgController.setSpatialRequirements(assertItem.setSpatialReq[fileId]);
-    const spatialProfileData = await spatialProfileDataStream;
-    expect(spatialProfileData[0].fileId).toEqual(fileId);
-    expect(spatialProfileData[0].regionId).toEqual(assertItem.setSpatialReq[fileId].regionId);
-    expect(spatialProfileData[0].profiles.map((profile) => profile.coordinate)).toEqual(
-        assertItem.setSpatialReq[fileId].spatialProfiles.map((profile) => profile.coordinate)
-    );
+    await assertSpatialProfile(assertItem.setSpatialReq[fileId]);
 }
 
 // Ask a file which should be closed for its spatial profile. Since CLOSE_FILE draws no
@@ -162,88 +148,26 @@ async function assertFileIsClosed(fileId: number) {
 // declared once. Every message is checked to carry the file id it belongs to, which is
 // what the close cases below then rely on.
 function openThreeImages() {
-    const msgController = MessageController.Instance;
     assertItem.fileOpen.forEach((fileOpen, index) => {
-        test(
-            `(Image ${fileOpen.fileId}) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${fileOpen.file}" should arrive within ${openFileTimeout} ms | `,
-            async () => {
-                const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
-                const openFileResponse = await msgController.loadFile(fileOpen);
-                const regionHistogramData = await regionHistogramDataStream;
-                expect(openFileResponse.success).toBe(true);
-                expect(openFileResponse.fileInfo.name).toEqual(fileOpen.file);
-                expect(openFileResponse.fileId).toEqual(fileOpen.fileId);
-                expect(regionHistogramData[0].fileId).toEqual(fileOpen.fileId);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image ${fileOpen.fileId}) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA should carry file id ${fileOpen.fileId} | `,
-            async () => {
-                const requiredTiles = assertItem.addRequiredTiles[index];
-                const rasterTileDataStream = Stream(CARTA.RasterTileData, requiredTiles.tiles.length + 2);
-                msgController.addRequiredTiles(requiredTiles);
-                const rasterTileData = await rasterTileDataStream;
-                // Stream resolves as soon as it has collected the number of messages it was
-                // asked for, so the length of the array carries no information. The file id
-                // and the sync envelope do.
-                rasterTileData.forEach((message) => expect(message.fileId).toEqual(fileOpen.fileId));
-                expect(rasterTileData[0].endSync).toBe(false);
-                expect(rasterTileData.slice(-1)[0].endSync).toBe(true);
-                expect(rasterTileData.slice(-1)[0].tileCount).toEqual(requiredTiles.tiles.length);
-
-                const cursorProfileStream = Stream(CARTA.SpatialProfileData, 1);
-                msgController.setCursor(
-                    assertItem.setCursor[index].fileId,
-                    assertItem.setCursor[index].point.x,
-                    assertItem.setCursor[index].point.y
-                );
-                const cursorProfile = await cursorProfileStream;
-                expect(cursorProfile[0].fileId).toEqual(fileOpen.fileId);
-                expect(cursorProfile[0].x).toEqual(assertItem.setCursor[index].point.x);
-                expect(cursorProfile[0].y).toEqual(assertItem.setCursor[index].point.y);
-
-                await assertFileIsOpen(fileOpen.fileId);
-            },
-            readFileTimeout
+        testOpenFile(`(Image ${fileOpen.fileId})`, fileOpen);
+        testTilesAndProfiles(
+            `(Image ${fileOpen.fileId})`,
+            assertItem.addRequiredTiles[index],
+            assertItem.setCursor[index],
+            assertItem.setSpatialReq[index]
         );
     });
 }
 
-function assertBackendIsAlive() {
-    const msgController = MessageController.Instance;
-    test(`the backend is still alive | `, async () => {
-        const backendStatus = await msgController.getFileList(
-            assertItem.filelist.directory,
-            assertItem.filelist.filterMode
-        );
-        expect(backendStatus).toBeDefined();
-        expect(backendStatus.success).toBe(true);
-        expect(backendStatus.directory).toContain('set_QA');
-    });
-}
-
-let basepath: string;
 describe('Test for Close one file (run1):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
-
-    test(`Get basepath and modify the directory path`, async () => {
-        let fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
-        assertItem.filelist.directory = basepath + '/' + assertItem.filelist.directory;
-        for (let i = 0; i < assertItem.fileOpen.length; i++) {
-            assertItem.fileOpen[i].directory = basepath + '/' + assertItem.fileOpen[i].directory;
-        }
-    });
+    checkConnection();
+    testBasePath([assertItem.filelist, ...assertItem.fileOpen]);
 
     describe('Prepare Image 0,1,2 for Case 1: ', () => {
         openThreeImages();
@@ -263,7 +187,7 @@ describe('Test for Close one file (run1):', () => {
                 await assertFileIsOpen(0);
                 await assertFileIsOpen(1);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
         test(
@@ -273,7 +197,7 @@ describe('Test for Close one file (run1):', () => {
                 await assertFileIsClosed(1);
                 await assertFileIsOpen(0);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
         test(
@@ -282,10 +206,10 @@ describe('Test for Close one file (run1):', () => {
                 msgController.closeFile(0);
                 await assertFileIsClosed(0);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
-        assertBackendIsAlive();
+        testBackendIsAlive(assertItem.filelist);
 
         test(`(Step 5) There is no any ICD message returned:`, async () => {
             await assertNoFurtherMessage(msgController.messageReceiving());
@@ -297,13 +221,11 @@ describe('Test for Close one file (run1):', () => {
 describe('Test for Close one file (run2):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
+    checkConnection();
 
     describe('Prepare Image 0,1,2 for Case 2: ', () => {
         openThreeImages();
@@ -324,21 +246,21 @@ describe('Test for Close one file (run2):', () => {
                 await assertFileIsClosed(1);
                 await assertFileIsOpen(2);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
         test(`(Step 3) close image 2 | `, () => {
             expect(msgController.closeFile(2)).toBe(true);
         });
 
-        assertBackendIsAlive();
+        testBackendIsAlive(assertItem.filelist);
 
         test(
             `(Step 4) image 2 no longer answers | `,
             async () => {
                 await assertFileIsClosed(2);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
         test(`(Step 5) There is no any ICD message returned:`, async () => {
@@ -351,13 +273,11 @@ describe('Test for Close one file (run2):', () => {
 describe('Test for Close one file (run3):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
+    checkConnection();
 
     describe('Prepare Image 0,1,2 for Case 3: ', () => {
         openThreeImages();
@@ -379,10 +299,10 @@ describe('Test for Close one file (run3):', () => {
                 await assertFileIsClosed(1);
                 await assertFileIsClosed(2);
             },
-            readFileTimeout
+            READ_FILE_TIMEOUT
         );
 
-        assertBackendIsAlive();
+        testBackendIsAlive(assertItem.filelist);
 
         test(`(Step 3) There is no any ICD message returned:`, async () => {
             await assertNoFurtherMessage(msgController.messageReceiving());

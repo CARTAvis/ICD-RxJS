@@ -21,11 +21,11 @@ Close File
     activate Frontend
     Frontend -> Backend : 1. OPEN_FILE
     activate Backend
-    Frontend <-- Backend : 2. OPEN_FILE_ACK
+    Frontend <--[#red] Backend : <font color="red">2. OPEN_FILE_ACK [Check P1]</font>
     Frontend -> Backend : 3. ADD_REQUIRED_TILES
     Frontend -> Backend : 4. SET_CURSOR
-    Frontend <-- Backend : 5. RASTER_TILE_DATA
-    Frontend <-- Backend : 5. SPATIAL_PROFILE_DATA
+    Frontend <--[#red] Backend : <font color="red">5. RASTER_TILE_DATA [Check P2]</font>
+    Frontend <--[#red] Backend : <font color="red">5. SPATIAL_PROFILE_DATA [Check P2]</font>
     deactivate Backend
     User <-- Frontend: Displays image
     deactivate Frontend
@@ -47,10 +47,37 @@ Close File
     activate Frontend
     Frontend -> Backend : 7. FILE_LIST_REQUEST
     activate Backend
-    Frontend <--[#red] Backend : <font color="red">8. FILE_LIST_RESPONSE [Check 1]</font>
+    Frontend <--[#red] Backend : <font color="red">8. FILE_LIST_RESPONSE</font>
     deactivate Backend
     User <-- Frontend: Backend confirmed alive
     deactivate Frontend
+
+Common preparation checks
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every test below opens one or more images before it closes anything. That preparation, and the checks on it, are the same
+for all of them and are declared once in
+`CloseFileHelpers.ts <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CloseFileHelpers.ts>`__, so the sections below
+refer to these two checks rather than restating them.
+
+:red-text:`Check P1:` the OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of an opened image should satisfy:
+
+   - OPEN_FILE_ACK.success = True
+   - OPEN_FILE_ACK.file_info.name = the requested file name
+   - OPEN_FILE_ACK.file_id and REGION_HISTOGRAM_DATA.file_id = the requested file_id
+
+:red-text:`Check P2:` the RASTER_TILE_DATA and SPATIAL_PROFILE_DATA which answer ADD_REQUIRED_TILES, SET_CURSOR and
+SET_SPATIAL_REQUIREMENTS should satisfy:
+
+   - Every RASTER_TILE_DATA and RASTER_TILE_SYNC carries the file_id of the file it was requested for
+   - The stream opens with RasterTileSync.end_sync = False and closes with RasterTileSync.end_sync = True,
+     whose tile_count = the number of requested tiles
+   - The SPATIAL_PROFILE_DATA which answers SET_CURSOR carries the requested file_id and the cursor coordinates x and y
+   - The SPATIAL_PROFILE_DATA which answers SET_SPATIAL_REQUIREMENTS carries the requested file_id, region_id = 0, and
+     the requested profile coordinates ["x", "y"]
+
+Where a check below says that no further message arrives, the message count is required to stay unchanged for 500 ms
+(``config.timeout.messageEvent``).
 
 CLOSE_FILE_SINGLE
 ~~~~~~~~~~~~~~~~~
@@ -75,10 +102,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 3. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
 
-:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
-
-   - OPEN_FILE_ACK.success = True
-   - OPEN_FILE_ACK.file_info.name = "M17_SWex.fits"
+:red-text:`Check P1` applies.
 
 4. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``)
 
@@ -98,9 +122,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 6. Backend returns: **RASTER_TILE_DATA** and **SPATIAL_PROFILE_DATA**
 
-:red-text:`Check 2:` the RASTER_TILE_DATA stream should satisfy:
-
-   - Total length = 3 (RasterTileSync start + 1 tile + RasterTileSync end)
+:red-text:`Check P2` applies, with 3 messages streamed: RasterTileSync start + 1 tile + RasterTileSync end.
 
 7. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
@@ -108,11 +130,11 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
      file_id = 0
 
-:red-text:`Check 3:` after closing the file:
+:red-text:`Check 1:` after closing the file:
 
-   - No additional messages should be received from the backend (message count should not change after 1000 ms)
+   - No additional messages should be received from the backend
 
-:red-text:`Check 4:` the backend should remain alive:
+:red-text:`Check 2:` the backend should remain alive:
 
    - FILE_LIST_RESPONSE.success = True
    - FILE_LIST_RESPONSE.directory should contain "set_QA"
@@ -140,10 +162,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 3. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
 
-:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
-
-   - OPEN_FILE_ACK.success = True
-   - OPEN_FILE_ACK.file_info.name = "M17_SWex.fits"
+:red-text:`Check P1` applies.
 
 4. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``)
 
@@ -163,11 +182,9 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
      file_id = 0
      point = {x: 320, y: 400}
 
-6. Backend returns: **RASTER_TILE_DATA** stream (12 tiles + 2 sync = 14 messages)
+6. Backend returns: **RASTER_TILE_DATA** and **SPATIAL_PROFILE_DATA**
 
-:red-text:`Check 2:` the RASTER_TILE_DATA stream should satisfy:
-
-   - Total length = 14 (12 tiles + RasterTileSync start + RasterTileSync end)
+:red-text:`Check P2` applies, with 14 messages streamed: RasterTileSync start + 12 tiles + RasterTileSync end.
 
 7. Frontend sends: **START_ANIMATION** (``StartAnimation``)
 
@@ -185,7 +202,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 8. Backend returns: **START_ANIMATION_ACK** (``StartAnimationAck``)
 
-:red-text:`Check 3:` the START_ANIMATION_ACK should satisfy:
+:red-text:`Check 1:` the START_ANIMATION_ACK should satisfy:
 
    - START_ANIMATION_ACK.success = True
 
@@ -197,7 +214,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
       file_id = 0
 
-:red-text:`Check 4:` after closing the file during animation:
+:red-text:`Check 2:` after closing the file during animation:
 
    - The backend should remain alive
    - FILE_LIST_RESPONSE.success = True
@@ -232,11 +249,9 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
      file_id = 1
      render_mode = RASTER
 
-2. Backend returns: **OPEN_FILE_ACK** for each file
+2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA** for each file
 
-:red-text:`Check 1:` both OPEN_FILE_ACK should satisfy:
-
-   - success = True
+:red-text:`Check P1` applies to both files.
 
 3. Frontend sends: **CLOSE_FILE** (``CloseFile``)
 
@@ -253,37 +268,38 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 5. Backend returns: **ERROR_DATA** (``ErrorData``)
 
-:red-text:`Check 2:` the ERROR_DATA should satisfy:
+:red-text:`Check 1:` the ERROR_DATA should satisfy:
 
    .. code-block:: protobuf
 
      tags = ["cursor"]
      message = "File id 1 not found"
 
-:red-text:`Check 3:` the backend should remain alive:
+:red-text:`Check 2:` the backend should remain alive:
 
    - FILE_LIST_RESPONSE.success = True
+   - FILE_LIST_RESPONSE.directory should contain "set_QA"
 
-:red-text:`Check 4:` file_id = 0 should still function normally:
+6. Frontend sends: **ADD_REQUIRED_TILES**, **SET_CURSOR** and **SET_SPATIAL_REQUIREMENTS** for file_id = 0
 
-   - ADD_REQUIRED_TILES, SET_CURSOR, and SET_SPATIAL_REQUIREMENTS should all receive valid responses
-   - RASTER_TILE_DATA stream length = 3
+:red-text:`Check 3:` closing file_id = 1 leaves file_id = 0 working: :red-text:`Check P2` applies to file_id = 0, with 3
+messages streamed.
 
 **Case 2: Open → Close → Reopen cycle**
 
-6. Frontend sends: **OPEN_FILE** (file_id = 0), loads tiles and sets cursor
+7. Frontend sends: **OPEN_FILE** (file_id = 0), loads tiles and sets cursor
 
-7. Frontend sends: **CLOSE_FILE** (file_id = 0)
+   :red-text:`Check P1` and :red-text:`Check P2` apply.
 
-8. Frontend sends: **OPEN_FILE** again (same file, file_id = 0)
+8. Frontend sends: **CLOSE_FILE** (file_id = 0)
 
-:red-text:`Check 5:` the reopened file should function normally:
+9. Frontend sends: **OPEN_FILE** again (same file, file_id = 0), then **ADD_REQUIRED_TILES**, **SET_CURSOR** and
+   **SET_SPATIAL_REQUIREMENTS**
 
-   - OPEN_FILE_ACK.success = True
-   - ADD_REQUIRED_TILES, SET_CURSOR, and SET_SPATIAL_REQUIREMENTS receive valid responses
-   - RASTER_TILE_DATA stream length = 3
+:red-text:`Check 4:` the reopened file should function normally: :red-text:`Check P1` and :red-text:`Check P2` apply
+again, with 3 messages streamed.
 
-:red-text:`Check 6:` the backend should remain alive after the cycle:
+:red-text:`Check 5:` the backend should remain alive after the cycle:
 
    - FILE_LIST_RESPONSE.success = True
    - FILE_LIST_RESPONSE.directory should contain "set_QA"
@@ -307,11 +323,11 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA**
 
-:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
-
-   - success = True
+:red-text:`Check P1` applies.
 
 3. Frontend loads tiles, sets cursor and spatial requirements
+
+   :red-text:`Check P2` applies, with 3 messages streamed.
 
 4. Frontend sends: **SET_REGION** (``SetRegion``)
 
@@ -327,7 +343,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 5. Backend returns: **SET_REGION_ACK** (``SetRegionAck``)
 
-:red-text:`Check 2:` the SET_REGION_ACK should satisfy:
+:red-text:`Check 1:` the SET_REGION_ACK should satisfy:
 
    .. code-block:: protobuf
 
@@ -350,7 +366,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
      file_id = 0
 
-:red-text:`Check 3:` after closing the file during spectral profile streaming:
+:red-text:`Check 2:` after closing the file during spectral profile streaming:
 
    - The backend should remain alive
    - FILE_LIST_RESPONSE.success = True
@@ -365,7 +381,11 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
      file = "S255_IR_sci.spw29.cube.I.pbcor.fits"  (file_id = 0)
      file = "S255_IR_sci.spw25.cube.I.pbcor.fits"  (file_id = 1)
 
+   :red-text:`Check P1` applies to both images.
+
 10. Frontend loads tiles and sets up spatial requirements for both images
+
+    :red-text:`Check P2` applies to both images, with 3 messages streamed for each.
 
 11. Frontend sends: **SET_REGION** on file_id = 0
 
@@ -394,11 +414,11 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
       file_id = 0
       file_id = 1
 
-:red-text:`Check 4:` after closing both files:
+:red-text:`Check 3:` after closing both files:
 
    - No additional messages should be received from the backend
 
-:red-text:`Check 5:` the backend should remain alive:
+:red-text:`Check 4:` the backend should remain alive:
 
    - FILE_LIST_RESPONSE.success = True
    - FILE_LIST_RESPONSE.directory should contain "set_QA"
@@ -426,9 +446,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 3. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA**
 
-:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
-
-   - success = True
+:red-text:`Check P1` applies.
 
 4. Frontend sends: **ADD_REQUIRED_TILES** (``AddRequiredTiles``)
 
@@ -448,9 +466,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
 6. Backend returns: **RASTER_TILE_DATA** and **SPATIAL_PROFILE_DATA**
 
-:red-text:`Check 2:` the RASTER_TILE_DATA stream should satisfy:
-
-   - Total length = 3 (RasterTileSync start + 1 tile + RasterTileSync end)
+:red-text:`Check P2` applies, with 3 messages streamed: RasterTileSync start + 1 tile + RasterTileSync end.
 
 7. Frontend sends: **SET_IMAGE_CHANNELS** (``SetImageChannels``) to trigger large tile streaming
 
@@ -474,7 +490,7 @@ See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CLO
 
      file_id = 0
 
-:red-text:`Check 3:` after closing the file during tile streaming:
+:red-text:`Check 1:` after closing the file during tile streaming:
 
    - The backend should remain alive
    - FILE_LIST_RESPONSE.success = True
@@ -502,31 +518,21 @@ nothing else.
 
 2. Backend returns: **OPEN_FILE_ACK** and **REGION_HISTOGRAM_DATA** for each file
 
-:red-text:`Check 1:` for each of the three files:
-
-   - OPEN_FILE_ACK.success = True
-   - OPEN_FILE_ACK.file_info.name = the requested file name
-   - OPEN_FILE_ACK.file_id and REGION_HISTOGRAM_DATA.file_id = the requested file_id
+:red-text:`Check P1` applies to each of the three files.
 
 3. For each file: Frontend sends **ADD_REQUIRED_TILES**, **SET_CURSOR**, and **SET_SPATIAL_REQUIREMENTS**
 
-:red-text:`Check 2:` for each of the three files:
-
-   - Every RASTER_TILE_DATA and RASTER_TILE_SYNC carries the file_id of the file it was requested for
-   - The stream opens with RasterTileSync.end_sync = False and closes with RasterTileSync.end_sync = True,
-     whose tile_count = 1
-   - SPATIAL_PROFILE_DATA.file_id = the requested file_id, region_id = 0, and the profiles are the requested
-     coordinates ["x", "y"]
+:red-text:`Check P2` applies to each of the three files, with 3 messages streamed for each.
 
 **Case 1: Close files in reverse order (2 -> 1 -> 0)**
 
 4. Frontend sends: **CLOSE_FILE** (file_id = 2)
 
-:red-text:`Check 3:` CLOSE_FILE draws no message of its own (message count stable for 500 ms)
+:red-text:`Check 1:` CLOSE_FILE draws no message of its own
 
 5. Frontend sends: **SET_SPATIAL_REQUIREMENTS** for file_id = 2, then for file_id = 0 and file_id = 1
 
-:red-text:`Check 4:` the closed file is gone and the others are unaffected:
+:red-text:`Check 2:` the closed file is gone and the others are unaffected:
 
    - The backend returns ERROR_DATA for file_id = 2, with severity = DEBUG, tags = ["spatial"] and
      message = "File id 2 not found"
@@ -535,47 +541,47 @@ nothing else.
 
 6. Frontend sends: **CLOSE_FILE** (file_id = 1)
 
-:red-text:`Check 5:` file_id = 1 now returns "File id 1 not found", while file_id = 0 still returns
+:red-text:`Check 3:` file_id = 1 now returns "File id 1 not found", while file_id = 0 still returns
 SPATIAL_PROFILE_DATA under file_id = 0
 
 7. Frontend sends: **CLOSE_FILE** (file_id = 0)
 
-:red-text:`Check 6:` file_id = 0 now returns "File id 0 not found"
+:red-text:`Check 4:` file_id = 0 now returns "File id 0 not found"
 
-:red-text:`Check 7:` after all files closed:
+:red-text:`Check 5:` after all files closed:
 
    - Backend should remain alive: FILE_LIST_RESPONSE.success = True and FILE_LIST_RESPONSE.directory
      should contain "set_QA"
-   - No additional ICD messages should arrive (message count stable for 500 ms)
+   - No additional ICD messages should arrive
 
 **Case 2: Close two files simultaneously, then close the last**
 
-8. Reopen all 3 files with the same setup, repeating Check 1 and Check 2
+8. Reopen all 3 files with the same setup, repeating :red-text:`Check P1` and :red-text:`Check P2`
 
 9. Frontend sends: **CLOSE_FILE** (file_id = 0) and **CLOSE_FILE** (file_id = 1) simultaneously
 
-:red-text:`Check 8:` after simultaneous close:
+:red-text:`Check 6:` after simultaneous close:
 
-   - No additional ICD messages should arrive (message count stable for 500 ms)
+   - No additional ICD messages should arrive
    - file_id = 0 and file_id = 1 each return their own "File id N not found" and no SPATIAL_PROFILE_DATA
    - file_id = 2 still returns SPATIAL_PROFILE_DATA under file_id = 2
 
 10. Frontend sends: **CLOSE_FILE** (file_id = 2)
 
-:red-text:`Check 9:` the backend should remain alive:
+:red-text:`Check 7:` the backend should remain alive:
 
     - FILE_LIST_RESPONSE.success = True
     - file_id = 2 now returns "File id 2 not found"
-    - No additional ICD messages should arrive (message count stable for 500 ms)
+    - No additional ICD messages should arrive
 
 **Case 3: Close all three files simultaneously**
 
-11. Reopen all 3 files with the same setup, repeating Check 1 and Check 2
+11. Reopen all 3 files with the same setup, repeating :red-text:`Check P1` and :red-text:`Check P2`
 
 12. Frontend sends: **CLOSE_FILE** for file_id = 0, 1, and 2 simultaneously
 
-:red-text:`Check 10:` after simultaneous close of all files:
+:red-text:`Check 8:` after simultaneous close of all files:
 
-    - No additional ICD messages should arrive (message count stable for 500 ms)
+    - No additional ICD messages should arrive
     - Each of file_id = 0, 1 and 2 returns its own "File id N not found" and no SPATIAL_PROFILE_DATA
     - Backend should remain alive: FILE_LIST_RESPONSE.success = True
