@@ -1,15 +1,8 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import {
-    CONNECTION_TIMEOUT,
-    TEST_SERVER_URL,
-    TEST_SUBDIRECTORY,
-    assertBackendIsAlive,
-    testBasePath,
-    testOpenFile,
-    testTilesAndProfiles,
-} from './CloseFileHelpers';
+import { assertBackendIsAlive, testOpenFile, testTilesAndProfiles } from './CloseFileHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -68,7 +61,7 @@ describe('Testing CLOSE_FILE with large-size image and test CLOSE_FILE during th
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([assertItem.fileOpen, assertItem.filelist]);
+        basePath([assertItem.fileOpen, assertItem.filelist]);
         testOpenFile('(Step 1)', assertItem.fileOpen, -1);
         testTilesAndProfiles('(Step 2)', assertItem.addRequiredTiles, assertItem.setCursor, assertItem.setSpatialReq);
 

@@ -2,20 +2,16 @@ import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import {
-    CONNECTION_TIMEOUT,
-    OPEN_FILE_TIMEOUT,
-    TEST_SERVER_URL,
-    TEST_SUBDIRECTORY,
     assertBackendIsAlive,
     assertCursorProfile,
     assertOpenFile,
     assertRasterTiles,
     assertSpatialProfile,
     testBackendIsAlive,
-    testBasePath,
     testOpenFile,
     testTilesAndProfiles,
 } from './CloseFileHelpers';
+import { CONNECTION_TIMEOUT, OPEN_FILE_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -79,7 +75,7 @@ describe('[Case 1] Test for requesting the ICD message of the CLOSED image:', ()
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([assertItem.filelist, assertItem.fileOpen[0], assertItem.fileOpen[1]]);
+        basePath([assertItem.filelist, assertItem.fileOpen[0], assertItem.fileOpen[1]]);
         testOpenFile('(Step 1)', assertItem.fileOpen[0], -1);
         testOpenFile('(Step 2)', assertItem.fileOpen[1]);
 

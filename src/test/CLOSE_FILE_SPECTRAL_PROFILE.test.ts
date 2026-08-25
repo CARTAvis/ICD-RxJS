@@ -2,19 +2,21 @@ import { CARTA } from 'carta-protobuf';
 import { checkConnection } from './MyClient';
 import { MessageController } from './MessageController';
 import {
-    CONNECTION_TIMEOUT,
-    TEST_SERVER_URL,
-    TEST_SUBDIRECTORY,
     assertBackendIsAlive,
     assertNoFurtherMessage,
     testBackendIsAlive,
-    testBasePath,
     testOpenFile,
     testTilesAndProfiles,
 } from './CloseFileHelpers';
-import config from './config.json';
+import {
+    CONNECTION_TIMEOUT,
+    READ_LARGE_IMAGE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    basePath,
+} from './CommonHelpers';
 
-let largeImageTimeout = config.timeout.readLargeImage;
+const CLOSE_AT_PROGRESS = 0.3;
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -175,8 +177,6 @@ function logProgress(label: string, spectralProfileData: CARTA.SpectralProfileDa
     });
 }
 
-const CLOSE_AT_PROGRESS = 0.3;
-
 describe('[Case 1] Request SPECTRAL_REQUIREMENTS and then CLOSE_FILE when data is still streaming :', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
@@ -185,7 +185,7 @@ describe('[Case 1] Request SPECTRAL_REQUIREMENTS and then CLOSE_FILE when data i
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([assertItem.openFile[0], assertItem.openFile[1], assertItem.filelist]);
+        basePath([assertItem.openFile[0], assertItem.openFile[1], assertItem.filelist]);
         testOpenFile('(Step 1)', assertItem.openFile[0], -1);
         testTilesAndProfiles(
             '(Step 2)',
@@ -210,7 +210,7 @@ describe('[Case 1] Request SPECTRAL_REQUIREMENTS and then CLOSE_FILE when data i
                 //Check whether the backend is alive?
                 await assertBackendIsAlive(assertItem.filelist);
             },
-            largeImageTimeout
+            READ_LARGE_IMAGE_TIMEOUT
         );
 
         afterAll(() => msgController.closeConnection());
@@ -263,7 +263,7 @@ describe('[Case 2] Request SPECTRAL_REQUIREMENTS of TWO images and then CLOSE_FI
                 msgController.closeFile(0);
                 msgController.closeFile(1);
             },
-            largeImageTimeout
+            READ_LARGE_IMAGE_TIMEOUT
         );
 
         test(`(Step 6) check there is no receiving message`, async () => {

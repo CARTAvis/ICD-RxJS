@@ -1,20 +1,16 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
+import { assertBackendIsAlive, testOpenFile, testTilesAndProfiles } from './CloseFileHelpers';
 import {
     CONNECTION_TIMEOUT,
+    PLAY_ANIMATOR_TIMEOUT,
     TEST_SERVER_URL,
     TEST_SUBDIRECTORY,
-    assertBackendIsAlive,
-    testBasePath,
-    testOpenFile,
-    testTilesAndProfiles,
-} from './CloseFileHelpers';
-import config from './config.json';
+    basePath,
+} from './CommonHelpers';
 import { take } from 'rxjs/operators';
 import * as Long from 'long';
-
-let playAnimatorTimeout = config.timeout.playAnimator;
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -101,7 +97,7 @@ describe('Testing CLOSE_FILE with large-size image and test CLOSE_FILE during th
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([assertItem.fileOpen, assertItem.filelist]);
+        basePath([assertItem.fileOpen, assertItem.filelist]);
         testOpenFile('(Step 1)', assertItem.fileOpen, -1);
         testTilesAndProfiles(
             '(Step 2)',
@@ -155,7 +151,7 @@ describe('Testing CLOSE_FILE with large-size image and test CLOSE_FILE during th
                 // To check whether the backend is still alive
                 await assertBackendIsAlive(assertItem.filelist);
             },
-            playAnimatorTimeout
+            PLAY_ANIMATOR_TIMEOUT
         );
 
         afterAll(() => msgController.closeConnection());

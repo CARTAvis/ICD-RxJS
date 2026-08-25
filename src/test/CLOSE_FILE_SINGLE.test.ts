@@ -1,16 +1,8 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection } from './MyClient';
 import { MessageController } from './MessageController';
-import {
-    CONNECTION_TIMEOUT,
-    TEST_SERVER_URL,
-    TEST_SUBDIRECTORY,
-    assertNoFurtherMessage,
-    testBackendIsAlive,
-    testBasePath,
-    testOpenFile,
-    testTilesAndProfiles,
-} from './CloseFileHelpers';
+import { assertNoFurtherMessage, testBackendIsAlive, testOpenFile, testTilesAndProfiles } from './CloseFileHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -54,7 +46,7 @@ describe('Test for Close single file:', () => {
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([assertItem.openFile, assertItem.filelist]);
+        basePath([assertItem.openFile, assertItem.filelist]);
         testOpenFile('(Step 1)', assertItem.openFile, -1);
         testTilesAndProfiles('(Step 2)', assertItem.addRequiredTiles, assertItem.setCursor, assertItem.setSpatialReq);
 

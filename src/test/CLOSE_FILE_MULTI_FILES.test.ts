@@ -2,17 +2,13 @@ import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import {
-    CONNECTION_TIMEOUT,
-    READ_FILE_TIMEOUT,
-    TEST_SERVER_URL,
-    TEST_SUBDIRECTORY,
     assertNoFurtherMessage,
     assertSpatialProfile,
     testBackendIsAlive,
-    testBasePath,
     testOpenFile,
     testTilesAndProfiles,
 } from './CloseFileHelpers';
+import { CONNECTION_TIMEOUT, READ_FILE_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -167,7 +163,7 @@ describe('Test for Close one file (run1):', () => {
     }, CONNECTION_TIMEOUT);
 
     checkConnection();
-    testBasePath([assertItem.filelist, ...assertItem.fileOpen]);
+    basePath([assertItem.filelist, ...assertItem.fileOpen]);
 
     describe('Prepare Image 0,1,2 for Case 1: ', () => {
         openThreeImages();

@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
 import { Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import config from './config.json';
+import { OPEN_FILE_TIMEOUT, QUIET_TIME, READ_FILE_TIMEOUT } from './CommonHelpers';
 
 /**
  * Shared fixtures and steps for the CLOSE_FILE_* tests. Every one of them opens one or more
@@ -13,31 +13,11 @@ import config from './config.json';
  * longer step of their own.
  */
 
-export const TEST_SERVER_URL: string = config.serverURL0;
-export const TEST_SUBDIRECTORY: string = config.path.QA;
-export const CONNECTION_TIMEOUT: number = config.timeout.connection;
-export const OPEN_FILE_TIMEOUT: number = config.timeout.openFile;
-export const READ_FILE_TIMEOUT: number = config.timeout.readFile;
-// CLOSE_FILE is not acknowledged in the ICD, so the only thing which can be observed
-// directly after it is silence. This is how long silence is waited for.
-export const QUIET_TIME: number = config.timeout.messageEvent;
-
 /**
- * Resolve "$BASE" and prepend it to the directory of every request given. The requests are
- * modified in place, so a file which registers more than one describe block has to pass each
- * of them once only.
+ * The backend has to have sent nothing since the count was taken. CLOSE_FILE is not
+ * acknowledged in the ICD, so silence is the only thing which can be observed directly after
+ * it.
  */
-export function testBasePath(requests: { directory?: string }[]) {
-    test(`Get basepath and modify the directory path`, async () => {
-        const fileListResponse = await MessageController.Instance.getFileList('$BASE', 0);
-        const basepath = fileListResponse.directory;
-        requests.forEach((request) => {
-            request.directory = basepath + '/' + request.directory;
-        });
-    });
-}
-
-/** The backend has to have sent nothing since the count was taken. */
 export async function assertNoFurtherMessage(expectedMessageCount: number) {
     await new Promise((resolve) => setTimeout(resolve, QUIET_TIME));
     expect(MessageController.Instance.messageReceiving()).toEqual(expectedMessageCount);
