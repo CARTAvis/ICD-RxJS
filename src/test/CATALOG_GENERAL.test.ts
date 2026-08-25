@@ -1,32 +1,29 @@
 import { CARTA } from 'carta-protobuf';
 import {
     checkConnection,
-    Stream,
-    columnRowCount,
     stringColumn,
     doubleColumn,
     assertCatalogFilterResponse,
     requestCatalogFilter,
     ICatalogFilterResponseExt,
 } from './MyClient';
+import {
+    CONNECTION_TIMEOUT,
+    TEST_SERVER_URL,
+    ICatalogFileInfoResponseExt,
+    IOpenCatalogFileAckExt,
+    expectPreviewData,
+    testBasePath,
+    testCatalogFileInfo,
+    testCatalogList,
+    testOpenCatalogFile,
+    testOpenImageFile,
+    testRasterTiles,
+} from './CatalogHelpers';
 import { MessageController } from './MessageController';
 import config from './config.json';
 
-let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.catalogArtificial;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
-
-interface ICatalogFileInfoResponseExt extends CARTA.ICatalogFileInfoResponse {
-    lengthOfHeaders: number;
-    descriptionKeywords: string[];
-}
-
-interface IOpenCatalogFileAckExt extends CARTA.IOpenCatalogFileAck {
-    lengthOfHeaders: number;
-    lengthOfPreviewData: number;
-}
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -224,98 +221,35 @@ let assertItem: AssertItem = {
     ],
 };
 
-let basepath: string;
 describe('Test for general CATALOG related messages:', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
-            await msgController.connect(testServerUrl);
-        }, connectTimeout);
+            await msgController.connect(TEST_SERVER_URL);
+        }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        test(`Get basepath and modify the directory path`, async () => {
-            let fileListResponse = await msgController.getFileList('$BASE', 0);
-            basepath = fileListResponse.directory;
-            assertItem.fileOpen.directory = basepath + '/' + assertItem.fileOpen.directory;
-            assertItem.catalogListReq.directory = basepath + '/' + assertItem.catalogListReq.directory;
-            assertItem.catalogFileInfoReq.directory = basepath + '/' + assertItem.catalogFileInfoReq.directory;
-            assertItem.openCatalogFile.directory = basepath + '/' + assertItem.openCatalogFile.directory;
-        });
+        testBasePath([
+            assertItem.fileOpen,
+            assertItem.catalogListReq,
+            assertItem.catalogFileInfoReq,
+            assertItem.openCatalogFile,
+        ]);
+        testOpenImageFile(assertItem);
+        testRasterTiles(assertItem);
+        testCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
 
-        test(
-            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `,
-            async () => {
-                msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.fileOpen.file);
-            },
-            openFileTimeout
+        const getCatalogFileInfoAck = testCatalogFileInfo(
+            assertItem.catalogFileInfoReq,
+            assertItem.catalogFileInfoResponse
         );
-
-        test(
-            `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addTilesReq);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addTilesReq.tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor.fileId,
-                    assertItem.setCursor.point.x,
-                    assertItem.setCursor.point.y
-                );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end + 1 Tile returned
-            },
-            readFileTimeout
-        );
-
-        test(`(Step 3) Request CatalogList & check CatalogListResponse | `, async () => {
-            let CatalogListAck = await msgController.getCatalogList(
-                assertItem.catalogListReq.directory,
-                assertItem.catalogListReq.filterMode
-            );
-            expect(CatalogListAck.directory).toContain(assertItem.catalogListResponse.directory);
-            expect(CatalogListAck.success).toEqual(assertItem.catalogListResponse.success);
-            let CatalogListAckTempSubdirectories = CatalogListAck.subdirectories.map((f) => f.name);
-            expect(CatalogListAckTempSubdirectories).toEqual(
-                expect.arrayContaining(assertItem.catalogListResponse.subdirectories)
-            );
-        });
-
-        let CatalogFileInfoAck: CARTA.ICatalogFileInfoResponse;
-        test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
-            CatalogFileInfoAck = await msgController.getCatalogFileInfo(
-                assertItem.catalogFileInfoReq.directory,
-                assertItem.catalogFileInfoReq.name
-            );
-            expect(CatalogFileInfoAck.success).toEqual(assertItem.catalogFileInfoResponse.success);
-            expect(CatalogFileInfoAck.fileInfo.name).toEqual(assertItem.catalogFileInfoResponse.fileInfo.name);
-            expect(CatalogFileInfoAck.fileInfo.type).toEqual(assertItem.catalogFileInfoResponse.fileInfo.type);
-            expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(
-                assertItem.catalogFileInfoResponse.fileInfo.fileSize
-            );
-            assertItem.catalogFileInfoResponse.descriptionKeywords.forEach((keyword) => {
-                expect(CatalogFileInfoAck.fileInfo.description).toContain(keyword);
-            });
-            expect(CatalogFileInfoAck.headers.length).toEqual(assertItem.catalogFileInfoResponse.lengthOfHeaders);
-        });
 
         // The filter and the sort are requested by column name, while the response keys its
         // columns by index, so the two are tied together through the headers.
         let filterColumnIndices: Map<string, number>;
         test(`(Step 4) the headers place the filtered columns inside the requested column_indices | `, () => {
             filterColumnIndices = new Map(
-                CatalogFileInfoAck.headers.map((header) => [header.name, header.columnIndex])
+                getCatalogFileInfoAck().headers.map((header) => [header.name, header.columnIndex])
             );
             const filteredColumnNames = [
                 assertItem.catalogFilterReq[0].sortColumn,
@@ -328,32 +262,17 @@ describe('Test for general CATALOG related messages:', () => {
             });
         });
 
-        let CatalogFileAck: CARTA.IOpenCatalogFileAck;
-        test(`(Step 5) Request CatalogFile & check CatalogFileAck | `, async () => {
-            CatalogFileAck = await msgController.loadCatalogFile(
-                assertItem.openCatalogFile.directory,
-                assertItem.openCatalogFile.name,
-                assertItem.openCatalogFile.fileId,
-                assertItem.openCatalogFile.previewDataSize
-            );
-            expect(CatalogFileAck.success).toEqual(assertItem.openCatalogFileAck.success);
-            expect(CatalogFileAck.dataSize).toEqual(assertItem.openCatalogFileAck.dataSize);
-            expect(CatalogFileAck.fileId).toEqual(assertItem.openCatalogFileAck.fileId);
-            expect(CatalogFileAck.fileInfo.name).toEqual(assertItem.openCatalogFileAck.fileInfo.name);
-            expect(CatalogFileAck.fileInfo.type).toEqual(assertItem.openCatalogFileAck.fileInfo.type);
-            expect(CatalogFileAck.fileInfo.fileSize.low).toEqual(assertItem.openCatalogFileAck.fileInfo.fileSize);
-            expect(CatalogFileAck.headers.length).toEqual(assertItem.openCatalogFileAck.lengthOfHeaders);
-        });
+        const getCatalogFileAck = testOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck);
 
         test(`(Step 5) OPEN_CATALOG_FILE_ACK.preview_data is clamped to the ${assertItem.openCatalogFileAck.dataSize} rows of the table | `, () => {
-            const previewData = CatalogFileAck.previewData;
-            expect(Object.keys(previewData).length).toEqual(assertItem.openCatalogFileAck.lengthOfPreviewData);
             // preview_data_size asks for more rows than the table holds, so the backend
             // returns the whole table instead.
             expect(assertItem.openCatalogFile.previewDataSize).toBeGreaterThan(assertItem.openCatalogFileAck.dataSize);
-            Object.keys(previewData).forEach((key) => {
-                expect(columnRowCount(previewData[key])).toEqual(assertItem.openCatalogFileAck.dataSize);
-            });
+            expectPreviewData(
+                getCatalogFileAck(),
+                assertItem.openCatalogFileAck.lengthOfPreviewData,
+                assertItem.openCatalogFileAck.dataSize
+            );
         });
 
         let SortedResponse: CARTA.ICatalogFilterResponse[];
