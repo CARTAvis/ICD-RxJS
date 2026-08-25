@@ -1,19 +1,13 @@
 import { CARTA } from 'carta-protobuf';
+import { checkConnection } from './MyClient';
 import {
-    checkConnection,
-    columnRowCount,
-    assertCatalogFilterResponse,
-    requestCatalogFilter,
-    ICatalogFilterResponseExt,
-} from './MyClient';
-import {
-    CONNECTION_TIMEOUT,
-    OPEN_CATALOG_LARGE_TIMEOUT,
-    TEST_SERVER_URL,
     ICatalogFileInfoResponseExt,
+    ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
+    assertCatalogFilterResponse,
+    columnRowCount,
     expectPreviewData,
-    testBasePath,
+    requestCatalogFilter,
     testCatalogFileInfo,
     testCatalogList,
     testIncreasingProgress,
@@ -21,10 +15,14 @@ import {
     testOpenImageFile,
     testRasterTiles,
 } from './CatalogHelpers';
+import {
+    CATALOG_LARGE_SUBDIRECTORY,
+    CONNECTION_TIMEOUT,
+    OPEN_CATALOG_LARGE_TIMEOUT,
+    TEST_SERVER_URL,
+    basePath,
+} from './CommonHelpers';
 import { MessageController } from './MessageController';
-import config from './config.json';
-
-let testSubdirectory: string = config.path.catalogLarge;
 
 interface ICatalogFilterResponseExtLocal extends ICatalogFilterResponseExt {
     // The backend streams the requested subset in chunks of TableController's max_chunk_size
@@ -53,9 +51,9 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: CATALOG_LARGE_SUBDIRECTORY },
     fileOpen: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         file: 'cosmos_herschel250micron.fits',
         hdu: '0',
         fileId: 0,
@@ -80,34 +78,34 @@ let assertItem: AssertItem = {
         ],
     },
     catalogListReq: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
     },
     catalogFileInfoReq: [
         {
-            directory: testSubdirectory,
+            directory: CATALOG_LARGE_SUBDIRECTORY,
             name: 'COSMOSOPTCAT.fits',
         },
         {
-            directory: testSubdirectory,
+            directory: CATALOG_LARGE_SUBDIRECTORY,
             name: 'COSMOSOPTCAT.vot',
         },
     ],
     openCatalogFile: [
         {
-            directory: testSubdirectory,
+            directory: CATALOG_LARGE_SUBDIRECTORY,
             fileId: 1,
             name: 'COSMOSOPTCAT.fits',
             previewDataSize: 50,
         },
         {
-            directory: testSubdirectory,
+            directory: CATALOG_LARGE_SUBDIRECTORY,
             fileId: 2,
             name: 'COSMOSOPTCAT.vot',
             previewDataSize: 50,
         },
     ],
     catalogListResponse: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         success: true,
         subdirectories: [],
     },
@@ -219,7 +217,7 @@ assertItem.catalogFileInfoReq.map((data, index) => {
         checkConnection();
         // The image and the catalog list are shared by both catalogs, so their directories are
         // prepended in the first describe block only
-        testBasePath(
+        basePath(
             index === 0
                 ? [
                       assertItem.fileOpen,

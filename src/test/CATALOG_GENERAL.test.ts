@@ -1,29 +1,22 @@
 import { CARTA } from 'carta-protobuf';
+import { checkConnection } from './MyClient';
 import {
-    checkConnection,
-    stringColumn,
-    doubleColumn,
-    assertCatalogFilterResponse,
-    requestCatalogFilter,
-    ICatalogFilterResponseExt,
-} from './MyClient';
-import {
-    CONNECTION_TIMEOUT,
-    TEST_SERVER_URL,
     ICatalogFileInfoResponseExt,
+    ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
+    assertCatalogFilterResponse,
+    doubleColumn,
     expectPreviewData,
-    testBasePath,
+    requestCatalogFilter,
+    stringColumn,
     testCatalogFileInfo,
     testCatalogList,
     testOpenCatalogFile,
     testOpenImageFile,
     testRasterTiles,
 } from './CatalogHelpers';
+import { CATALOG_ARTIFICIAL_SUBDIRECTORY, CONNECTION_TIMEOUT, TEST_SERVER_URL, basePath } from './CommonHelpers';
 import { MessageController } from './MessageController';
-import config from './config.json';
-
-let testSubdirectory: string = config.path.catalogArtificial;
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -47,9 +40,9 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: CATALOG_ARTIFICIAL_SUBDIRECTORY },
     fileOpen: {
-        directory: testSubdirectory,
+        directory: CATALOG_ARTIFICIAL_SUBDIRECTORY,
         file: 'Gaussian_J2000.fits',
         hdu: '0',
         fileId: 0,
@@ -71,14 +64,14 @@ let assertItem: AssertItem = {
         spatialProfiles: [{ coordinate: 'x' }, { coordinate: 'y' }],
     },
     catalogListReq: {
-        directory: testSubdirectory,
+        directory: CATALOG_ARTIFICIAL_SUBDIRECTORY,
     },
     catalogFileInfoReq: {
-        directory: testSubdirectory,
+        directory: CATALOG_ARTIFICIAL_SUBDIRECTORY,
         name: 'artificial_catalog_J2000.xml',
     },
     openCatalogFile: {
-        directory: testSubdirectory,
+        directory: CATALOG_ARTIFICIAL_SUBDIRECTORY,
         fileId: 1,
         name: 'artificial_catalog_J2000.xml',
         previewDataSize: 50,
@@ -144,7 +137,7 @@ let assertItem: AssertItem = {
         },
     ],
     catalogListResponse: {
-        directory: testSubdirectory,
+        directory: CATALOG_ARTIFICIAL_SUBDIRECTORY,
         success: true,
         subdirectories: ['Gaussian_J2000.image'],
     },
@@ -229,7 +222,7 @@ describe('Test for general CATALOG related messages:', () => {
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testBasePath([
+        basePath([
             assertItem.fileOpen,
             assertItem.catalogListReq,
             assertItem.catalogFileInfoReq,

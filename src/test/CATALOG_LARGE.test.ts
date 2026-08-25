@@ -1,18 +1,12 @@
 import { CARTA } from 'carta-protobuf';
+import { checkConnection } from './MyClient';
 import {
-    checkConnection,
-    columnSlice,
-    assertCatalogFilterResponse,
-    requestCatalogFilter,
-    ICatalogFilterResponseExt,
-} from './MyClient';
-import {
-    CONNECTION_TIMEOUT,
-    OPEN_CATALOG_LARGE_TIMEOUT,
-    TEST_SERVER_URL,
     ICatalogFileInfoResponseExt,
+    ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
-    testBasePath,
+    assertCatalogFilterResponse,
+    columnSlice,
+    requestCatalogFilter,
     testCatalogFileInfo,
     testCatalogList,
     testIncreasingProgress,
@@ -20,10 +14,14 @@ import {
     testOpenImageFile,
     testRasterTiles,
 } from './CatalogHelpers';
+import {
+    CATALOG_LARGE_SUBDIRECTORY,
+    CONNECTION_TIMEOUT,
+    OPEN_CATALOG_LARGE_TIMEOUT,
+    TEST_SERVER_URL,
+    basePath,
+} from './CommonHelpers';
 import { MessageController } from './MessageController';
-import config from './config.json';
-
-let testSubdirectory: string = config.path.catalogLarge;
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -47,9 +45,9 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: CATALOG_LARGE_SUBDIRECTORY },
     fileOpen: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         file: 'cosmos_herschel250micron.fits',
         hdu: '0',
         fileId: 0,
@@ -71,14 +69,14 @@ let assertItem: AssertItem = {
         spatialProfiles: [{ coordinate: 'x' }, { coordinate: 'y' }],
     },
     catalogListReq: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
     },
     catalogFileInfoReq: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         name: 'COSMOSOPTCAT.vot',
     },
     openCatalogFile: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         fileId: 1,
         name: 'COSMOSOPTCAT.vot',
         previewDataSize: 50,
@@ -130,7 +128,7 @@ let assertItem: AssertItem = {
         },
     ],
     catalogListResponse: {
-        directory: testSubdirectory,
+        directory: CATALOG_LARGE_SUBDIRECTORY,
         success: true,
         subdirectories: [],
     },
@@ -204,7 +202,7 @@ describe('Test for large-size CATALOG: load whole table at one time', () => {
 
     checkConnection();
     // The directories are prepended here only, the second describe block reuses the fixtures
-    testBasePath([
+    basePath([
         assertItem.fileOpen,
         assertItem.catalogListReq,
         assertItem.catalogFileInfoReq,

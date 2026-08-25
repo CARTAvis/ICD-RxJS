@@ -1,7 +1,7 @@
 import { CARTA } from 'carta-protobuf';
-import { Stream, columnRowCount } from './MyClient';
+import { Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import config from './config.json';
+import { OPEN_FILE_TIMEOUT, READ_FILE_TIMEOUT } from './CommonHelpers';
 
 /**
  * Shared fixtures and steps for the CATALOG_* tests. Every one of them opens an image, lists
@@ -9,11 +9,14 @@ import config from './config.json';
  * are registered from here and only the filtering of step 6 onwards differs per test.
  */
 
-export const TEST_SERVER_URL: string = config.serverURL0;
-export const CONNECTION_TIMEOUT: number = config.timeout.connection;
-export const OPEN_FILE_TIMEOUT: number = config.timeout.openFile;
-export const READ_FILE_TIMEOUT: number = config.timeout.readFile;
-export const OPEN_CATALOG_LARGE_TIMEOUT: number = config.timeout.openCatalogLarge;
+/**
+ * The expected values of a CATALOG_FILTER_RESPONSE which the protobuf message has no field
+ * for: how many messages the subset is streamed as, and how many columns each one carries.
+ */
+export interface ICatalogFilterResponseExt extends CARTA.ICatalogFilterResponse {
+    lengthOfColumns: number;
+    numberOfResponses: number;
+}
 
 /** The expected CATALOG_FILE_INFO_RESPONSE values the protobuf message has no field for. */
 export interface ICatalogFileInfoResponseExt extends CARTA.ICatalogFileInfoResponse {
@@ -37,18 +40,51 @@ export interface IImageFixture {
 }
 
 /**
- * Resolve "$BASE" and prepend it to the directory of every request given. The requests are
- * modified in place, so a file which registers more than one describe block has to pass each
- * of them once only.
+ * ColumnData carries every type other than String as binary, so a row of a column is a fixed
+ * number of bytes rather than an element of an array.
  */
-export function testBasePath(requests: { directory?: string }[]) {
-    test(`Get basepath and modify the directory path`, async () => {
-        const fileListResponse = await MessageController.Instance.getFileList('$BASE', 0);
-        const basepath = fileListResponse.directory;
-        requests.forEach((request) => {
-            request.directory = basepath + '/' + request.directory;
-        });
-    });
+const bytesPerElement = new Map<CARTA.ColumnType, number>([
+    [CARTA.ColumnType.Uint8, 1],
+    [CARTA.ColumnType.Int8, 1],
+    [CARTA.ColumnType.Bool, 1],
+    [CARTA.ColumnType.Uint16, 2],
+    [CARTA.ColumnType.Int16, 2],
+    [CARTA.ColumnType.Uint32, 4],
+    [CARTA.ColumnType.Int32, 4],
+    [CARTA.ColumnType.Float, 4],
+    [CARTA.ColumnType.Uint64, 8],
+    [CARTA.ColumnType.Int64, 8],
+    [CARTA.ColumnType.Double, 8],
+]);
+
+export function columnRowCount(column: CARTA.IColumnData): number {
+    if (column.dataType === CARTA.ColumnType.String) {
+        return column.stringData!.length;
+    }
+    return column.binaryData!.length / bytesPerElement.get(column.dataType!)!;
+}
+
+/**
+ * Rows are compared as raw payload, which works for every column type without having to decode
+ * it. ProtobufProcessing cannot be used here because it needs the CARTACompute WASM global for
+ * the 64 bit types.
+ */
+export function columnSlice(column: CARTA.IColumnData, startRow: number, rowCount: number): (string | number)[] {
+    if (column.dataType === CARTA.ColumnType.String) {
+        return column.stringData!.slice(startRow, startRow + rowCount);
+    }
+    const elementSize = bytesPerElement.get(column.dataType!)!;
+    return Array.from(column.binaryData!.slice(startRow * elementSize, (startRow + rowCount) * elementSize));
+}
+
+export function stringColumn(column: CARTA.IColumnData): string[] {
+    expect(column.dataType).toEqual(CARTA.ColumnType.String);
+    return column.stringData!;
+}
+
+export function doubleColumn(column: CARTA.IColumnData): number[] {
+    expect(column.dataType).toEqual(CARTA.ColumnType.Double);
+    return Array.from(new Float64Array(column.binaryData!.slice().buffer));
 }
 
 export function testOpenImageFile(image: IImageFixture) {
@@ -160,6 +196,38 @@ export function expectPreviewData(ack: CARTA.IOpenCatalogFileAck, columnCount: n
     expect(Object.keys(previewData).length).toEqual(columnCount);
     Object.keys(previewData).forEach((key) => {
         expect(columnRowCount(previewData[key])).toEqual(rowCount);
+    });
+}
+
+export function requestCatalogFilter(
+    filterRequest: CARTA.ICatalogFilterRequest
+): Promise<CARTA.ICatalogFilterResponse[]> {
+    const msgController = MessageController.Instance;
+    // The stream has to be subscribed before the request is sent, otherwise the first
+    // responses are dropped.
+    const catalogFilterStream = Stream(CARTA.CatalogFilterResponse);
+    msgController.setCatalogFilterRequest(filterRequest);
+    return catalogFilterStream;
+}
+
+/** Assert the last message of a streamed subset against the request which asked for it. */
+export function assertCatalogFilterResponse(
+    responses: CARTA.ICatalogFilterResponse[],
+    expected: ICatalogFilterResponseExt,
+    request: CARTA.ICatalogFilterRequest
+) {
+    expect(responses.length).toEqual(expected.numberOfResponses);
+    const lastResponse = responses.slice(-1)[0];
+    expect(lastResponse.fileId).toEqual(expected.fileId);
+    expect(Object.keys(lastResponse.columns).length).toEqual(expected.lengthOfColumns);
+    expect(Object.keys(lastResponse.columns)).toEqual(request.columnIndices.map((columnIndex) => `${columnIndex}`));
+    expect(lastResponse.subsetDataSize).toEqual(expected.subsetDataSize);
+    expect(lastResponse.subsetEndIndex).toEqual(expected.subsetEndIndex);
+    expect(lastResponse.filterDataSize).toEqual(expected.filterDataSize);
+    expect(lastResponse.requestEndIndex).toEqual(expected.requestEndIndex);
+    expect(lastResponse.progress).toEqual(expected.progress);
+    Object.keys(lastResponse.columns).forEach((key) => {
+        expect(columnRowCount(lastResponse.columns[key])).toEqual(expected.subsetDataSize);
     });
 }
 
