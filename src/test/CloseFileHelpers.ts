@@ -1,16 +1,15 @@
 import { CARTA } from 'carta-protobuf';
 import { Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import { OPEN_FILE_TIMEOUT, QUIET_TIME, READ_FILE_TIMEOUT } from './CommonHelpers';
+import { QUIET_TIME } from './CommonHelpers';
 
 /**
- * Shared fixtures and steps for the CLOSE_FILE_* tests. Every one of them opens one or more
- * images, closes a file at some point of the streaming, and then checks that the backend is
- * still alive, so the preparation is registered from here and only the close itself differs.
+ * Shared steps for the CLOSE_FILE_* tests. Every one of them opens one or more images, closes
+ * a file at some point of the streaming, and then checks that the backend is still alive, so
+ * the preparation lives here and only the close itself differs.
  *
- * The functions come in two levels: the ones named test* register a jest test, while the ones
- * named assert* are plain assertions, for the tests which close a file in the middle of a
- * longer step of their own.
+ * These are plain assertions rather than jest tests: the test titles and timeouts belong to
+ * the test files, so that every test( ) a file registers can be read there.
  */
 
 /**
@@ -34,14 +33,15 @@ export async function assertBackendIsAlive(filelist: CARTA.IFileListRequest) {
     expect(backendStatus.directory).toContain('set_QA');
 }
 
-export function testBackendIsAlive(filelist: CARTA.IFileListRequest) {
-    test(`the backend is still alive | `, async () => {
-        await assertBackendIsAlive(filelist);
-    });
-}
-
-export async function assertOpenFile(fileOpen: CARTA.IOpenFile): Promise<CARTA.IOpenFileAck> {
+/**
+ * `closeFileFirst` is the file id to close before the image is opened, -1 for all of them.
+ * Omit it to open the image on top of whatever the session already holds.
+ */
+export async function assertOpenFile(fileOpen: CARTA.IOpenFile, closeFileFirst?: number): Promise<CARTA.IOpenFileAck> {
     const msgController = MessageController.Instance;
+    if (closeFileFirst !== undefined) {
+        msgController.closeFile(closeFileFirst);
+    }
     const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
     const openFileResponse = await msgController.loadFile(fileOpen);
     const regionHistogramData = await regionHistogramDataStream;
@@ -50,23 +50,6 @@ export async function assertOpenFile(fileOpen: CARTA.IOpenFile): Promise<CARTA.I
     expect(openFileResponse.fileId).toEqual(fileOpen.fileId);
     expect(regionHistogramData[0].fileId).toEqual(fileOpen.fileId);
     return openFileResponse;
-}
-
-/**
- * `closeFileFirst` is the file id to close before the image is opened, -1 for all of them.
- * Omit it to open the image on top of whatever the session already holds.
- */
-export function testOpenFile(step: string, fileOpen: CARTA.IOpenFile, closeFileFirst?: number) {
-    test(
-        `${step} OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${fileOpen.file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
-        async () => {
-            if (closeFileFirst !== undefined) {
-                MessageController.Instance.closeFile(closeFileFirst);
-            }
-            await assertOpenFile(fileOpen);
-        },
-        OPEN_FILE_TIMEOUT
-    );
 }
 
 export async function assertRasterTiles(requiredTiles: CARTA.IAddRequiredTiles): Promise<CARTA.RasterTileData[]> {
@@ -115,19 +98,12 @@ export async function assertSpatialProfile(
     return spatialProfileData[0];
 }
 
-export function testTilesAndProfiles(
-    step: string,
+export async function assertTilesAndProfiles(
     requiredTiles: CARTA.IAddRequiredTiles,
     setCursor: CARTA.ISetCursor,
     setSpatialReq: CARTA.ISetSpatialRequirements
 ) {
-    test(
-        `${step} RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${requiredTiles.fileId} | `,
-        async () => {
-            await assertRasterTiles(requiredTiles);
-            await assertCursorProfile(setCursor);
-            await assertSpatialProfile(setSpatialReq);
-        },
-        READ_FILE_TIMEOUT
-    );
+    await assertRasterTiles(requiredTiles);
+    await assertCursorProfile(setCursor);
+    await assertSpatialProfile(setSpatialReq);
 }

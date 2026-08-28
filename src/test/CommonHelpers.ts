@@ -23,12 +23,10 @@ export const QUIET_TIME: number = config.timeout.messageEvent;
  * modified in place, so a file which registers more than one describe block has to pass each
  * of them once only.
  */
-export function basePath(requests: { directory?: string }[]) {
-    test(`Get basepath and modify the directory path`, async () => {
-        const fileListResponse = await MessageController.Instance.getFileList('$BASE', 0);
-        const basepath = fileListResponse.directory;
-        requests.forEach((request) => {
-            request.directory = basepath + '/' + request.directory;
-        });
+export async function assertBasePath(requests: { directory?: string }[]) {
+    const fileListResponse = await MessageController.Instance.getFileList('$BASE', 0);
+    const basepath = fileListResponse.directory;
+    requests.forEach((request) => {
+        request.directory = basepath + '/' + request.directory;
     });
 }

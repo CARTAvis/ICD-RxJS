@@ -4,16 +4,17 @@ import { MessageController } from './MessageController';
 import {
     assertBackendIsAlive,
     assertNoFurtherMessage,
-    testBackendIsAlive,
-    testOpenFile,
-    testTilesAndProfiles,
+    assertOpenFile,
+    assertTilesAndProfiles,
 } from './CloseFileHelpers';
 import {
     CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
     READ_LARGE_IMAGE_TIMEOUT,
     TEST_SERVER_URL,
     TEST_SUBDIRECTORY,
-    basePath,
+    assertBasePath,
 } from './CommonHelpers';
 
 const CLOSE_AT_PROGRESS = 0.3;
@@ -185,13 +186,28 @@ describe('[Case 1] Request SPECTRAL_REQUIREMENTS and then CLOSE_FILE when data i
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        basePath([assertItem.openFile[0], assertItem.openFile[1], assertItem.filelist]);
-        testOpenFile('(Step 1)', assertItem.openFile[0], -1);
-        testTilesAndProfiles(
-            '(Step 2)',
-            assertItem.addRequiredTiles[0],
-            assertItem.setCursor[0],
-            assertItem.setSpatialReq[0]
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath([assertItem.openFile[0], assertItem.openFile[1], assertItem.filelist]);
+        });
+
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.openFile[0].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.openFile[0], -1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 2) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[0].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[0],
+                    assertItem.setCursor[0],
+                    assertItem.setSpatialReq[0]
+                );
+            },
+            READ_FILE_TIMEOUT
         );
 
         test(
@@ -225,19 +241,44 @@ describe('[Case 2] Request SPECTRAL_REQUIREMENTS of TWO images and then CLOSE_FI
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testOpenFile('(Step 1) IMAGE 1 :', assertItem.openFile[0], -1);
-        testTilesAndProfiles(
-            '(Step 2) IMAGE 1 :',
-            assertItem.addRequiredTiles[0],
-            assertItem.setCursor[0],
-            assertItem.setSpatialReq[0]
+        test(
+            `(Step 1) IMAGE 1 : OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.openFile[0].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.openFile[0], -1);
+            },
+            OPEN_FILE_TIMEOUT
         );
-        testOpenFile('(Step 3) IMAGE 2 :', assertItem.openFile[1], 1);
-        testTilesAndProfiles(
-            '(Step 4) IMAGE 2 :',
-            assertItem.addRequiredTiles[1],
-            assertItem.setCursor[1],
-            assertItem.setSpatialReq[1]
+
+        test(
+            `(Step 2) IMAGE 1 : RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[0].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[0],
+                    assertItem.setCursor[0],
+                    assertItem.setSpatialReq[0]
+                );
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 3) IMAGE 2 : OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.openFile[1].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.openFile[1], 1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 4) IMAGE 2 : RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[1].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[1],
+                    assertItem.setCursor[1],
+                    assertItem.setSpatialReq[1]
+                );
+            },
+            READ_FILE_TIMEOUT
         );
 
         test(
@@ -271,7 +312,9 @@ describe('[Case 2] Request SPECTRAL_REQUIREMENTS of TWO images and then CLOSE_FI
             await assertNoFurtherMessage(msgController.messageReceiving());
         });
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         afterAll(() => msgController.closeConnection());
     });

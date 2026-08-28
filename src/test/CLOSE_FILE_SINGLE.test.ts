@@ -1,8 +1,20 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection } from './MyClient';
 import { MessageController } from './MessageController';
-import { assertNoFurtherMessage, testBackendIsAlive, testOpenFile, testTilesAndProfiles } from './CloseFileHelpers';
-import { CONNECTION_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
+import {
+    assertBackendIsAlive,
+    assertNoFurtherMessage,
+    assertOpenFile,
+    assertTilesAndProfiles,
+} from './CloseFileHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -46,16 +58,38 @@ describe('Test for Close single file:', () => {
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        basePath([assertItem.openFile, assertItem.filelist]);
-        testOpenFile('(Step 1)', assertItem.openFile, -1);
-        testTilesAndProfiles('(Step 2)', assertItem.addRequiredTiles, assertItem.setCursor, assertItem.setSpatialReq);
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath([assertItem.openFile, assertItem.filelist]);
+        });
+
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.openFile.file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.openFile, -1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 2) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles.fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles,
+                    assertItem.setCursor,
+                    assertItem.setSpatialReq
+                );
+            },
+            READ_FILE_TIMEOUT
+        );
 
         test(`(Step 3) close image and check there is no receiving message`, async () => {
             msgController.closeFile(0);
             await assertNoFurtherMessage(msgController.messageReceiving());
         });
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         afterAll(() => msgController.closeConnection());
     });

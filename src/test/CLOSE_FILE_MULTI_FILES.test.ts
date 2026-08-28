@@ -2,13 +2,20 @@ import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import {
+    assertBackendIsAlive,
     assertNoFurtherMessage,
+    assertOpenFile,
     assertSpatialProfile,
-    testBackendIsAlive,
-    testOpenFile,
-    testTilesAndProfiles,
+    assertTilesAndProfiles,
 } from './CloseFileHelpers';
-import { CONNECTION_TIMEOUT, READ_FILE_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -145,12 +152,24 @@ async function assertFileIsClosed(fileId: number) {
 // what the close cases below then rely on.
 function openThreeImages() {
     assertItem.fileOpen.forEach((fileOpen, index) => {
-        testOpenFile(`(Image ${fileOpen.fileId})`, fileOpen);
-        testTilesAndProfiles(
-            `(Image ${fileOpen.fileId})`,
-            assertItem.addRequiredTiles[index],
-            assertItem.setCursor[index],
-            assertItem.setSpatialReq[index]
+        test(
+            `(Image ${fileOpen.fileId}) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${fileOpen.file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(fileOpen);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Image ${fileOpen.fileId}) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[index].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[index],
+                    assertItem.setCursor[index],
+                    assertItem.setSpatialReq[index]
+                );
+            },
+            READ_FILE_TIMEOUT
         );
     });
 }
@@ -163,7 +182,9 @@ describe('Test for Close one file (run1):', () => {
     }, CONNECTION_TIMEOUT);
 
     checkConnection();
-    basePath([assertItem.filelist, ...assertItem.fileOpen]);
+    test(`Get basepath and modify the directory path`, async () => {
+        await assertBasePath([assertItem.filelist, ...assertItem.fileOpen]);
+    });
 
     describe('Prepare Image 0,1,2 for Case 1: ', () => {
         openThreeImages();
@@ -205,7 +226,9 @@ describe('Test for Close one file (run1):', () => {
             READ_FILE_TIMEOUT
         );
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         test(`(Step 5) There is no any ICD message returned:`, async () => {
             await assertNoFurtherMessage(msgController.messageReceiving());
@@ -249,7 +272,9 @@ describe('Test for Close one file (run2):', () => {
             expect(msgController.closeFile(2)).toBe(true);
         });
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         test(
             `(Step 4) image 2 no longer answers | `,
@@ -298,7 +323,9 @@ describe('Test for Close one file (run3):', () => {
             READ_FILE_TIMEOUT
         );
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         test(`(Step 3) There is no any ICD message returned:`, async () => {
             await assertNoFurtherMessage(msgController.messageReceiving());

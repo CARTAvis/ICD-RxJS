@@ -7,11 +7,16 @@ import {
     assertOpenFile,
     assertRasterTiles,
     assertSpatialProfile,
-    testBackendIsAlive,
-    testOpenFile,
-    testTilesAndProfiles,
+    assertTilesAndProfiles,
 } from './CloseFileHelpers';
-import { CONNECTION_TIMEOUT, OPEN_FILE_TIMEOUT, TEST_SERVER_URL, TEST_SUBDIRECTORY, basePath } from './CommonHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -75,9 +80,25 @@ describe('[Case 1] Test for requesting the ICD message of the CLOSED image:', ()
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        basePath([assertItem.filelist, assertItem.fileOpen[0], assertItem.fileOpen[1]]);
-        testOpenFile('(Step 1)', assertItem.fileOpen[0], -1);
-        testOpenFile('(Step 2)', assertItem.fileOpen[1]);
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath([assertItem.filelist, assertItem.fileOpen[0], assertItem.fileOpen[1]]);
+        });
+
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.fileOpen[0].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.fileOpen[0], -1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 2) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.fileOpen[1].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.fileOpen[1]);
+            },
+            OPEN_FILE_TIMEOUT
+        );
 
         test(`(Step 3) close fileId =1 & request ICD message of the closed fileId=1, then the backend is still alive:`, async () => {
             //close fileId =1
@@ -98,11 +119,16 @@ describe('[Case 1] Test for requesting the ICD message of the CLOSED image:', ()
             await assertBackendIsAlive(assertItem.filelist);
         });
 
-        testTilesAndProfiles(
-            '(Step 4) fileId = 0 is still working well:',
-            assertItem.addRequiredTiles,
-            assertItem.setCursor[0],
-            assertItem.setSpatialReq
+        test(
+            `(Step 4) fileId = 0 is still working well: RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles.fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles,
+                    assertItem.setCursor[0],
+                    assertItem.setSpatialReq
+                );
+            },
+            READ_FILE_TIMEOUT
         );
 
         afterAll(() => msgController.closeConnection());
@@ -117,12 +143,24 @@ describe('[Case 2] Open=>Close=>Open of fileId=0, and then check the backend ali
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        testOpenFile('(Step 1)', assertItem.fileOpen[0], -1);
-        testTilesAndProfiles(
-            '(Step 2)',
-            assertItem.addRequiredTiles,
-            assertItem.setCursor[0],
-            assertItem.setSpatialReq
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.fileOpen[0].file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.fileOpen[0], -1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 2) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles.fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles,
+                    assertItem.setCursor[0],
+                    assertItem.setSpatialReq
+                );
+            },
+            READ_FILE_TIMEOUT
         );
 
         test(
@@ -142,7 +180,9 @@ describe('[Case 2] Open=>Close=>Open of fileId=0, and then check the backend ali
             OPEN_FILE_TIMEOUT
         );
 
-        testBackendIsAlive(assertItem.filelist);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
 
         afterAll(() => msgController.closeConnection());
     });

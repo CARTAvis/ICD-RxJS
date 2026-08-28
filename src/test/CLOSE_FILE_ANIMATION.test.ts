@@ -1,13 +1,15 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import { assertBackendIsAlive, testOpenFile, testTilesAndProfiles } from './CloseFileHelpers';
+import { assertBackendIsAlive, assertOpenFile, assertTilesAndProfiles } from './CloseFileHelpers';
 import {
     CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
     PLAY_ANIMATOR_TIMEOUT,
+    READ_FILE_TIMEOUT,
     TEST_SERVER_URL,
     TEST_SUBDIRECTORY,
-    basePath,
+    assertBasePath,
 } from './CommonHelpers';
 import { take } from 'rxjs/operators';
 import * as Long from 'long';
@@ -97,13 +99,28 @@ describe('Testing CLOSE_FILE with large-size image and test CLOSE_FILE during th
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        basePath([assertItem.fileOpen, assertItem.filelist]);
-        testOpenFile('(Step 1)', assertItem.fileOpen, -1);
-        testTilesAndProfiles(
-            '(Step 2)',
-            assertItem.addRequiredTiles[0],
-            assertItem.setCursor,
-            assertItem.setSpatialReq
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath([assertItem.fileOpen, assertItem.filelist]);
+        });
+
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${assertItem.fileOpen.file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(assertItem.fileOpen, -1);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 2) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[0].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[0],
+                    assertItem.setCursor,
+                    assertItem.setSpatialReq
+                );
+            },
+            READ_FILE_TIMEOUT
         );
 
         let sequence: number[] = [];
