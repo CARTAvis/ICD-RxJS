@@ -74,6 +74,48 @@ crash_sites=()
 skipped_tests=()
 restarts=0
 
+# The index of the last file which will actually run, so that a crash on it can be reported
+# without waiting for a replacement backend that nothing is left to use.
+last_index=-1
+for test_index in "${!test_files[@]}"; do
+    if [ -n "${test_files[$test_index]}" ]; then
+        last_index=$test_index
+    fi
+done
+
+# Whether the backend survived TEST_FILE. A crash is recorded either way; MORE_TO_RUN, if set,
+# says that something is still going to be run against the backend and it is therefore worth
+# bringing back. Returns non-zero when the stage has to be abandoned.
+check_backend() {
+    local test_file=$1 more_to_run=$2
+
+    if bash "$script_dir/wait_for_backend.sh" "$port" 0 "$log_file"; then
+        return 0
+    fi
+
+    crash_sites+=("$test_file")
+
+    # Nothing else was going to run, so the crash is the whole of the news. Restarting here would
+    # spend the restart budget -- and the job's, which is what once turned a reportable crash into
+    # an exit 143 -- on a stage that is already over.
+    if [ -z "$more_to_run" ]; then
+        echo "carta_backend crashed after $test_file"
+        return 0
+    fi
+
+    if [ "$restarts" -ge "$max_restarts" ]; then
+        echo "carta_backend crashed after $test_file and has already been restarted $restarts times; abandoning the rest of the stage"
+        return 1
+    fi
+    restarts=$((restarts + 1))
+    echo "carta_backend crashed after $test_file; restarting ($restarts of $max_restarts)"
+    if ! bash "$script_dir/start_backend.sh" "$src_dir" "$build_dir" "$port" "$log_file" "$RESTART_TIMEOUT"; then
+        echo "carta_backend could not be restarted; abandoning the rest of the stage"
+        return 1
+    fi
+    return 0
+}
+
 for test_index in "${!test_files[@]}"; do
     test_file="${test_files[$test_index]}"
     [ -n "$test_file" ] || continue  # Skip empty lines
@@ -86,21 +128,15 @@ for test_index in "${!test_files[@]}"; do
     # A backend which has died takes every remaining file in the stage with it, each reporting a
     # connection failure instead of the crash which actually caused it. The tests hold no state in
     # the backend -- every file connects and loads for itself -- so a fresh backend lets the rest of
-    # the stage run for real.
-    if ! bash "$script_dir/wait_for_backend.sh" "$port" 0 "$log_file"; then
-        crash_sites+=("$test_file")
-        if [ "$restarts" -ge "$max_restarts" ]; then
-            echo "carta_backend crashed after $test_file and has already been restarted $restarts times; abandoning the rest of the stage"
-            skipped_tests=("${test_files[@]:$((test_index + 1))}")
-            break
-        fi
-        restarts=$((restarts + 1))
-        echo "carta_backend crashed after $test_file; restarting ($restarts of $max_restarts)"
-        if ! bash "$script_dir/start_backend.sh" "$src_dir" "$build_dir" "$port" "$log_file" "$RESTART_TIMEOUT"; then
-            echo "carta_backend could not be restarted; abandoning the rest of the stage"
-            skipped_tests=("${test_files[@]:$((test_index + 1))}")
-            break
-        fi
+    # the stage run for real. A retry still to come counts as a reason to bring it back, just as
+    # another file does.
+    more_to_run=''
+    if [ -n "$first_attempt_failed" ] || [ "$test_index" -ne "$last_index" ]; then
+        more_to_run=yes
+    fi
+    if ! check_backend "$test_file" "$more_to_run"; then
+        skipped_tests=("${test_files[@]:$((test_index + 1))}")
+        break
     fi
 
     # The retry comes after the liveness check so that a file which failed because the backend died
@@ -113,6 +149,19 @@ for test_index in "${!test_files[@]}"; do
             retried_tests+=("$test_file")
         else
             failed_tests+=("$test_file")
+        fi
+
+        # A retry can take the backend down exactly as a first attempt can, and checking here
+        # rather than leaving it to the next file keeps the crash on the file which caused it and
+        # keeps the next file from being run against a backend which is already gone. On the last
+        # file of a stage this is the only thing which reports the crash at all.
+        more_to_run=''
+        if [ "$test_index" -ne "$last_index" ]; then
+            more_to_run=yes
+        fi
+        if ! check_backend "$test_file" "$more_to_run"; then
+            skipped_tests=("${test_files[@]:$((test_index + 1))}")
+            break
         fi
     fi
 done
@@ -142,7 +191,7 @@ fi
 
 if [ ${#failed_tests[@]} -ne 0 ]; then
     echo "The following tests failed:"
-    printf '%s\n' "${failed_tests[@]}"
+    printf '  %s\n' "${failed_tests[@]}"
 fi
 
 # A crash fails the stage even when every test which managed to run passed: the point of this
