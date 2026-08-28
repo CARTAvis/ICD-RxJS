@@ -1,6 +1,15 @@
 import { CARTA } from 'carta-protobuf';
 import { BackendService } from './MessageControllerConcurrent';
-import { CONNECTION_TIMEOUT, TEST_SERVER_URL, testRegisterViewerAck } from './AccessHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    PLATFORM_STRING_KEYS,
+    TEST_SERVER_URL,
+    expectMessageReportingSessionId,
+    expectNoUserLayouts,
+    expectNoUserPreferences,
+    expectPlatformStrings,
+    expectWritableServer,
+} from './AccessHelpers';
 
 interface AssertItem {
     register: CARTA.IRegisterViewer;
@@ -23,9 +32,40 @@ describe(`ACCESS_CARTA_KNOWN_SESSION tests: Testing connections to the backend w
         CONNECTION_TIMEOUT
     );
 
-    testRegisterViewerAck(() => RegisterViewerAckTemp, {
-        sessionType: CARTA.SessionType.RESUMED,
-        sessionId: assertItem.register.sessionId!,
+    test(`REGISTER_VIEWER_ACK.success = True`, () => {
+        expect(RegisterViewerAckTemp.success).toBe(true);
+    });
+
+    test(`REGISTER_VIEWER_ACK.session_id is ${assertItem.register.sessionId}`, () => {
+        expect(RegisterViewerAckTemp.sessionId).toEqual(assertItem.register.sessionId);
+        console.log(`Registered session ID is ${RegisterViewerAckTemp.sessionId} @${new Date()}`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.session_type = "CARTA.SessionType.RESUMED"`, () => {
+        expect(RegisterViewerAckTemp.sessionType).toBe(CARTA.SessionType.RESUMED);
+    });
+
+    test(`REGISTER_VIEWER_ACK.message is a non-empty string reporting the requested session id`, () => {
+        expectMessageReportingSessionId(RegisterViewerAckTemp, assertItem.register.sessionId!);
+        console.log(`"REGISTER_VIEWER_ACK.message" returns: "${RegisterViewerAckTemp.message}"`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.server_feature_flags does not report READ_ONLY`, () => {
+        expectWritableServer(RegisterViewerAckTemp);
+        console.log(`Server feature flags are ${RegisterViewerAckTemp.serverFeatureFlags}`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.platform_strings has ${PLATFORM_STRING_KEYS.join(', ')}`, () => {
+        expectPlatformStrings(RegisterViewerAckTemp);
+        console.log(`Platform strings are ${JSON.stringify(RegisterViewerAckTemp.platformStrings)}`);
+    });
+
+    test(`REGISTER_VIEWER_ACK.user_preferences = None`, () => {
+        expectNoUserPreferences(RegisterViewerAckTemp);
+    });
+
+    test(`REGISTER_VIEWER_ACK.user_layouts = None`, () => {
+        expectNoUserLayouts(RegisterViewerAckTemp);
     });
 
     afterAll(async () => {
