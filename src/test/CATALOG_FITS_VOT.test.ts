@@ -4,23 +4,25 @@ import {
     ICatalogFileInfoResponseExt,
     ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
+    assertCatalogFileInfo,
     assertCatalogFilterResponse,
+    assertCatalogList,
+    assertIncreasingProgress,
+    assertOpenCatalogFile,
+    assertOpenImageFile,
+    assertRasterTiles,
     columnRowCount,
     expectPreviewData,
     requestCatalogFilter,
-    testCatalogFileInfo,
-    testCatalogList,
-    testIncreasingProgress,
-    testOpenCatalogFile,
-    testOpenImageFile,
-    testRasterTiles,
 } from './CatalogHelpers';
 import {
     CATALOG_LARGE_SUBDIRECTORY,
     CONNECTION_TIMEOUT,
     OPEN_CATALOG_LARGE_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
     TEST_SERVER_URL,
-    basePath,
+    assertBasePath,
 } from './CommonHelpers';
 import { MessageController } from './MessageController';
 
@@ -217,27 +219,49 @@ assertItem.catalogFileInfoReq.map((data, index) => {
         checkConnection();
         // The image and the catalog list are shared by both catalogs, so their directories are
         // prepended in the first describe block only
-        basePath(
-            index === 0
-                ? [
-                      assertItem.fileOpen,
-                      assertItem.catalogListReq,
-                      assertItem.catalogFileInfoReq[index],
-                      assertItem.openCatalogFile[index],
-                  ]
-                : [assertItem.catalogFileInfoReq[index], assertItem.openCatalogFile[index]]
-        );
-        testOpenImageFile(assertItem);
-        testRasterTiles(assertItem);
-        testCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath(
+                index === 0
+                    ? [
+                          assertItem.fileOpen,
+                          assertItem.catalogListReq,
+                          assertItem.catalogFileInfoReq[index],
+                          assertItem.openCatalogFile[index],
+                      ]
+                    : [assertItem.catalogFileInfoReq[index], assertItem.openCatalogFile[index]]
+            );
+        });
 
-        const getCatalogFileInfoAck = testCatalogFileInfo(
-            assertItem.catalogFileInfoReq[index],
-            assertItem.catalogFileInfoResponse[index]
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenImageFile(assertItem);
+            },
+            OPEN_FILE_TIMEOUT
         );
+
+        test(
+            `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
+            async () => {
+                await assertRasterTiles(assertItem);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(`(Step 3) Request CatalogList & check CatalogListResponse | `, async () => {
+            await assertCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
+        });
+
+        let CatalogFileInfoAck: CARTA.ICatalogFileInfoResponse;
+        test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
+            CatalogFileInfoAck = await assertCatalogFileInfo(
+                assertItem.catalogFileInfoReq[index],
+                assertItem.catalogFileInfoResponse[index]
+            );
+        });
 
         test(`(Step 4) CATALOG_FILE_INFO_RESPONSE.headers describe every column once | `, () => {
-            const headers = getCatalogFileInfoAck().headers;
+            const headers = CatalogFileInfoAck.headers;
             const columnIndices = headers.map((header) => header.columnIndex);
             expect(columnIndices.slice().sort((a, b) => a - b)).toEqual(
                 Array.from({ length: assertItem.catalogFileInfoResponse[index].lengthOfHeaders }, (_, i) => i)
@@ -248,15 +272,21 @@ assertItem.catalogFileInfoReq.map((data, index) => {
             });
         });
 
-        const getCatalogFileAck = testOpenCatalogFile(
-            assertItem.openCatalogFile[index],
-            assertItem.openCatalogFileAck[index],
+        let CatalogFileAck: CARTA.IOpenCatalogFileAck;
+        test(
+            `(Step 5) Request CatalogFile & check CatalogFileAck | `,
+            async () => {
+                CatalogFileAck = await assertOpenCatalogFile(
+                    assertItem.openCatalogFile[index],
+                    assertItem.openCatalogFileAck[index]
+                );
+            },
             OPEN_CATALOG_LARGE_TIMEOUT
         );
 
         test(`(Step 5) OPEN_CATALOG_FILE_ACK.preview_data holds ${assertItem.openCatalogFile[0].previewDataSize} rows of every column | `, () => {
             expectPreviewData(
-                getCatalogFileAck(),
+                CatalogFileAck,
                 assertItem.openCatalogFileAck[index].lengthOfPreviewData,
                 assertItem.openCatalogFile[index].previewDataSize
             );
@@ -310,7 +340,9 @@ assertItem.catalogFileInfoReq.map((data, index) => {
             expect(remainingRows).toEqual(0);
         });
 
-        testIncreasingProgress(() => CatalogFilterResponse);
+        test(`(Step 6) the progress increases and reaches 1 only in the last CatalogFilterResponse | `, () => {
+            assertIncreasingProgress(CatalogFilterResponse);
+        });
 
         afterAll(() => msgController.closeConnection());
     });

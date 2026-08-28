@@ -4,18 +4,25 @@ import {
     ICatalogFileInfoResponseExt,
     ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
+    assertCatalogFileInfo,
     assertCatalogFilterResponse,
+    assertCatalogList,
+    assertOpenCatalogFile,
+    assertOpenImageFile,
+    assertRasterTiles,
     doubleColumn,
     expectPreviewData,
     requestCatalogFilter,
     stringColumn,
-    testCatalogFileInfo,
-    testCatalogList,
-    testOpenCatalogFile,
-    testOpenImageFile,
-    testRasterTiles,
 } from './CatalogHelpers';
-import { CATALOG_ARTIFICIAL_SUBDIRECTORY, CONNECTION_TIMEOUT, TEST_SERVER_URL, basePath } from './CommonHelpers';
+import {
+    CATALOG_ARTIFICIAL_SUBDIRECTORY,
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    assertBasePath,
+} from './CommonHelpers';
 import { MessageController } from './MessageController';
 
 interface AssertItem {
@@ -222,27 +229,49 @@ describe('Test for general CATALOG related messages:', () => {
         }, CONNECTION_TIMEOUT);
 
         checkConnection();
-        basePath([
-            assertItem.fileOpen,
-            assertItem.catalogListReq,
-            assertItem.catalogFileInfoReq,
-            assertItem.openCatalogFile,
-        ]);
-        testOpenImageFile(assertItem);
-        testRasterTiles(assertItem);
-        testCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
+        test(`Get basepath and modify the directory path`, async () => {
+            await assertBasePath([
+                assertItem.fileOpen,
+                assertItem.catalogListReq,
+                assertItem.catalogFileInfoReq,
+                assertItem.openCatalogFile,
+            ]);
+        });
 
-        const getCatalogFileInfoAck = testCatalogFileInfo(
-            assertItem.catalogFileInfoReq,
-            assertItem.catalogFileInfoResponse
+        test(
+            `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenImageFile(assertItem);
+            },
+            OPEN_FILE_TIMEOUT
         );
+
+        test(
+            `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
+            async () => {
+                await assertRasterTiles(assertItem);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(`(Step 3) Request CatalogList & check CatalogListResponse | `, async () => {
+            await assertCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
+        });
+
+        let CatalogFileInfoAck: CARTA.ICatalogFileInfoResponse;
+        test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
+            CatalogFileInfoAck = await assertCatalogFileInfo(
+                assertItem.catalogFileInfoReq,
+                assertItem.catalogFileInfoResponse
+            );
+        });
 
         // The filter and the sort are requested by column name, while the response keys its
         // columns by index, so the two are tied together through the headers.
         let filterColumnIndices: Map<string, number>;
         test(`(Step 4) the headers place the filtered columns inside the requested column_indices | `, () => {
             filterColumnIndices = new Map(
-                getCatalogFileInfoAck().headers.map((header) => [header.name, header.columnIndex])
+                CatalogFileInfoAck.headers.map((header) => [header.name, header.columnIndex])
             );
             const filteredColumnNames = [
                 assertItem.catalogFilterReq[0].sortColumn,
@@ -255,14 +284,17 @@ describe('Test for general CATALOG related messages:', () => {
             });
         });
 
-        const getCatalogFileAck = testOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck);
+        let CatalogFileAck: CARTA.IOpenCatalogFileAck;
+        test(`(Step 5) Request CatalogFile & check CatalogFileAck | `, async () => {
+            CatalogFileAck = await assertOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck);
+        });
 
         test(`(Step 5) OPEN_CATALOG_FILE_ACK.preview_data is clamped to the ${assertItem.openCatalogFileAck.dataSize} rows of the table | `, () => {
             // preview_data_size asks for more rows than the table holds, so the backend
             // returns the whole table instead.
             expect(assertItem.openCatalogFile.previewDataSize).toBeGreaterThan(assertItem.openCatalogFileAck.dataSize);
             expectPreviewData(
-                getCatalogFileAck(),
+                CatalogFileAck,
                 assertItem.openCatalogFileAck.lengthOfPreviewData,
                 assertItem.openCatalogFileAck.dataSize
             );

@@ -1,12 +1,13 @@
 import { CARTA } from 'carta-protobuf';
 import { Stream } from './MyClient';
 import { MessageController } from './MessageController';
-import { OPEN_FILE_TIMEOUT, READ_FILE_TIMEOUT } from './CommonHelpers';
-
 /**
  * Shared fixtures and steps for the CATALOG_* tests. Every one of them opens an image, lists
  * the catalogs stored beside it, and then opens and filters one catalog file, so steps 1 to 5
- * are registered from here and only the filtering of step 6 onwards differs per test.
+ * live here and only the filtering of step 6 onwards differs per test.
+ *
+ * These are plain assertions rather than jest tests: the test titles and timeouts belong to
+ * the test files, so that every test( ) a file registers can be read there.
  */
 
 /**
@@ -87,107 +88,79 @@ export function doubleColumn(column: CARTA.IColumnData): number[] {
     return Array.from(new Float64Array(column.binaryData!.slice().buffer));
 }
 
-export function testOpenImageFile(image: IImageFixture) {
-    test(
-        `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
-        async () => {
-            const msgController = MessageController.Instance;
-            msgController.closeFile(-1);
-            const OpenFileResponse = await msgController.loadFile(image.fileOpen);
-            await Stream(CARTA.RegionHistogramData, 1);
+export async function assertOpenImageFile(image: IImageFixture) {
+    const msgController = MessageController.Instance;
+    msgController.closeFile(-1);
+    const OpenFileResponse = await msgController.loadFile(image.fileOpen);
+    await Stream(CARTA.RegionHistogramData, 1);
 
-            expect(OpenFileResponse.success).toBe(true);
-            expect(OpenFileResponse.fileInfo.name).toEqual(image.fileOpen.file);
-        },
-        OPEN_FILE_TIMEOUT
-    );
+    expect(OpenFileResponse.success).toBe(true);
+    expect(OpenFileResponse.fileInfo.name).toEqual(image.fileOpen.file);
 }
 
-export function testRasterTiles(image: IImageFixture) {
-    test(
-        `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
-        async () => {
-            const msgController = MessageController.Instance;
-            // RasterTileSync start & end, plus one RasterTileData per requested tile
-            const rasterTileMessageCount = image.addTilesReq.tiles.length + 2;
+export async function assertRasterTiles(image: IImageFixture) {
+    const msgController = MessageController.Instance;
+    // RasterTileSync start & end, plus one RasterTileData per requested tile
+    const rasterTileMessageCount = image.addTilesReq.tiles.length + 2;
 
-            msgController.addRequiredTiles(image.addTilesReq);
-            const RasterTileDataResponse = await Stream(CARTA.RasterTileData, rasterTileMessageCount);
+    msgController.addRequiredTiles(image.addTilesReq);
+    const RasterTileDataResponse = await Stream(CARTA.RasterTileData, rasterTileMessageCount);
 
-            msgController.setCursor(image.setCursor.fileId, image.setCursor.point.x, image.setCursor.point.y);
-            await Stream(CARTA.SpatialProfileData, 1);
+    msgController.setCursor(image.setCursor.fileId, image.setCursor.point.x, image.setCursor.point.y);
+    await Stream(CARTA.SpatialProfileData, 1);
 
-            msgController.setSpatialRequirements(image.setSpatialReq);
-            await Stream(CARTA.SpatialProfileData, 1);
+    msgController.setSpatialRequirements(image.setSpatialReq);
+    await Stream(CARTA.SpatialProfileData, 1);
 
-            expect(RasterTileDataResponse.length).toEqual(rasterTileMessageCount);
-        },
-        READ_FILE_TIMEOUT
-    );
+    expect(RasterTileDataResponse.length).toEqual(rasterTileMessageCount);
 }
 
-export function testCatalogList(request: CARTA.ICatalogListRequest, expected: CARTA.ICatalogListResponse) {
-    test(`(Step 3) Request CatalogList & check CatalogListResponse | `, async () => {
-        const CatalogListAck = await MessageController.Instance.getCatalogList(request.directory, request.filterMode);
-        expect(CatalogListAck.directory).toContain(expected.directory);
-        expect(CatalogListAck.success).toEqual(expected.success);
-        const CatalogListAckSubdirectories = CatalogListAck.subdirectories.map((f) => f.name);
-        expect(CatalogListAckSubdirectories).toEqual(expect.arrayContaining(expected.subdirectories));
-    });
+export async function assertCatalogList(request: CARTA.ICatalogListRequest, expected: CARTA.ICatalogListResponse) {
+    const CatalogListAck = await MessageController.Instance.getCatalogList(request.directory, request.filterMode);
+    expect(CatalogListAck.directory).toContain(expected.directory);
+    expect(CatalogListAck.success).toEqual(expected.success);
+    const CatalogListAckSubdirectories = CatalogListAck.subdirectories.map((f) => f.name);
+    expect(CatalogListAckSubdirectories).toEqual(expect.arrayContaining(expected.subdirectories));
 }
 
-/**
- * The acknowledgement is returned through a getter because the tests which check it further
- * are registered before this one has run.
- */
-export function testCatalogFileInfo(
+/** The acknowledgement is returned for the tests which check it further. */
+export async function assertCatalogFileInfo(
     request: CARTA.ICatalogFileInfoRequest,
     expected: ICatalogFileInfoResponseExt
-): () => CARTA.ICatalogFileInfoResponse {
-    let CatalogFileInfoAck: CARTA.ICatalogFileInfoResponse;
-    test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
-        CatalogFileInfoAck = await MessageController.Instance.getCatalogFileInfo(request.directory, request.name);
-        expect(CatalogFileInfoAck.success).toEqual(expected.success);
-        expect(CatalogFileInfoAck.fileInfo.name).toEqual(expected.fileInfo.name);
-        // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
-        expect(CatalogFileInfoAck.fileInfo.type).toEqual(expected.fileInfo.type);
-        expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(expected.fileInfo.fileSize);
-        expected.descriptionKeywords?.forEach((keyword) => {
-            expect(CatalogFileInfoAck.fileInfo.description).toContain(keyword);
-        });
-        expect(CatalogFileInfoAck.headers.length).toEqual(expected.lengthOfHeaders);
+): Promise<CARTA.ICatalogFileInfoResponse> {
+    const CatalogFileInfoAck = await MessageController.Instance.getCatalogFileInfo(request.directory, request.name);
+    expect(CatalogFileInfoAck.success).toEqual(expected.success);
+    expect(CatalogFileInfoAck.fileInfo.name).toEqual(expected.fileInfo.name);
+    // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
+    expect(CatalogFileInfoAck.fileInfo.type).toEqual(expected.fileInfo.type);
+    expect(CatalogFileInfoAck.fileInfo.fileSize.low).toEqual(expected.fileInfo.fileSize);
+    expected.descriptionKeywords?.forEach((keyword) => {
+        expect(CatalogFileInfoAck.fileInfo.description).toContain(keyword);
     });
-    return () => CatalogFileInfoAck;
+    expect(CatalogFileInfoAck.headers.length).toEqual(expected.lengthOfHeaders);
+    return CatalogFileInfoAck;
 }
 
-/** Pass a timeout when the catalog is large enough that the default one is too short. */
-export function testOpenCatalogFile(
+/** The acknowledgement is returned for the tests which check it further. */
+export async function assertOpenCatalogFile(
     request: CARTA.IOpenCatalogFile,
-    expected: IOpenCatalogFileAckExt,
-    timeout?: number
-): () => CARTA.IOpenCatalogFileAck {
-    let CatalogFileAck: CARTA.IOpenCatalogFileAck;
-    test(
-        `(Step 5) Request CatalogFile & check CatalogFileAck | `,
-        async () => {
-            CatalogFileAck = await MessageController.Instance.loadCatalogFile(
-                request.directory,
-                request.name,
-                request.fileId,
-                request.previewDataSize
-            );
-            expect(CatalogFileAck.success).toEqual(expected.success);
-            expect(CatalogFileAck.dataSize).toEqual(expected.dataSize);
-            expect(CatalogFileAck.fileId).toEqual(expected.fileId);
-            expect(CatalogFileAck.fileInfo.name).toEqual(expected.fileInfo.name);
-            // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
-            expect(CatalogFileAck.fileInfo.type).toEqual(expected.fileInfo.type);
-            expect(CatalogFileAck.fileInfo.fileSize.low).toEqual(expected.fileInfo.fileSize);
-            expect(CatalogFileAck.headers.length).toEqual(expected.lengthOfHeaders);
-        },
-        timeout
+    expected: IOpenCatalogFileAckExt
+): Promise<CARTA.IOpenCatalogFileAck> {
+    const CatalogFileAck = await MessageController.Instance.loadCatalogFile(
+        request.directory,
+        request.name,
+        request.fileId,
+        request.previewDataSize
     );
-    return () => CatalogFileAck;
+    expect(CatalogFileAck.success).toEqual(expected.success);
+    expect(CatalogFileAck.dataSize).toEqual(expected.dataSize);
+    expect(CatalogFileAck.fileId).toEqual(expected.fileId);
+    expect(CatalogFileAck.fileInfo.name).toEqual(expected.fileInfo.name);
+    // CatalogFileType.FITSTable is 0, so the type has to be compared unconditionally
+    expect(CatalogFileAck.fileInfo.type).toEqual(expected.fileInfo.type);
+    expect(CatalogFileAck.fileInfo.fileSize.low).toEqual(expected.fileInfo.fileSize);
+    expect(CatalogFileAck.headers.length).toEqual(expected.lengthOfHeaders);
+    return CatalogFileAck;
 }
 
 /** OPEN_CATALOG_FILE_ACK.preview_data holds the same number of rows of every column. */
@@ -232,14 +205,12 @@ export function assertCatalogFilterResponse(
 }
 
 /** A subset streamed in chunks reports a progress which only the last chunk completes. */
-export function testIncreasingProgress(getResponses: () => CARTA.ICatalogFilterResponse[]) {
-    test(`(Step 6) the progress increases and reaches 1 only in the last CatalogFilterResponse | `, () => {
-        const progresses = getResponses().map((response) => response.progress);
-        progresses.slice(0, -1).forEach((progress, i) => {
-            expect(progress).toBeGreaterThan(0);
-            expect(progress).toBeLessThan(1);
-            expect(progresses[i + 1]).toBeGreaterThan(progress);
-        });
-        expect(progresses.slice(-1)[0]).toEqual(1);
+export function assertIncreasingProgress(responses: CARTA.ICatalogFilterResponse[]) {
+    const progresses = responses.map((response) => response.progress);
+    progresses.slice(0, -1).forEach((progress, i) => {
+        expect(progress).toBeGreaterThan(0);
+        expect(progress).toBeLessThan(1);
+        expect(progresses[i + 1]).toBeGreaterThan(progress);
     });
+    expect(progresses.slice(-1)[0]).toEqual(1);
 }

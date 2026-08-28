@@ -4,22 +4,24 @@ import {
     ICatalogFileInfoResponseExt,
     ICatalogFilterResponseExt,
     IOpenCatalogFileAckExt,
+    assertCatalogFileInfo,
     assertCatalogFilterResponse,
+    assertCatalogList,
+    assertIncreasingProgress,
+    assertOpenCatalogFile,
+    assertOpenImageFile,
+    assertRasterTiles,
     columnSlice,
     requestCatalogFilter,
-    testCatalogFileInfo,
-    testCatalogList,
-    testIncreasingProgress,
-    testOpenCatalogFile,
-    testOpenImageFile,
-    testRasterTiles,
 } from './CatalogHelpers';
 import {
     CATALOG_LARGE_SUBDIRECTORY,
     CONNECTION_TIMEOUT,
     OPEN_CATALOG_LARGE_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
     TEST_SERVER_URL,
-    basePath,
+    assertBasePath,
 } from './CommonHelpers';
 import { MessageController } from './MessageController';
 
@@ -194,6 +196,42 @@ let assertItem: AssertItem = {
 // can be compared against the rows the bulk load returned for the same table positions.
 let wholeTableFirstChunk: CARTA.ICatalogFilterResponse;
 
+// Steps 1 to 5 open the image and the catalog file, which both describe blocks below need
+// before they can filter anything.
+function openImageAndCatalogFile() {
+    test(
+        `(Step 1) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+        async () => {
+            await assertOpenImageFile(assertItem);
+        },
+        OPEN_FILE_TIMEOUT
+    );
+
+    test(
+        `(Step 2) return RASTER_TILE_DATA(Stream) and check total length | `,
+        async () => {
+            await assertRasterTiles(assertItem);
+        },
+        READ_FILE_TIMEOUT
+    );
+
+    test(`(Step 3) Request CatalogList & check CatalogListResponse | `, async () => {
+        await assertCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
+    });
+
+    test(`(Step 4) Request CatalogFileInfo & check CatalogFileInfoAck | `, async () => {
+        await assertCatalogFileInfo(assertItem.catalogFileInfoReq, assertItem.catalogFileInfoResponse);
+    });
+
+    test(
+        `(Step 5) Request CatalogFile & check CatalogFileAck | `,
+        async () => {
+            await assertOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck);
+        },
+        OPEN_CATALOG_LARGE_TIMEOUT
+    );
+}
+
 describe('Test for large-size CATALOG: load whole table at one time', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
@@ -202,17 +240,16 @@ describe('Test for large-size CATALOG: load whole table at one time', () => {
 
     checkConnection();
     // The directories are prepended here only, the second describe block reuses the fixtures
-    basePath([
-        assertItem.fileOpen,
-        assertItem.catalogListReq,
-        assertItem.catalogFileInfoReq,
-        assertItem.openCatalogFile,
-    ]);
-    testOpenImageFile(assertItem);
-    testRasterTiles(assertItem);
-    testCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
-    testCatalogFileInfo(assertItem.catalogFileInfoReq, assertItem.catalogFileInfoResponse);
-    testOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck, OPEN_CATALOG_LARGE_TIMEOUT);
+    test(`Get basepath and modify the directory path`, async () => {
+        await assertBasePath([
+            assertItem.fileOpen,
+            assertItem.catalogListReq,
+            assertItem.catalogFileInfoReq,
+            assertItem.openCatalogFile,
+        ]);
+    });
+
+    openImageAndCatalogFile();
 
     let WholeTableResponse: CARTA.ICatalogFilterResponse[];
     test(
@@ -233,7 +270,9 @@ describe('Test for large-size CATALOG: load whole table at one time', () => {
         OPEN_CATALOG_LARGE_TIMEOUT
     );
 
-    testIncreasingProgress(() => WholeTableResponse);
+    test(`(Step 6) the progress increases and reaches 1 only in the last CatalogFilterResponse | `, () => {
+        assertIncreasingProgress(WholeTableResponse);
+    });
 
     afterAll(() => msgController.closeConnection());
 });
@@ -245,11 +284,7 @@ describe('Test for large-size CATALOG: Progressive load of rows', () => {
     }, CONNECTION_TIMEOUT);
 
     checkConnection();
-    testOpenImageFile(assertItem);
-    testRasterTiles(assertItem);
-    testCatalogList(assertItem.catalogListReq, assertItem.catalogListResponse);
-    testCatalogFileInfo(assertItem.catalogFileInfoReq, assertItem.catalogFileInfoResponse);
-    testOpenCatalogFile(assertItem.openCatalogFile, assertItem.openCatalogFileAck, OPEN_CATALOG_LARGE_TIMEOUT);
+    openImageAndCatalogFile();
 
     let ProgressiveWindows: CARTA.ICatalogFilterResponse[] = [];
     for (let i = 1; i < 4; i++) {
