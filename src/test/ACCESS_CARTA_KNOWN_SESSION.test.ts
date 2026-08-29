@@ -1,15 +1,14 @@
 import { CARTA } from 'carta-protobuf';
 import { BackendService } from './MessageControllerConcurrent';
 import {
-    CONNECTION_TIMEOUT,
     PLATFORM_STRING_KEYS,
-    TEST_SERVER_URL,
     expectMessageReportingSessionId,
     expectNoUserLayouts,
     expectNoUserPreferences,
     expectPlatformStrings,
     expectWritableServer,
 } from './AccessHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './CommonHelpers';
 
 interface AssertItem {
     register: CARTA.IRegisterViewer;

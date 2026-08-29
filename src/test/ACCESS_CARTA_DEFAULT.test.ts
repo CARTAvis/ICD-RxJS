@@ -1,9 +1,7 @@
 import { CARTA } from 'carta-protobuf';
 import { MessageController } from './MessageController';
 import {
-    CONNECTION_TIMEOUT,
     PLATFORM_STRING_KEYS,
-    TEST_SERVER_URL,
     expectAssignedSessionId,
     expectMessageReportingSessionId,
     expectNoUserLayouts,
@@ -11,6 +9,7 @@ import {
     expectPlatformStrings,
     expectWritableServer,
 } from './AccessHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './CommonHelpers';
 
 describe(`ACCESS_CARTA_DEFAULT tests: Testing connections to the backend`, () => {
     describe(`create a Websocket connection and receive REGISTER_VIEWER_ACK`, () => {

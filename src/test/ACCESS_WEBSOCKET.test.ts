@@ -1,6 +1,6 @@
 import config from './config.json';
 import WebSocket from 'ws';
-import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './AccessHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './CommonHelpers';
 
 describe('ACCESS_WEBSOCKET: Testing connections to the websocket server', () => {
     let testRemoteWebsocketSite = 'wss://echo.websocket.org';

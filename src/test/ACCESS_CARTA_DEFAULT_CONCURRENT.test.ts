@@ -3,15 +3,14 @@ import { BackendService } from './MessageControllerConcurrent';
 import config from './config.json';
 import WebSocket from 'ws';
 import {
-    CONNECTION_TIMEOUT,
     PLATFORM_STRING_KEYS,
-    TEST_SERVER_URL,
     expectAssignedSessionId,
     expectMessageReportingSessionId,
     expectNoUserLayouts,
     expectNoUserPreferences,
     expectPlatformStrings,
 } from './AccessHelpers';
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './CommonHelpers';
 
 let testNumber = config.repeat.concurrent;
 

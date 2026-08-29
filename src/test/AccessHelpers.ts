@@ -1,16 +1,13 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
 
 /**
  * Shared fixtures and assertions for the ACCESS_* tests, all of which open a connection and
- * check one REGISTER_VIEWER_ACK.
+ * check one REGISTER_VIEWER_ACK. The server URL and the connection timeout are not here but in
+ * CommonHelpers, since every feature's tests connect.
  *
  * These are plain assertions rather than jest tests: the test titles belong to the test files,
  * so that every test( ) a file registers can be read there.
  */
-
-export const TEST_SERVER_URL = config.serverURL0;
-export const CONNECTION_TIMEOUT = config.timeout.connection;
 
 /** Keys the backend has to report in REGISTER_VIEWER_ACK.platform_strings. */
 export const PLATFORM_STRING_KEYS = ['release_info', 'deployment', 'architecture', 'platform'];
