@@ -22,9 +22,29 @@ let assertItem: AssertItem = {
     },
 };
 
+/**
+ * The backend never reads client_feature_flags, so two registrations which differ only in that
+ * flag have to agree on everything the connection itself does not decide. session_id and message
+ * are left out: each connection is assigned its own id, and the message reports it.
+ */
+function expectSameApartFromSession(ack: CARTA.IRegisterViewerAck, control: CARTA.IRegisterViewerAck) {
+    expect(ack.success).toEqual(control.success);
+    expect(ack.sessionType).toEqual(control.sessionType);
+    expect(ack.serverFeatureFlags).toEqual(control.serverFeatureFlags);
+    expect(ack.platformStrings).toEqual(control.platformStrings);
+    expect(ack.userPreferences).toEqual(control.userPreferences);
+    expect(ack.userLayouts).toEqual(control.userLayouts);
+}
+
 describe(`ACCESS_CARTA_NO_CLIENT_FEATURE tests: Testing backend connection without any client feature`, () => {
     let client = new BackendService();
     let RegisterViewerAckTemp: CARTA.IRegisterViewerAck;
+    // The control: the same registration sent with the client's default feature flags, which is
+    // what every other test in the suite sends. Its acknowledgement is what the zero-flag one is
+    // compared against, since a check on the zero-flag response alone cannot tell whether the
+    // backend read the flag.
+    let controlClient = new BackendService();
+    let RegisterViewerAckControl: CARTA.IRegisterViewerAck;
 
     test(
         `send "REGISTER_VIEWER" to "${TEST_SERVER_URL}" with session_id=${assertItem.register.sessionId} and client_feature_flags=${assertItem.register.clientFeatureFlags}, then receive "REGISTER_VIEWER_ACK" `,
@@ -74,7 +94,20 @@ describe(`ACCESS_CARTA_NO_CLIENT_FEATURE tests: Testing backend connection witho
         expectNoUserLayouts(RegisterViewerAckTemp);
     });
 
+    test(
+        `send "REGISTER_VIEWER" to "${TEST_SERVER_URL}" with session_id=${assertItem.register.sessionId} and the default client_feature_flags, then receive "REGISTER_VIEWER_ACK" `,
+        async () => {
+            RegisterViewerAckControl = await controlClient.connect(TEST_SERVER_URL, assertItem.register.sessionId!);
+        },
+        CONNECTION_TIMEOUT
+    );
+
+    test(`REGISTER_VIEWER_ACK is the same as for a default connection apart from the session`, () => {
+        expectSameApartFromSession(RegisterViewerAckTemp, RegisterViewerAckControl);
+    });
+
     afterAll(async () => {
         await client.closeConnection();
+        await controlClient.closeConnection();
     });
 });

@@ -164,6 +164,31 @@ This test verifies that a connection without any client feature flags still succ
 
    - REGISTER_VIEWER_ACK.user_layouts = None (empty object), and server_feature_flags does not have the USER_LAYOUTS bit set
 
+3. Frontend sends: **REGISTER_VIEWER** (``RegisterViewer``) on a second connection, as a control
+
+   .. code-block:: text
+
+     session_id = 0
+     client_feature_flags = WEB_ASSEMBLY | WEB_GL
+
+4. Backend returns: **REGISTER_VIEWER_ACK** (``RegisterViewerAck``)
+
+:red-text:`Check 2:` the two acknowledgements should agree on every field the connection itself does not decide, since the two registrations differ only in client_feature_flags:
+
+   - the two REGISTER_VIEWER_ACK.success are equal
+
+   - the two REGISTER_VIEWER_ACK.session_type are equal
+
+   - the two REGISTER_VIEWER_ACK.server_feature_flags are equal
+
+   - the two REGISTER_VIEWER_ACK.platform_strings are equal
+
+   - the two REGISTER_VIEWER_ACK.user_preferences are equal
+
+   - the two REGISTER_VIEWER_ACK.user_layouts are equal
+
+   session_id and message are not compared: each connection is assigned its own session id, and the message reports it.
+
 ACCESS_CARTA_SAME_ID_TWICE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
