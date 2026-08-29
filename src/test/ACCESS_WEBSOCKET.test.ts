@@ -1,8 +1,6 @@
 import config from './config.json';
 import WebSocket from 'ws';
-
-let testServerUrl = config.serverURL0;
-let connectTimeout = config.timeout.connection;
+import { CONNECTION_TIMEOUT, TEST_SERVER_URL } from './CommonHelpers';
 
 describe('ACCESS_WEBSOCKET: Testing connections to the websocket server', () => {
     let testRemoteWebsocketSite = 'wss://echo.websocket.org';
@@ -21,13 +19,13 @@ describe('ACCESS_WEBSOCKET: Testing connections to the websocket server', () => 
                 done(); // Return to this test
             };
         },
-        connectTimeout + 2000
+        CONNECTION_TIMEOUT + 2000
     );
 
     test(
-        `should connect to "${testServerUrl}".`,
+        `should connect to "${TEST_SERVER_URL}".`,
         (done) => {
-            let Connection = new WebSocket(testServerUrl);
+            let Connection = new WebSocket(TEST_SERVER_URL);
             expect(Connection.readyState).toBe(WebSocket.CONNECTING);
 
             Connection.onopen = OnOpen;
@@ -35,7 +33,7 @@ describe('ACCESS_WEBSOCKET: Testing connections to the websocket server', () => 
             function OnOpen(this, ev: Event) {
                 expect(this.readyState).toBe(WebSocket.OPEN);
                 if (config.log.event) {
-                    console.log(testServerUrl + '  opened');
+                    console.log(TEST_SERVER_URL + '  opened');
                 }
 
                 this.close();
@@ -45,12 +43,12 @@ describe('ACCESS_WEBSOCKET: Testing connections to the websocket server', () => 
                 function OnClose(this, ev: CloseEvent) {
                     expect(this.readyState).toBe(WebSocket.CLOSED);
                     if (config.log.event) {
-                        console.log(testServerUrl + '  closed');
+                        console.log(TEST_SERVER_URL + '  closed');
                     }
                     done();
                 }
             }
         },
-        connectTimeout
+        CONNECTION_TIMEOUT
     );
 });
