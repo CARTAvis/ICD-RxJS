@@ -9,10 +9,13 @@ import config from './config.json';
 
 export const TEST_SERVER_URL: string = config.serverURL0;
 export const TEST_SUBDIRECTORY: string = config.path.QA;
+export const CATALOG_LARGE_SUBDIRECTORY: string = config.path.catalogLarge;
+export const CATALOG_ARTIFICIAL_SUBDIRECTORY: string = config.path.catalogArtificial;
 export const CONNECTION_TIMEOUT: number = config.timeout.connection;
 export const OPEN_FILE_TIMEOUT: number = config.timeout.openFile;
 export const READ_FILE_TIMEOUT: number = config.timeout.readFile;
 export const READ_LARGE_IMAGE_TIMEOUT: number = config.timeout.readLargeImage;
+export const OPEN_CATALOG_LARGE_TIMEOUT: number = config.timeout.openCatalogLarge;
 export const PLAY_ANIMATOR_TIMEOUT: number = config.timeout.playAnimator;
 // How long silence is waited for, where a request draws no acknowledgement of its own and the
 // only thing which can be observed after it is that nothing arrives.

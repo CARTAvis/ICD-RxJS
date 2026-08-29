@@ -128,6 +128,10 @@ This test verifies the general catalog workflow: listing, file info, opening, an
    - CATALOG_FILE_INFO_RESPONSE.file_info.file_size = 113559
    - Length of headers = 235
 
+   - CATALOG_FILE_INFO_RESPONSE.file_info.description reports the file name, "Column Count: 235", and the coordinate system of this catalog: "Coordinate System: FK5", "Epoch: J2000" and "Equinox: 2000"
+
+   - The headers place the sorted and filtered columns ("RA_d" and "OTYPE_S") inside the requested column_indices, since the requests name a column while the response keys its columns by index
+
 8. Frontend sends: **OPEN_CATALOG_FILE** (``OpenCatalogFile``)
 
    .. code-block:: protobuf
@@ -145,7 +149,12 @@ This test verifies the general catalog workflow: listing, file info, opening, an
    - OPEN_CATALOG_FILE_ACK.data_size = 29
    - OPEN_CATALOG_FILE_ACK.file_id = 1
    - OPEN_CATALOG_FILE_ACK.file_info.name = "artificial_catalog_J2000.xml"
+   - OPEN_CATALOG_FILE_ACK.file_info.type = VOTable
    - Length of headers = 235
+
+   - OPEN_CATALOG_FILE_ACK.preview_data has one entry per column (235), and every entry holds 29 rows: the request asks for 50 preview rows, which is more than the table holds, so the backend returns the whole table instead
+
+Every request below returns the whole subset in a single CATALOG_FILTER_RESPONSE, since the table holds only 29 rows. Each response reports file_id = 1, columns keyed by the requested column_indices, and one value per row of subset_data_size in every column.
 
 **Case 1: Sort by column**
 
@@ -163,21 +172,25 @@ This test verifies the general catalog workflow: listing, file info, opening, an
 :red-text:`Check 5:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - Length of columns = 10, progress = 1
-    - subsetDataSize = 29, filterDataSize = 29
+    - subsetDataSize = 29, filterDataSize = 29 (no filter is applied, so the whole table is returned)
 
-**Case 2: Filter by number (RA_d > 160)**
+    - The returned "RA_d" values are in ascending order
+
+**Case 2: Filter by number (RA_d >= 160)**
 
 11. Frontend sends: **CATALOG_FILTER_REQUEST** with numeric filter
 
     .. code-block:: protobuf
 
       file_id = 1
-      filter_configs = [{column_name: "RA_d", comparison_operator: 5, value: 160}]
+      filter_configs = [{column_name: "RA_d", comparison_operator: GreaterOrEqual, value: 160}]
       subset_data_size = 29
 
 :red-text:`Check 6:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - subsetDataSize = 26, filterDataSize = 26 (3 rows filtered out)
+
+    - Every returned "RA_d" value is greater than or equal to 160, and the number of returned rows equals the number of rows of the unfiltered table which meet that condition
 
 **Case 3: Filter by string (OTYPE_S contains "Star")**
 
@@ -193,6 +206,8 @@ This test verifies the general catalog workflow: listing, file info, opening, an
 
     - subsetDataSize = 24, filterDataSize = 24 (5 rows filtered out)
 
+    - Every returned "OTYPE_S" value contains "Star", and the number of returned rows equals the number of rows of the unfiltered table which meet that condition. The backend matches a case-sensitive substring rather than the whole value
+
 **Case 4: Combined filter + sort**
 
 13. Frontend sends: **CATALOG_FILTER_REQUEST** with both string and numeric filters, plus sorting
@@ -202,22 +217,24 @@ This test verifies the general catalog workflow: listing, file info, opening, an
       file_id = 1
       filter_configs = [
           {column_name: "OTYPE_S", sub_string: "Star"},
-          {column_name: "RA_d", comparison_operator: 5, value: 160}
+          {column_name: "RA_d", comparison_operator: GreaterOrEqual, value: 160}
       ]
       sort_column = "RA_d"
-      sorting_type = 0
+      sorting_type = Ascending
       subset_data_size = 29
 
 :red-text:`Check 8:` the CATALOG_FILTER_RESPONSE should satisfy:
 
     - subsetDataSize = 23, filterDataSize = 23 (6 rows filtered out by combined filters)
 
+    - Every returned row satisfies both filters at once, the returned "RA_d" values are in ascending order, and the two filters together keep fewer rows than either one alone
+
 CATALOG_FITS_VOT
 ~~~~~~~~~~~~~~~~
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CATALOG_FITS_VOT.test.ts>`__.
 
-This test verifies catalog operations for both FITS and VOTable catalog formats using a large catalog (COSMOSOPTCAT with 918,827 entries), comparing results between the two formats.
+This test verifies catalog operations for both FITS and VOTable catalog formats using a large catalog (COSMOSOPTCAT with 918,827 entries), comparing results between the two formats. The same table is stored in both formats, so the two runs differ only in the file type and the file size, and every other part of the response has to agree.
 
 **For each catalog format (COSMOSOPTCAT.fits and COSMOSOPTCAT.vot):**
 
@@ -269,8 +286,12 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
 
 :red-text:`Check 3:` the CATALOG_FILE_INFO_RESPONSE should satisfy:
 
-   - COSMOSOPTCAT.fits: success = True, file_size = 444729600, description = "Count: 918827", headers length = 62
-   - COSMOSOPTCAT.vot: success = True, file_size = 1631311089, description = "Count: 918827", headers length = 62
+   - COSMOSOPTCAT.fits: success = True, file_info.type = FITSTable, file_size = 444729600, headers length = 62
+   - COSMOSOPTCAT.vot: success = True, file_info.type = VOTable, file_size = 1631311089, headers length = 62
+
+   - file_info.description reports the file name, "Column Count: 62" and "Row Count: 918827"
+
+   - the headers describe every column exactly once: their column_index values cover 0 to 61, each header has a non-empty name, and none has an UnsupportedType data type
 
 7. Frontend sends: **OPEN_CATALOG_FILE** (``OpenCatalogFile``)
 
@@ -286,6 +307,9 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
 
    - Should arrive within 100000 ms
    - Both formats: success = True, data_size = 918827, headers length = 62
+   - COSMOSOPTCAT.fits: file_id = 1, file_info.type = FITSTable; COSMOSOPTCAT.vot: file_id = 2, file_info.type = VOTable
+
+   - preview_data has one entry per column (62), and every entry holds preview_data_size (50) rows
 
 9. Frontend sends: **CATALOG_FILTER_REQUEST** (``CatalogFilterRequest``) to retrieve remaining rows
 
@@ -296,13 +320,25 @@ This test verifies catalog operations for both FITS and VOTable catalog formats 
      subset_data_size = 918777
      subset_start_index = 50
 
-10. Backend returns: **CATALOG_FILTER_RESPONSE** (``CatalogFilterResponse``)
+10. Backend streams: **CATALOG_FILTER_RESPONSE** (``CatalogFilterResponse``)
 
-:red-text:`Check 5:` the CATALOG_FILTER_RESPONSE should satisfy:
+    The requested subset is not returned in one message. The backend splits it into chunks of at
+    most 100000 rows, so the 918777 requested rows arrive as 10 messages: nine of 100000 rows and a
+    final one of 18777 rows.
+
+:red-text:`Check 5:` the streamed CATALOG_FILTER_RESPONSE should satisfy:
 
     - Should arrive within 100000 ms
-    - Length of columns = 10, progress = 1
-    - subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827
+
+    - Exactly 10 messages are streamed
+
+    - Every message: file_id = 1 / 2, filter_data_size = 918827, request_end_index = 918827, and the columns are keyed by the requested column_indices [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    - The chunks cover the requested subset without a gap or an overlap: each message begins where the previous one ended, subset_end_index - subset_data_size gives its first row, and every column in it carries subset_data_size rows
+
+    - The progress increases from message to message, stays below 1 until the last message, and equals 1 only in the last one
+
+    - Last message: subset_data_size = 18777, subset_end_index = 918827
 
 CATALOG_LARGE
 ~~~~~~~~~~~~~
@@ -353,10 +389,15 @@ This test verifies catalog operations with a large VOTable catalog (COSMOSOPTCAT
      subset_data_size = 918777
      subset_start_index = 50
 
-:red-text:`Check 3:` the CATALOG_FILTER_RESPONSE should satisfy:
+   The 918,777 requested rows exceed the 100000 rows the backend puts in one message, so they
+   are streamed as 10 CATALOG_FILTER_RESPONSE messages.
+
+:red-text:`Check 3:` the streamed CATALOG_FILTER_RESPONSE should satisfy:
 
    - Should arrive within 100000 ms
-   - subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827, progress = 1
+   - Exactly 10 messages are streamed, and the progress increases from message to message and equals 1 only in the last one
+   - Last message: subsetDataSize = 18777, subsetEndIndex = 918827, filterDataSize = 918827, progress = 1
+   - Every column of a message holds one value per row of its subsetDataSize
 
 **Part 2: Progressive load of rows**
 
@@ -375,7 +416,11 @@ This test verifies catalog operations with a large VOTable catalog (COSMOSOPTCAT
    - Request 1: subsetDataSize = 50, subsetEndIndex = 100, filterDataSize = 918827
    - Request 2: subsetDataSize = 50, subsetEndIndex = 150, filterDataSize = 918827
    - Request 3: subsetDataSize = 50, subsetEndIndex = 200, filterDataSize = 918827
-   - All with progress = 1
+   - All with progress = 1, in a single message, since a window of 50 rows fits in one message
+
+   - A window ends at subset_start_index + subset_data_size, and filterDataSize stays at the 918827 rows of the table, so paging through the table does not change the number of rows it reports
+
+   - The three windows return three different sets of rows, and each window returns exactly the rows which the whole table load of part 1 returned at the same position in the table. This is what makes progressive loading equivalent to loading the table at one time
 
 IMPORT_MULTIPLE_CATALOG
 ~~~~~~~~~~~~~~~~~~~~~~~
