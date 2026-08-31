@@ -275,7 +275,15 @@ This test verifies PV generator handling of NaN values and pixels outside valid 
 :red-text:`Check 1:` the PV tile data should satisfy:
 
    - Tile dimensions: width = 5, height = 25 (or width = 256, height = 25)
-   - Image data at NaN region indices = [0, 0, 0, 0, 0, 0, 0, 0]
+   - The 5 x 25 tile covering the NaN region carries no compressed data: at most 8 bytes of image data, every byte 0
+
+.. note::
+
+   The exact bytes of the NaN tile's ZFP payload are not asserted. That tile's pixels are delivered
+   in ``nan_encodings``; its ``image_data`` encodes nothing, and the backend sends that as either
+   eight zero bytes or an empty buffer depending on the ``libzfp`` build it is linked against. Both
+   decode to the same tile, so the check is that no data is present rather than that a particular
+   byte string is. A tile that arrives with real compressed content still fails.
 
 :red-text:`Check 2:` cursor values in the PV image should satisfy:
 
