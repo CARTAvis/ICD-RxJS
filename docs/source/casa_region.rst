@@ -516,3 +516,88 @@ This test verifies that hand-created regions can be exported to CASA region form
     - IMPORT_REGION_ACK.success = True
     - Length of regions = 16
     - Last region ID = 48
+
+EXPORT_REGION_OVERWRITE
+~~~~~~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/EXPORT_REGION_OVERWRITE.test.ts>`__.
+
+This test verifies that the backend refuses to export regions to a path where doing so would destroy
+something which is already there. The check is made before the region file is written and does not
+depend on the region format, so CRTF is used here to cover it.
+
+A directory can never be overwritten, so that case is sent with ``overwrite = true`` to show that
+the refusal does not depend on it. An existing file is a case the frontend may retry after asking
+the user, so it is sent with ``overwrite = false`` and the backend is expected to set
+``overwrite_confirmation_required = true`` rather than simply failing.
+
+1. Frontend sends: **CLOSE_FILE** (``CloseFile``) and **OPEN_FILE** (``OpenFile``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "M17_SWex.image"
+     hdu = ""
+     file_id = 0
+     render_mode = RASTER
+
+2. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
+
+:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
+
+   - OPEN_FILE_ACK.success = True
+   - OPEN_FILE_ACK.fileInfo.name = "M17_SWex.image"
+
+3. Frontend sends: **SET_REGION** (``SetRegion``) to create a region to export
+
+   .. code-block:: protobuf
+
+     file_id = 0
+     region_id = -1
+     region_type = RECTANGLE
+     control_points = [{x: 200.0, y: 400.0}, {x: 100.0, y: 100.0}]
+     rotation = 0.0
+
+:red-text:`Check 2:` SET_REGION_ACK.success = True
+
+**Case 1: The export path is an existing directory**
+
+4. Frontend sends: **EXPORT_REGION** (``ExportRegion``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "regionTest"
+     type = CRTF
+     coord_type = PIXEL
+     file_id = 0
+     overwrite = true
+
+5. Backend returns: **EXPORT_REGION_ACK** (``ExportRegionAck``)
+
+:red-text:`Check 3:` the EXPORT_REGION_ACK should satisfy:
+
+   - EXPORT_REGION_ACK.success = False
+   - EXPORT_REGION_ACK.message = "Export region failed: cannot overwrite existing directory."
+   - EXPORT_REGION_ACK.overwrite_confirmation_required = False
+
+**Case 2: The export path is an existing file**
+
+6. Frontend sends: **EXPORT_REGION** (``ExportRegion``)
+
+   .. code-block:: protobuf
+
+     directory = "set_QA/regionTest"
+     file = "M17_SWex_regionSet1_pix.crtf"
+     type = CRTF
+     coord_type = PIXEL
+     file_id = 0
+     overwrite = false
+
+7. Backend returns: **EXPORT_REGION_ACK** (``ExportRegionAck``)
+
+:red-text:`Check 4:` the EXPORT_REGION_ACK should satisfy:
+
+   - EXPORT_REGION_ACK.success = False
+   - EXPORT_REGION_ACK.message = "Export region failed: cannot overwrite existing file."
+   - EXPORT_REGION_ACK.overwrite_confirmation_required = True
