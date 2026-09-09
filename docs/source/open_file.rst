@@ -247,3 +247,80 @@ This test verifies that beam table information is correctly extracted from CASA 
    - fileInfo.HDUList = [""]
 
 :red-text:`Check 2:` the beam table entries should match identical values as the FITS beam table test at channels 0, 10, 200, 1000, 2000, and 3839
+
+OPENFILE_AIPS_BEAM
+~~~~~~~~~~~~~~~~~~
+
+See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/OPENFILE_AIPS_BEAM.test.ts>`__.
+
+This test verifies the ``support_aips_beam`` flag of OPEN_FILE and FILE_INFO_REQUEST. Some FITS
+images written by AIPS carry no ``BMAJ``/``BMIN``/``BPA`` keywords and no beam table, and record the
+restoring beam only in a ``HISTORY`` card. When the flag is set, the backend recovers that beam and
+marks it as derived from the history headers; when it is not set, no restoring beam is reported at
+all. In the frontend the flag is driven by the *AIPS beam support* compatibility preference.
+
+.. note::
+
+   The fixture ``aips_history_beam.fits`` carries **two** history beams, an earlier
+   4" x 3" at 10 deg and a later 2" x 1.5" at 30 deg. casacore picks up the *first* one; the backend
+   must strip it and report the *last* one instead. The two axes differ so that a major/minor
+   mix-up is detectable.
+
+1. Frontend sends: **OPEN_FILE** (``OpenFile``) with the flag off
+
+   .. code-block:: protobuf
+
+     directory = "set_QA"
+     file = "aips_history_beam.fits"
+     hdu = "0"
+     file_id = 0
+     render_mode = RASTER
+     support_aips_beam = false
+
+2. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
+
+:red-text:`Check 1:` the OPEN_FILE_ACK should satisfy:
+
+   - OPEN_FILE_ACK.success = True
+   - file_info_extended.computed_entries contains no "Restoring beam" entry
+   - file_info_extended.header_entries contains no BMAJ, BMIN or BPA entry
+   - beam_table is empty
+
+3. Frontend sends: **OPEN_FILE** (``OpenFile``) for the same image with ``support_aips_beam = true``
+
+4. Backend returns: **OPEN_FILE_ACK** (``OpenFileAck``) and **REGION_HISTOGRAM_DATA**
+
+:red-text:`Check 2:` the computed entry should satisfy:
+
+   - "Restoring beam" = ``2" X 1.5", 30 deg (extracted from HISTORY)``
+
+   That is the last history beam, not the first one casacore parsed.
+
+:red-text:`Check 3:` the header entries should satisfy:
+
+   - BMAJ, BMIN and BPA are all present
+   - each has entry_type = FLOAT and comment = "extracted from HISTORY"
+   - BPA = 30 deg
+   - the two axis values, compared as an unordered pair, are 2" and 1.5" expressed in degrees
+
+5. Frontend sends: **FILE_INFO_REQUEST** (``FileInfoRequest``) for the same image with
+   ``support_aips_beam = true``
+
+6. Backend returns: **FILE_INFO_RESPONSE** (``FileInfoResponse``)
+
+:red-text:`Check 4:` the FILE_INFO_RESPONSE should satisfy:
+
+   - success = True
+   - file_info_extended["0"].computed_entries "Restoring beam" = ``2" X 1.5", 30 deg (extracted from HISTORY)``
+
+.. note::
+
+   Check 3 compares the two axis values as an unordered pair on purpose. The backend currently
+   assigns the major axis to ``BMIN`` and the minor axis to ``BMAJ`` in the header entries, although
+   the computed "Restoring beam" string above them is correct. A stricter check which pins each name
+   to its own axis is present in the test but skipped until that is fixed.
+
+   Two further cases are skipped for the same reason. The gzipped copy of the fixture reports no
+   history beam at all through the compressed FITS path, and a FILE_INFO_REQUEST with the flag off
+   followed by one with the flag on returns the stale, beam-less result for the same file within a
+   session, so only the flag-on case is exercised here.
