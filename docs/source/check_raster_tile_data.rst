@@ -109,4 +109,14 @@ This test verifies that raster tile data values at different layers and compress
 
    - Each tile has correct x, y, layer, height (256), and width (256)
 
-   - Image data length and spot-check byte values at indices [0, 50000, 100000, 150000, 200000] match expected values
+   - Image data length matches the expected value within one ZFP stream word (±8 bytes)
+
+   - Spot-check byte values at indices [0, 50000, 100000, 150000, 200000] match expected values
+
+.. note::
+
+   The exact byte length of a ZFP stream is not asserted. ``zfp_compress`` ends with a flush which
+   pads the bit stream up to a whole stream word, and that word size is a compile-time property of
+   the ``libzfp`` the backend is linked against rather than part of the ICD, so the same tile can
+   arrive a few bytes shorter on one platform than on another while every byte of the payload
+   matches. One 64-bit word of slack is allowed, which still catches a truncated or empty tile.

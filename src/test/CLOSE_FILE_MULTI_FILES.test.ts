@@ -1,13 +1,21 @@
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
-import { MessageController, ConnectionStatus } from './MessageController';
-import config from './config.json';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let readFileTimeout: number = config.timeout.readFile;
+import { MessageController } from './MessageController';
+import {
+    assertBackendIsAlive,
+    assertNoFurtherMessage,
+    assertOpenFile,
+    assertSpatialProfile,
+    assertTilesAndProfiles,
+} from './CloseFileHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    READ_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     registerViewer: CARTA.IRegisterViewer;
@@ -16,6 +24,7 @@ interface AssertItem {
     addRequiredTiles: CARTA.IAddRequiredTiles[];
     setCursor: CARTA.ISetCursor[];
     setSpatialReq: CARTA.ISetSpatialRequirements[];
+    closedFileError: CARTA.IErrorData;
 }
 
 let assertItem: AssertItem = {
@@ -23,24 +32,24 @@ let assertItem: AssertItem = {
         sessionId: 0,
         clientFeatureFlags: 5,
     },
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: TEST_SUBDIRECTORY },
     fileOpen: [
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.fits',
             hdu: '',
             fileId: 0,
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.hdf5',
             hdu: '',
             fileId: 1,
             renderMode: CARTA.RenderMode.RASTER,
         },
         {
-            directory: testSubdirectory,
+            directory: TEST_SUBDIRECTORY,
             file: 'M17_SWex.image',
             hdu: '0',
             fileId: 2,
@@ -107,177 +116,122 @@ let assertItem: AssertItem = {
             ],
         },
     ],
+    // Session::OnSetSpatialRequirements answers a request naming a file the session no
+    // longer holds a frame for with this error and nothing else.
+    closedFileError: {
+        severity: CARTA.ErrorSeverity.DEBUG,
+        tags: ['spatial'],
+    },
 };
 
-let basepath: string;
+// Ask a file which should still be open for its spatial profile. Closing one file must
+// neither silence another file nor redirect its stream.
+async function assertFileIsOpen(fileId: number) {
+    await assertSpatialProfile(assertItem.setSpatialReq[fileId]);
+}
+
+// Ask a file which should be closed for its spatial profile. Since CLOSE_FILE draws no
+// acknowledgement, the error this request draws is the only direct evidence the backend
+// really dropped the file.
+async function assertFileIsClosed(fileId: number) {
+    const msgController = MessageController.Instance;
+    const messageCountBefore = msgController.messageReceiving();
+    const errorDataStream = Stream(CARTA.ErrorData, 1);
+    msgController.setSpatialRequirements(assertItem.setSpatialReq[fileId]);
+    const errorData = await errorDataStream;
+    expect(errorData[0].severity).toEqual(assertItem.closedFileError.severity);
+    expect(errorData[0].tags).toEqual(assertItem.closedFileError.tags);
+    expect(errorData[0].message).toEqual(`File id ${fileId} not found`);
+    // The error has to be the whole of the answer: a closed file must not go on streaming
+    // SPATIAL_PROFILE_DATA.
+    await assertNoFurtherMessage(messageCountBefore + 1);
+}
+
+// The same three images are opened ahead of each close order, so the preparation is
+// declared once. Every message is checked to carry the file id it belongs to, which is
+// what the close cases below then rely on.
+function openThreeImages() {
+    assertItem.fileOpen.forEach((fileOpen, index) => {
+        test(
+            `(Image ${fileOpen.fileId}) OPEN_FILE_ACK and REGION_HISTOGRAM_DATA of "${fileOpen.file}" should arrive within ${OPEN_FILE_TIMEOUT} ms | `,
+            async () => {
+                await assertOpenFile(fileOpen);
+            },
+            OPEN_FILE_TIMEOUT
+        );
+
+        test(
+            `(Image ${fileOpen.fileId}) RASTER_TILE_DATA and SPATIAL_PROFILE_DATA of file id ${assertItem.addRequiredTiles[index].fileId} | `,
+            async () => {
+                await assertTilesAndProfiles(
+                    assertItem.addRequiredTiles[index],
+                    assertItem.setCursor[index],
+                    assertItem.setSpatialReq[index]
+                );
+            },
+            READ_FILE_TIMEOUT
+        );
+    });
+}
+
 describe('Test for Close one file (run1):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
-
+    checkConnection();
     test(`Get basepath and modify the directory path`, async () => {
-        let fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
-        assertItem.filelist.directory = basepath + '/' + assertItem.filelist.directory;
-        for (let i = 0; i < assertItem.fileOpen.length; i++) {
-            assertItem.fileOpen[i].directory = basepath + '/' + assertItem.fileOpen[i].directory;
-        }
+        await assertBasePath([assertItem.filelist, ...assertItem.fileOpen]);
     });
 
-    describe('Prepare Image 1,2,3 for Case 1: ', () => {
-        test(
-            `(Image1, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck = await msgController.loadFile(assertItem.fileOpen[0]);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck.success).toBe(true);
-                expect(OpenAck.fileInfo.name).toEqual(assertItem.fileOpen[0].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image1, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[0]);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[0].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[0].fileId,
-                    assertItem.setCursor[0].point.x,
-                    assertItem.setCursor[0].point.y
-                );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-
-                //RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image2, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck2 = await msgController.loadFile(assertItem.fileOpen[1]);
-                let RegionHistogramData2 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck2.success).toBe(true);
-                expect(OpenAck2.fileInfo.name).toEqual(assertItem.fileOpen[1].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image2, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[1]);
-                let RasterTileDataResponse2 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[1].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[1].fileId,
-                    assertItem.setCursor[1].point.x,
-                    assertItem.setCursor[1].point.y
-                );
-                let SpatialProfileDataResponse3 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse4 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse2.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image3, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck3 = await msgController.loadFile(assertItem.fileOpen[2]);
-                let RegionHistogramData3 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck3.success).toBe(true);
-                expect(OpenAck3.fileInfo.name).toEqual(assertItem.fileOpen[2].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image3, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[2]);
-                let RasterTileDataResponse3 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[2].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[2].fileId,
-                    assertItem.setCursor[2].point.x,
-                    assertItem.setCursor[2].point.y
-                );
-                let SpatialProfileDataResponse5 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
-                let SpatialProfileDataResponse6 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse3.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
+    describe('Prepare Image 0,1,2 for Case 1: ', () => {
+        openThreeImages();
     });
 
-    describe(`Case 1 (close image 2 -> close image 1 -> close image 0 ):`, () => {
-        test(`(Step 1) close image 2`, async () => {
+    describe(`Case 1 (close image 2 -> close image 1 -> close image 0):`, () => {
+        test(`(Step 1) closing image 2 draws no message of its own | `, async () => {
+            const messageCountBefore = msgController.messageReceiving();
             msgController.closeFile(2);
-
-            msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-            msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
-            let SpatialProfileDataResponse7 = await Stream(CARTA.SpatialProfileData, 2);
-            expect(SpatialProfileDataResponse7.length).toEqual(2);
+            await assertNoFurtherMessage(messageCountBefore);
         });
 
-        test(`(Step 2) close image 1`, async () => {
-            msgController.closeFile(1);
+        test(
+            `(Step 2) image 2 no longer answers, while images 0 and 1 still do | `,
+            async () => {
+                await assertFileIsClosed(2);
+                await assertFileIsOpen(0);
+                await assertFileIsOpen(1);
+            },
+            READ_FILE_TIMEOUT
+        );
 
-            msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-            let SpatialProfileDataResponse8 = await Stream(CARTA.SpatialProfileData, 1);
-            expect(SpatialProfileDataResponse8.length).toEqual(1);
+        test(
+            `(Step 3) closing image 1 leaves image 0 streaming | `,
+            async () => {
+                msgController.closeFile(1);
+                await assertFileIsClosed(1);
+                await assertFileIsOpen(0);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(
+            `(Step 4) closing image 0 closes the last of the three | `,
+            async () => {
+                msgController.closeFile(0);
+                await assertFileIsClosed(0);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
         });
 
-        test(`(Step 3) Close image 0 and the backend is still alive`, async () => {
-            msgController.closeFile(0);
-
-            //check the backend is still alive
-            let BackendStatus = await msgController.getFileList(
-                assertItem.filelist.directory,
-                assertItem.filelist.filterMode
-            );
-            expect(BackendStatus).toBeDefined();
-            expect(BackendStatus.success).toBe(true);
-            expect(BackendStatus.directory).toContain('set_QA');
-        });
-
-        test(`(Step 4) There is no any ICD message returned:`, (done) => {
-            let receiveNumberCurrent = msgController.messageReceiving();
-            setTimeout(() => {
-                let receiveNumberLatter = msgController.messageReceiving();
-                expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 500 ms
-                done();
-            }, 500);
+        test(`(Step 5) There is no any ICD message returned:`, async () => {
+            await assertNoFurtherMessage(msgController.messageReceiving());
         });
     });
     afterAll(() => msgController.closeConnection());
@@ -286,157 +240,52 @@ describe('Test for Close one file (run1):', () => {
 describe('Test for Close one file (run2):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
+    checkConnection();
 
-    describe('Prepare Image 1,2,3 for Case 2: ', () => {
-        test(
-            `(Image1, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck = await msgController.loadFile(assertItem.fileOpen[0]);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck.success).toBe(true);
-                expect(OpenAck.fileInfo.name).toEqual(assertItem.fileOpen[0].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image1, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[0]);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[0].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[0].fileId,
-                    assertItem.setCursor[0].point.x,
-                    assertItem.setCursor[0].point.y
-                );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-
-                //RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image2, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck2 = await msgController.loadFile(assertItem.fileOpen[1]);
-                let RegionHistogramData2 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck2.success).toBe(true);
-                expect(OpenAck2.fileInfo.name).toEqual(assertItem.fileOpen[1].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image2, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[1]);
-                let RasterTileDataResponse2 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[1].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[1].fileId,
-                    assertItem.setCursor[1].point.x,
-                    assertItem.setCursor[1].point.y
-                );
-                let SpatialProfileDataResponse3 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse4 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse2.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image3, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck3 = await msgController.loadFile(assertItem.fileOpen[2]);
-                let RegionHistogramData3 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck3.success).toBe(true);
-                expect(OpenAck3.fileInfo.name).toEqual(assertItem.fileOpen[2].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image3, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[2]);
-                let RasterTileDataResponse3 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[2].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[2].fileId,
-                    assertItem.setCursor[2].point.x,
-                    assertItem.setCursor[2].point.y
-                );
-                let SpatialProfileDataResponse5 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
-                let SpatialProfileDataResponse6 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse3.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
+    describe('Prepare Image 0,1,2 for Case 2: ', () => {
+        openThreeImages();
     });
 
     describe(`Case 2 (close image 0 & 1 -> close image 2):`, () => {
-        test(`(Step 1) close image 0 & image 1 at once, and there is no any ICD message returned:`, (done) => {
+        test(`(Step 1) close image 0 & image 1 at once, and there is no any ICD message returned:`, async () => {
+            const messageCountBefore = msgController.messageReceiving();
             msgController.closeFile(0);
             msgController.closeFile(1);
-
-            let receiveNumberCurrent = msgController.messageReceiving();
-            setTimeout(() => {
-                let receiveNumberLatter = msgController.messageReceiving();
-                expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 500 ms
-                done();
-            }, 500);
+            await assertNoFurtherMessage(messageCountBefore);
         });
 
-        test(`(Step 2) Close image 2 and the backend is still alive `, async () => {
-            msgController.closeFile(2);
+        test(
+            `(Step 2) images 0 and 1 no longer answer, while image 2 still does | `,
+            async () => {
+                await assertFileIsClosed(0);
+                await assertFileIsClosed(1);
+                await assertFileIsOpen(2);
+            },
+            READ_FILE_TIMEOUT
+        );
 
-            //check the backend is still alive
-            let BackendStatus = await msgController.getFileList(
-                assertItem.filelist.directory,
-                assertItem.filelist.filterMode
-            );
-            expect(BackendStatus).toBeDefined();
-            expect(BackendStatus.success).toBe(true);
-            expect(BackendStatus.directory).toContain('set_QA');
+        test(`(Step 3) close image 2 | `, () => {
+            expect(msgController.closeFile(2)).toBe(true);
         });
 
-        test(`(Step 3) There is no any ICD message returned:`, (done) => {
-            let receiveNumberCurrent = msgController.messageReceiving();
-            setTimeout(() => {
-                let receiveNumberLatter = msgController.messageReceiving();
-                expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 500 ms
-                done();
-            }, 500);
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
+
+        test(
+            `(Step 4) image 2 no longer answers | `,
+            async () => {
+                await assertFileIsClosed(2);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(`(Step 5) There is no any ICD message returned:`, async () => {
+            await assertNoFurtherMessage(msgController.messageReceiving());
         });
     });
     afterAll(() => msgController.closeConnection());
@@ -445,147 +294,41 @@ describe('Test for Close one file (run2):', () => {
 describe('Test for Close one file (run3):', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
+        await msgController.connect(TEST_SERVER_URL);
         msgController.closeFile(-1);
-    }, connectTimeout);
+    }, CONNECTION_TIMEOUT);
 
-    test(`(Step 0) Start a new Session, Connection open? | `, () => {
-        expect(msgController.connectionStatus).toBe(ConnectionStatus.ACTIVE);
-    });
+    checkConnection();
 
-    describe('Prepare Image 1,2,3 for Case 3: ', () => {
-        test(
-            `(Image1, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck = await msgController.loadFile(assertItem.fileOpen[0]);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck.success).toBe(true);
-                expect(OpenAck.fileInfo.name).toEqual(assertItem.fileOpen[0].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image1, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[0]);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[0].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[0].fileId,
-                    assertItem.setCursor[0].point.x,
-                    assertItem.setCursor[0].point.y
-                );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
-
-                //RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image2, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck2 = await msgController.loadFile(assertItem.fileOpen[1]);
-                let RegionHistogramData2 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck2.success).toBe(true);
-                expect(OpenAck2.fileInfo.name).toEqual(assertItem.fileOpen[1].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image2, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[1]);
-                let RasterTileDataResponse2 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[1].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[1].fileId,
-                    assertItem.setCursor[1].point.x,
-                    assertItem.setCursor[1].point.y
-                );
-                let SpatialProfileDataResponse3 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[0]);
-                let SpatialProfileDataResponse4 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse2.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
-
-        test(
-            `(Image3, step1)OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
-            async () => {
-                let OpenAck3 = await msgController.loadFile(assertItem.fileOpen[2]);
-                let RegionHistogramData3 = await Stream(CARTA.RegionHistogramData, 1);
-                expect(OpenAck3.success).toBe(true);
-                expect(OpenAck3.fileInfo.name).toEqual(assertItem.fileOpen[2].file);
-            },
-            openFileTimeout
-        );
-
-        test(
-            `(Image3, step2)return RASTER_TILE_DATA(Stream) and check total length `,
-            async () => {
-                msgController.addRequiredTiles(assertItem.addRequiredTiles[2]);
-                let RasterTileDataResponse3 = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addRequiredTiles[2].tiles.length + 2
-                );
-
-                msgController.setCursor(
-                    assertItem.setCursor[2].fileId,
-                    assertItem.setCursor[2].point.x,
-                    assertItem.setCursor[2].point.y
-                );
-                let SpatialProfileDataResponse5 = await Stream(CARTA.SpatialProfileData, 1);
-
-                msgController.setSpatialRequirements(assertItem.setSpatialReq[1]);
-                let SpatialProfileDataResponse6 = await Stream(CARTA.SpatialProfileData, 1);
-
-                ////RasterTileData + RasterTileSync*2 + SpatialProfileData*2
-                expect(RasterTileDataResponse3.length).toEqual(3); //RasterTileSync: start & end
-            },
-            readFileTimeout
-        );
+    describe('Prepare Image 0,1,2 for Case 3: ', () => {
+        openThreeImages();
     });
 
     describe(`Case 3 (close image 0, 1 & 2 together):`, () => {
-        test(`(Step 1) close image 0, image 1 & image 2 together and the backend is still alive`, async () => {
+        test(`(Step 1) close image 0, image 1 & image 2 together, and there is no any ICD message returned:`, async () => {
+            const messageCountBefore = msgController.messageReceiving();
             msgController.closeFile(0);
             msgController.closeFile(1);
             msgController.closeFile(2);
-
-            //check the backend is still alive
-            let BackendStatus = await msgController.getFileList(
-                assertItem.filelist.directory,
-                assertItem.filelist.filterMode
-            );
-            expect(BackendStatus).toBeDefined();
-            expect(BackendStatus.success).toBe(true);
-            expect(BackendStatus.directory).toContain('set_QA');
+            await assertNoFurtherMessage(messageCountBefore);
         });
 
-        test(`(Step 2) There is no any ICD message returned:`, (done) => {
-            let receiveNumberCurrent = msgController.messageReceiving();
-            setTimeout(() => {
-                let receiveNumberLatter = msgController.messageReceiving();
-                expect(receiveNumberCurrent).toEqual(receiveNumberLatter); //Have received number is equal during 500 ms
-                done();
-            }, 500);
+        test(
+            `(Step 2) none of the three images answers any more | `,
+            async () => {
+                await assertFileIsClosed(0);
+                await assertFileIsClosed(1);
+                await assertFileIsClosed(2);
+            },
+            READ_FILE_TIMEOUT
+        );
+
+        test(`the backend is still alive | `, async () => {
+            await assertBackendIsAlive(assertItem.filelist);
+        });
+
+        test(`(Step 3) There is no any ICD message returned:`, async () => {
+            await assertNoFurtherMessage(msgController.messageReceiving());
         });
     });
 

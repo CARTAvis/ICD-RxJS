@@ -3,3 +3,4 @@ src/test/CLOSE_FILE_ANIMATION.test.ts
 src/test/CLOSE_FILE_ERROR.test.ts
 src/test/CLOSE_FILE_SPECTRAL_PROFILE.test.ts
 src/test/CLOSE_FILE_TILE.test.ts
+src/test/CLOSE_FILE_MULTI_FILES.test.ts

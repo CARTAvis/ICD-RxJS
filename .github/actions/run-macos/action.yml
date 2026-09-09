@@ -4,10 +4,13 @@ inputs:
   test_stage_name:
     description: 'ICD test stage'
     required: true
+  # Required, and deliberately without a default: the caller has to rewrite config.json with the
+  # same port, and a default here would let the two drift apart silently. The tests would then dial
+  # a port nothing is listening on while every liveness check in the stage passes, which reports as
+  # a whole stage of connection failures with a backend that was healthy throughout.
   port:
     description: 'Port number for carta_backend'
-    required: false
-    default: '5555'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -17,40 +20,17 @@ runs:
 
     - name: Start the carta-backend
       run: |
-        SRC_DIR=$GITHUB_WORKSPACE/source
-        BUILD_DIR=$GITHUB_WORKSPACE/build
         LOG_FILE="/tmp/carta_icd_macos_${{ inputs.test_stage_name }}.log"
-        cd $BUILD_DIR
-        ASAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan.supp \
-        LSAN_OPTIONS=suppressions=$SRC_DIR/debug/asan/myasan-leaks.supp \
-        ASAN_SYMBOLIZER_PATH=llvm-symbolizer \
-        ./carta_backend /images --top_level_folder /images \
-        --port ${{ inputs.port }} \
-        --omp_threads=4 --debug_no_auth --no_frontend --no_database --no_log \
-        --verbosity=5 >> "$LOG_FILE" 2>&1 &
-        echo "CARTA_BACKEND_PID=$!" >> $GITHUB_ENV
         echo "CARTA_LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
+        bash $GITHUB_WORKSPACE/ICD-RxJS/scripts/start_backend.sh \
+          $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build ${{ inputs.port }} "$LOG_FILE"
       shell: bash
 
     - name: ICD tests
       run: |
-        ICD_DIR=$GITHUB_WORKSPACE/ICD-RxJS
-        cd $ICD_DIR
-        failed_tests=()
-        mapfile -t test_files < ICD_test_stages/${{ inputs.test_stage_name }}.tests
-        for test_file in "${test_files[@]}"; do
-          if [ -n "$test_file" ]; then
-            if ! CI=true npm test -- "$test_file"; then
-              failed_tests+=("$test_file")
-            fi
-            sleep 3 && pgrep carta_backend
-          fi
-        done
-        if [ ${#failed_tests[@]} -ne 0 ]; then
-          echo "The following tests failed:"
-          printf '%s\n' "${failed_tests[@]}"
-          exit 1
-        fi
+        bash $GITHUB_WORKSPACE/ICD-RxJS/scripts/run_test_stage.sh \
+          $GITHUB_WORKSPACE/source $GITHUB_WORKSPACE/build \
+          ${{ inputs.port }} ${{ inputs.test_stage_name }} "$CARTA_LOG_FILE"
       shell: bash
 
     - name: Upload backend log on failure
@@ -64,7 +44,10 @@ runs:
     - name: Stop carta-backend
       if: always()
       run: |
-        if [ -n "${{ env.CARTA_BACKEND_PID }}" ]; then
-          kill ${{ env.CARTA_BACKEND_PID }} || true
-        fi
+        # Matched by port rather than by a PID recorded at startup: the stage may have restarted
+        # the backend after a crash, in which case that PID is long gone and killing it would
+        # leave the replacement running on the runner. The executable and its --port argument are
+        # both required so that this can only match a backend, never a shell whose command line
+        # happens to mention carta_backend and the port.
+        pkill -f "(^|[/[:space:]])carta_backend[[:space:]].*--port[[:space:]=]+${{ inputs.port }}([[:space:]]|$)" || true
       shell: bash
