@@ -6,3 +6,4 @@ src/test/CASA_REGION_EXPORT.test.ts
 src/test/DS9_REGION_EXPORT.test.ts
 src/test/DS9_REGION_IMPORT_EXCEPTION.test.ts
 src/test/DS9_REGION_IMPORT_EXPORT.test.ts
+src/test/EXPORT_REGION_OVERWRITE.test.ts
