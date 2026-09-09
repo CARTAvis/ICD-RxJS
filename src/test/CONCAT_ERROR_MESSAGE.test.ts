@@ -2,6 +2,7 @@ import { CARTA } from 'carta-protobuf';
 import config from './config.json';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
+import { stokesFile } from './ConcatStokesHelpers';
 
 let testServerUrl: string = config.serverURL0;
 let testSubdirectory: string = config.path.QA;
@@ -10,6 +11,24 @@ let concatStokeTimeout = config.timeout.concatStokes;
 // CONCAT_STOKES_FILES_ACK is the only message a rejected concatenation is allowed to draw, and
 // this is how long the backend is watched for a further one.
 let quietTime: number = config.timeout.messageEvent;
+
+/** The single-Stokes cubes the valid cases are built from, and which CONCAT_STOKES_IMAGES concatenates. */
+const stokesCube = {
+    I: 'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
+    Q: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
+    U: 'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
+    V: 'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
+};
+
+/** The same cubes with the degenerate Stokes axis dropped, so they disagree in shape with the above. */
+const droppedAxisCube = {
+    Q: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
+    U: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
+};
+
+/** An image of another file type, and a name which is on no disk. */
+const casaImage = 'M17_SWex.image';
+const missingImage = 'no_such_stokes_image.fits';
 
 // Every rejection the backend can answer CONCAT_STOKES_FILES with is raised in
 // StokesFilesConnector::OpenStokesFiles or StokesFilesConnector::StokesFilesValid and travels back
@@ -36,129 +55,54 @@ let assertItem: AssertItem = {
         {
             title: 'Case 1: Q and axis-degeneracy U, image shapes inconsistent',
             stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.U,
-                },
+                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
+                stokesFile(droppedAxisCube.U, 'U', testSubdirectory),
             ],
             expectedError: 'Image shapes or axes are not consistent!',
         },
         {
             title: 'Case 2: Q and axis-degeneracy Q, duplicated Stokes type',
             stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
+                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
+                stokesFile(droppedAxisCube.Q, 'Q', testSubdirectory),
             ],
             expectedError: 'Duplicate Stokes type found!',
         },
         {
             title: 'Case 3: a single file, too few to concatenate',
-            stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-            ],
+            stokesFiles: [stokesFile(stokesCube.Q, 'Q', testSubdirectory)],
             expectedError: 'Need at least two files to concatenate!',
         },
         {
             title: 'Case 4: a FITS image and a CASA image, mixed file types',
             stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'M17_SWex.image',
-                    polarizationType: CARTA.PolarizationType.U,
-                },
+                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
+                stokesFile(casaImage, 'U', testSubdirectory),
             ],
             expectedError: 'Different file types can not be concatenated!',
         },
         {
             title: 'Case 5: I, Q and V, a hypercube with a gap in the Stokes axis',
             stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.I,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.V.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.V,
-                },
+                stokesFile(stokesCube.I, 'I', testSubdirectory),
+                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
+                stokesFile(stokesCube.V, 'V', testSubdirectory),
             ],
             expectedError: 'Hypercube IQV is not allowed!',
         },
         {
             title: 'Case 6: a file which is not on disk',
             stokesFiles: [
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                    polarizationType: CARTA.PolarizationType.Q,
-                },
-                {
-                    directory: testSubdirectory,
-                    hdu: '',
-                    file: 'no_such_stokes_image.fits',
-                    polarizationType: CARTA.PolarizationType.U,
-                },
+                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
+                stokesFile(missingImage, 'U', testSubdirectory),
             ],
-            expectedError: 'no_such_stokes_image.fits does not exist.',
+            expectedError: `${missingImage} does not exist.`,
         },
     ],
     validConcat: {
         fileId: 0,
         renderMode: CARTA.RenderMode.RASTER,
-        stokesFiles: [
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
-                polarizationType: CARTA.PolarizationType.Q,
-            },
-            {
-                directory: testSubdirectory,
-                hdu: '',
-                file: 'IRCp10216_sci.spw0.cube.U.manual.pbcor.fits',
-                polarizationType: CARTA.PolarizationType.U,
-            },
-        ],
+        stokesFiles: [stokesFile(stokesCube.Q, 'Q', testSubdirectory), stokesFile(stokesCube.U, 'U', testSubdirectory)],
     },
     validConcatName: 'IRCp10216_sci.spw0.cube.hypercube_QU.manual.pbcor.fits',
     setCursor: { x: 128, y: 128 },
@@ -215,12 +159,12 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
         basepath = fileListResponse.directory;
         assertItem.fileList.directory = basepath + '/' + assertItem.fileList.directory;
         assertItem.errorCases.forEach((errorCase) => {
-            errorCase.stokesFiles.forEach((stokesFile) => {
-                stokesFile.directory = basepath + '/' + stokesFile.directory;
+            errorCase.stokesFiles.forEach((request) => {
+                request.directory = basepath + '/' + request.directory;
             });
         });
-        assertItem.validConcat.stokesFiles!.forEach((stokesFile) => {
-            stokesFile.directory = basepath + '/' + stokesFile.directory;
+        assertItem.validConcat.stokesFiles!.forEach((request) => {
+            request.directory = basepath + '/' + request.directory;
         });
     });
 
@@ -233,8 +177,8 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
         assertItem.errorCases
             .flatMap((errorCase) => errorCase.stokesFiles)
             .concat(assertItem.validConcat.stokesFiles!)
-            .map((stokesFile) => stokesFile.file!)
-            .filter((file) => file !== 'no_such_stokes_image.fits')
+            .map((request) => request.file!)
+            .filter((file) => file !== missingImage)
             .forEach((file) => expect(fileNames).toContain(file));
     });
 

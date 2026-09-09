@@ -104,13 +104,18 @@ export function stokesImages(files: Record<StokesLetter, string>): Record<Stokes
     return images;
 }
 
-/** One entry of a CONCAT_STOKES_FILES request. */
-export function stokesFile(image: StokesImage, directory: string): CARTA.IStokesFile {
+/**
+ * One entry of a CONCAT_STOKES_FILES request: a file, and the Stokes type it is offered to the
+ * backend as. The two are given separately because a request may name a file which is not the
+ * Stokes cube it claims to be, or which is not there at all, and CONCAT_ERROR_MESSAGE is built
+ * out of exactly those.
+ */
+export function stokesFile(file: string, stokesLetter: StokesLetter, directory: string): CARTA.IStokesFile {
     return {
         directory: directory,
         hdu: '',
-        file: image.file,
-        polarizationType: image.polarizationType,
+        file: file,
+        polarizationType: POLARIZATION_TYPES[stokesLetter],
     };
 }
 

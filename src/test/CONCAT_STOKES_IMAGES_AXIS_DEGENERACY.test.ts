@@ -140,7 +140,11 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                     const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
                     concatStokesResponse = await msgController.loadStokeFiles(
                         concatCase.requestOrder.map((stokesLetter) =>
-                            stokesFile(assertItem.stokesImages[stokesLetter], assertItem.fileList.directory!)
+                            stokesFile(
+                                assertItem.stokesImages[stokesLetter].file,
+                                stokesLetter,
+                                assertItem.fileList.directory!
+                            )
                         ),
                         assertItem.fileId,
                         assertItem.renderMode
