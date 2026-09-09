@@ -1,5 +1,4 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import {
@@ -13,13 +12,15 @@ import {
     stokesFile,
     stokesImages,
 } from './ConcatStokesHelpers';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout = config.timeout.openFile;
-let concatStokeTimeout = config.timeout.concatStokes;
-let changeChannelTimeout = config.timeout.changeChannel;
+import {
+    CHANGE_CHANNEL_TIMEOUT,
+    CONCAT_STOKES_TIMEOUT,
+    CONNECTION_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     fileList: CARTA.IFileListRequest;
@@ -34,7 +35,7 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    fileList: { directory: testSubdirectory },
+    fileList: { directory: TEST_SUBDIRECTORY },
     stokesImages: stokesImages({
         I: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
         Q: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
@@ -79,20 +80,16 @@ let assertItem: AssertItem = {
     hypercubeShape: { dimensions: 4, width: 256, height: 256, depth: 480 },
 };
 
-let basepath: string;
-
 describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-degeneracy stokes images into a single image.', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
-    }, connectTimeout);
+        await msgController.connect(TEST_SERVER_URL);
+    }, CONNECTION_TIMEOUT);
 
     checkConnection();
 
     test(`Get the base path and prefix the image directory with it |`, async () => {
-        const fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
-        assertItem.fileList.directory = basepath + '/' + assertItem.fileList.directory;
+        await assertBasePath([assertItem.fileList]);
     });
 
     assertItem.concatCases.forEach((concatCase) => {
@@ -110,7 +107,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
 
             concatCase.requestOrder.forEach((stokesLetter, index) => {
                 test(
-                    `(Step 2-${index + 1}) FILE_INFO_RESPONSE for the Stokes ${stokesLetter} cube should show a dropped Stokes axis within ${openFileTimeout} ms | `,
+                    `(Step 2-${index + 1}) FILE_INFO_RESPONSE for the Stokes ${stokesLetter} cube should show a dropped Stokes axis within ${OPEN_FILE_TIMEOUT} ms | `,
                     async () => {
                         const stokesImage = assertItem.stokesImages[stokesLetter];
                         const fileInfoResponse = await msgController.getFileInfo(
@@ -129,12 +126,12 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                         expect(fileInfoExtended.depth).toEqual(assertItem.inputShape.depth);
                         expect(fileInfoExtended.stokes).toEqual(assertItem.inputShape.stokes);
                     },
-                    openFileTimeout
+                    OPEN_FILE_TIMEOUT
                 );
             });
 
             test(
-                `(Step 3) CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should arrive within ${concatStokeTimeout} ms | `,
+                `(Step 3) CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should arrive within ${CONCAT_STOKES_TIMEOUT} ms | `,
                 async () => {
                     msgController.closeFile(-1);
                     const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
@@ -159,7 +156,7 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
                         assertItem.fileId
                     );
                 },
-                concatStokeTimeout
+                CONCAT_STOKES_TIMEOUT
             );
 
             // The inputs were three-dimensional; the Stokes axis of the hypercube is one DoConcat
@@ -178,11 +175,11 @@ describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-
             concatCase.expectedPlanes.slice(1).forEach((stokesLetter, index) => {
                 const stokes = index + 1;
                 test(
-                    `(Step 5-${stokes}) Stokes plane ${stokes} should hold the ${stokesLetter} image within ${changeChannelTimeout} ms | `,
+                    `(Step 5-${stokes}) Stokes plane ${stokes} should hold the ${stokesLetter} image within ${CHANGE_CHANNEL_TIMEOUT} ms | `,
                     async () => {
                         await assertStokesPlane(assertItem.fileId, stokes, stokesLetter);
                     },
-                    changeChannelTimeout
+                    CHANGE_CHANNEL_TIMEOUT
                 );
             });
         });

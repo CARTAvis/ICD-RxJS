@@ -1,16 +1,15 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
 import { stokesFile } from './ConcatStokesHelpers';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let concatStokeTimeout = config.timeout.concatStokes;
-// CONCAT_STOKES_FILES_ACK is the only message a rejected concatenation is allowed to draw, and
-// this is how long the backend is watched for a further one.
-let quietTime: number = config.timeout.messageEvent;
+import {
+    CONCAT_STOKES_TIMEOUT,
+    CONNECTION_TIMEOUT,
+    QUIET_TIME,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 /** The single-Stokes cubes the valid cases are built from, and which CONCAT_STOKES_IMAGES concatenates. */
 const stokesCube = {
@@ -50,51 +49,51 @@ interface AssertItem {
 }
 
 let assertItem: AssertItem = {
-    fileList: { directory: testSubdirectory },
+    fileList: { directory: TEST_SUBDIRECTORY },
     errorCases: [
         {
             title: 'Case 1: Q and axis-degeneracy U, image shapes inconsistent',
             stokesFiles: [
-                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
-                stokesFile(droppedAxisCube.U, 'U', testSubdirectory),
+                stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+                stokesFile(droppedAxisCube.U, 'U', TEST_SUBDIRECTORY),
             ],
             expectedError: 'Image shapes or axes are not consistent!',
         },
         {
             title: 'Case 2: Q and axis-degeneracy Q, duplicated Stokes type',
             stokesFiles: [
-                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
-                stokesFile(droppedAxisCube.Q, 'Q', testSubdirectory),
+                stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+                stokesFile(droppedAxisCube.Q, 'Q', TEST_SUBDIRECTORY),
             ],
             expectedError: 'Duplicate Stokes type found!',
         },
         {
             title: 'Case 3: a single file, too few to concatenate',
-            stokesFiles: [stokesFile(stokesCube.Q, 'Q', testSubdirectory)],
+            stokesFiles: [stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY)],
             expectedError: 'Need at least two files to concatenate!',
         },
         {
             title: 'Case 4: a FITS image and a CASA image, mixed file types',
             stokesFiles: [
-                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
-                stokesFile(casaImage, 'U', testSubdirectory),
+                stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+                stokesFile(casaImage, 'U', TEST_SUBDIRECTORY),
             ],
             expectedError: 'Different file types can not be concatenated!',
         },
         {
             title: 'Case 5: I, Q and V, a hypercube with a gap in the Stokes axis',
             stokesFiles: [
-                stokesFile(stokesCube.I, 'I', testSubdirectory),
-                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
-                stokesFile(stokesCube.V, 'V', testSubdirectory),
+                stokesFile(stokesCube.I, 'I', TEST_SUBDIRECTORY),
+                stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+                stokesFile(stokesCube.V, 'V', TEST_SUBDIRECTORY),
             ],
             expectedError: 'Hypercube IQV is not allowed!',
         },
         {
             title: 'Case 6: a file which is not on disk',
             stokesFiles: [
-                stokesFile(stokesCube.Q, 'Q', testSubdirectory),
-                stokesFile(missingImage, 'U', testSubdirectory),
+                stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+                stokesFile(missingImage, 'U', TEST_SUBDIRECTORY),
             ],
             expectedError: `${missingImage} does not exist.`,
         },
@@ -102,7 +101,10 @@ let assertItem: AssertItem = {
     validConcat: {
         fileId: 0,
         renderMode: CARTA.RenderMode.RASTER,
-        stokesFiles: [stokesFile(stokesCube.Q, 'Q', testSubdirectory), stokesFile(stokesCube.U, 'U', testSubdirectory)],
+        stokesFiles: [
+            stokesFile(stokesCube.Q, 'Q', TEST_SUBDIRECTORY),
+            stokesFile(stokesCube.U, 'U', TEST_SUBDIRECTORY),
+        ],
     },
     validConcatName: 'IRCp10216_sci.spw0.cube.hypercube_QU.manual.pbcor.fits',
     setCursor: { x: 128, y: 128 },
@@ -120,14 +122,13 @@ let assertItem: AssertItem = {
     },
 };
 
-let basepath: string;
-
 // The backend must have sent nothing beyond the CONCAT_STOKES_FILES_ACK itself. A concatenation
 // which was refused must not go on to stream REGION_HISTOGRAM_DATA or raster data for an image it
-// never opened.
+// never opened. That ack is the only message it is allowed to draw, and QUIET_TIME is how long the
+// backend is watched for a further one.
 async function assertOnlyTheAckArrived(messageCountBeforeRequest: number) {
     const msgController = MessageController.Instance;
-    await new Promise((resolve) => setTimeout(resolve, quietTime));
+    await new Promise((resolve) => setTimeout(resolve, QUIET_TIME));
     expect(msgController.messageReceiving()).toEqual(messageCountBeforeRequest + 1);
 }
 
@@ -149,23 +150,17 @@ async function assertFileIdIsFree(fileId: number) {
 describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with a message', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
-    }, connectTimeout);
+        await msgController.connect(TEST_SERVER_URL);
+    }, CONNECTION_TIMEOUT);
 
     checkConnection();
 
     test(`Get the base path and prefix the Stokes file directories with it |`, async () => {
-        const fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
-        assertItem.fileList.directory = basepath + '/' + assertItem.fileList.directory;
-        assertItem.errorCases.forEach((errorCase) => {
-            errorCase.stokesFiles.forEach((request) => {
-                request.directory = basepath + '/' + request.directory;
-            });
-        });
-        assertItem.validConcat.stokesFiles!.forEach((request) => {
-            request.directory = basepath + '/' + request.directory;
-        });
+        await assertBasePath([
+            assertItem.fileList,
+            ...assertItem.errorCases.flatMap((errorCase) => errorCase.stokesFiles),
+            ...assertItem.validConcat.stokesFiles!,
+        ]);
     });
 
     // Case 6 asks for a file which is not on disk, so the test first has to know that the files the
@@ -187,7 +182,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
             let messageCountBeforeRequest: number;
 
             test(
-                `(Step 1) CONCAT_STOKES_FILES should be refused with "${errorCase.expectedError}" within ${concatStokeTimeout} ms | `,
+                `(Step 1) CONCAT_STOKES_FILES should be refused with "${errorCase.expectedError}" within ${CONCAT_STOKES_TIMEOUT} ms | `,
                 async () => {
                     msgController.closeFile(-1);
                     messageCountBeforeRequest = msgController.messageReceiving();
@@ -202,7 +197,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
                         )
                     ).rejects.toContain(errorCase.expectedError);
                 },
-                concatStokeTimeout
+                CONCAT_STOKES_TIMEOUT
             );
 
             test(`(Step 2) The refused CONCAT_STOKES_FILES should draw no other message | `, async () => {
@@ -219,7 +214,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
         let concatStokesResponse: CARTA.IConcatStokesFilesAck;
 
         test(
-            `(Step 1) CONCAT_STOKES_FILES_ACK should arrive within ${concatStokeTimeout} ms | `,
+            `(Step 1) CONCAT_STOKES_FILES_ACK should arrive within ${CONCAT_STOKES_TIMEOUT} ms | `,
             async () => {
                 msgController.closeFile(-1);
                 const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
@@ -231,7 +226,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
                 const regionHistogramData = await regionHistogramDataStream;
                 expect(regionHistogramData[0].fileId).toEqual(assertItem.validConcat.fileId);
             },
-            concatStokeTimeout
+            CONCAT_STOKES_TIMEOUT
         );
 
         // The refusals above each leave the connector holding the loaders they opened until
