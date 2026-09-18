@@ -17,6 +17,8 @@ export const READ_FILE_TIMEOUT: number = config.timeout.readFile;
 export const READ_LARGE_IMAGE_TIMEOUT: number = config.timeout.readLargeImage;
 export const OPEN_CATALOG_LARGE_TIMEOUT: number = config.timeout.openCatalogLarge;
 export const PLAY_ANIMATOR_TIMEOUT: number = config.timeout.playAnimator;
+export const CONCAT_STOKES_TIMEOUT: number = config.timeout.concatStokes;
+export const CHANGE_CHANNEL_TIMEOUT: number = config.timeout.changeChannel;
 // How long silence is waited for, where a request draws no acknowledgement of its own and the
 // only thing which can be observed after it is that nothing arrives.
 export const QUIET_TIME: number = config.timeout.messageEvent;
