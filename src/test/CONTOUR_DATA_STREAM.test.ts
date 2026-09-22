@@ -1,14 +1,26 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let contourTimeout: number = config.timeout.contour;
-let messageTimeout: number = config.timeout.messageEvent;
+import {
+    assertContourImageDataHeader,
+    assertPolylineIndices,
+    assertProgressSequence,
+    assertVerticesAreOnGrid,
+    assertVerticesWithinBounds,
+    decodeContourSet,
+    messagesOfLevel,
+    streamContourImageData,
+    vertexCountOfLevel,
+} from './ContourHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    CONTOUR_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    QUIET_TIME,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -16,13 +28,14 @@ interface AssertItem {
     addTilesReq: CARTA.IAddRequiredTiles;
     setCursor: CARTA.ISetCursor;
     setContour: CARTA.ISetContourParameters;
-    contourImageData: CARTA.IContourImageData;
+    channel: number;
+    stokes: number;
 }
 
 let assertItem: AssertItem = {
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: TEST_SUBDIRECTORY },
     openFile: {
-        directory: testSubdirectory,
+        directory: TEST_SUBDIRECTORY,
         file: 'h_m51_b_s05_drz_sci.fits',
         fileId: 0,
         hdu: '',
@@ -37,14 +50,6 @@ let assertItem: AssertItem = {
     setCursor: {
         fileId: 0,
         point: { x: 4000, y: 2000 },
-        spatialRequirements: {
-            fileId: 0,
-            regionId: 0,
-            spatialProfiles: [
-                { coordinate: 'x', mip: 1 },
-                { coordinate: 'y', mip: 1 },
-            ],
-        },
     },
     setContour: {
         fileId: 0,
@@ -57,90 +62,121 @@ let assertItem: AssertItem = {
         compressionLevel: 8,
         contourChunkSize: 100000,
     },
-    contourImageData: {
-        progress: 1,
-    },
+    channel: 0,
+    stokes: 0,
 };
 
 describe('CONTOUR_DATA_STREAM: Testing contour data stream when there are a lot of vertices', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
-    }, connectTimeout);
+        await msgController.connect(TEST_SERVER_URL);
+    }, CONNECTION_TIMEOUT);
 
     checkConnection();
 
-    let basepath: string;
-    test(`Get basepath`, async () => {
-        let fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
+    test(`Get the base path and prefix the image directory with it |`, async () => {
+        await assertBasePath([assertItem.filelist, assertItem.openFile]);
     });
 
-    describe(`Go to "${assertItem.filelist.directory}" folder`, () => {
-        let OpenFileResponse: CARTA.IOpenFileAck;
-        test(`(Step 1)"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`, async () => {
-            msgController.closeFile(-1);
-            assertItem.openFile.directory = basepath + '/' + assertItem.filelist.directory;
-            OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-            let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
+    describe(`Go to "${TEST_SUBDIRECTORY}" folder`, () => {
+        test(
+            `(Step 1)"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms`,
+            async () => {
+                msgController.closeFile(-1);
+                const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+                const OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                await regionHistogramDataStream;
 
-            expect(OpenFileResponse.success).toBe(true);
-            expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                expect(OpenFileResponse.success).toBe(true);
+                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
 
-            msgController.addRequiredTiles(assertItem.addTilesReq);
-            let RasterTileDataResponse = await Stream(CARTA.RasterTileData, assertItem.addTilesReq.tiles.length + 2);
-            expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
+                const rasterTileDataStream = Stream(CARTA.RasterTileData, assertItem.addTilesReq.tiles.length + 2);
+                msgController.addRequiredTiles(assertItem.addTilesReq);
+                const RasterTileDataResponse = await rasterTileDataStream;
+                expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
 
-            msgController.setCursor(
-                assertItem.setCursor.fileId,
-                assertItem.setCursor.point.x,
-                assertItem.setCursor.point.y
-            );
-            let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
-            expect(SpatialProfileDataResponse1[0].x).toEqual(assertItem.setCursor.point.x);
-            expect(SpatialProfileDataResponse1[0].y).toEqual(assertItem.setCursor.point.y);
-        });
+                const spatialProfileDataStream = Stream(CARTA.SpatialProfileData, 1);
+                msgController.setCursor(
+                    assertItem.setCursor.fileId,
+                    assertItem.setCursor.point.x,
+                    assertItem.setCursor.point.y
+                );
+                const SpatialProfileDataResponse = await spatialProfileDataStream;
+                expect(SpatialProfileDataResponse[0].x).toEqual(assertItem.setCursor.point.x);
+                expect(SpatialProfileDataResponse[0].y).toEqual(assertItem.setCursor.point.y);
+            },
+            OPEN_FILE_TIMEOUT
+        );
 
-        describe(`SET_CONTOUR_PARAMETERS with SmoothingMode:"${CARTA.SmoothingMode[assertItem.setContour.smoothingMode]}"`, () => {
-            let ContourImageDataArray = [];
-            let contourCount = 0;
+        describe(`SET_CONTOUR_PARAMETERS with SmoothingMode:"${CARTA.SmoothingMode[assertItem.setContour.smoothingMode!]}"`, () => {
+            const levels = assertItem.setContour.levels!;
+            const chunkSize = assertItem.setContour.contourChunkSize!;
+            let messages: CARTA.IContourImageData[];
+
             test(
-                `should return CONTOUR_IMAGE_DATA x${assertItem.setContour.levels.length} with progress = ${assertItem.contourImageData.progress} in the end`,
+                `should return CONTOUR_IMAGE_DATA for each of the ${levels.length} levels, each ending with progress = 1`,
                 async () => {
+                    const contourImageDataStream = streamContourImageData(levels.length);
                     msgController.setContourParameters(assertItem.setContour);
-                    let ContourImageDataPromise = new Promise((resolve) => {
-                        msgController.contourStream.subscribe({
-                            next: (data) => {
-                                ContourImageDataArray.push(data);
-                                if (data.progress === 1) {
-                                    contourCount += 1;
-                                    if (contourCount === 3) {
-                                        resolve(ContourImageDataArray);
-                                    }
-                                }
-                            },
-                        });
-                    });
-
-                    let ContourImageDataResponse = (await ContourImageDataPromise) as CARTA.ContourImageData[];
-                    let ContourImageDataProgress1 = ContourImageDataResponse.filter(
-                        (data) => data.progress == assertItem.contourImageData.progress
-                    );
-                    expect(ContourImageDataProgress1.length).toEqual(assertItem.setContour.levels.length);
-                    ContourImageDataProgress1.map((ContourImageData) => {
-                        expect(assertItem.setContour.levels).toContain(ContourImageData.contourSets[0].level);
-                    });
+                    messages = await contourImageDataStream;
+                    expect(messages.filter((message) => message.progress === 1).length).toEqual(levels.length);
                 },
-                contourTimeout * assertItem.setContour.levels.length
+                CONTOUR_TIMEOUT * levels.length
             );
 
-            test(`There is no receiving message within ${messageTimeout} ms`, (done) => {
-                let receiveNumberCurrent = msgController.messageReceiving();
-                setTimeout(() => {
-                    let receiveNumberLatter = msgController.messageReceiving();
-                    expect(receiveNumberCurrent).toEqual(receiveNumberLatter);
-                    done();
-                }, messageTimeout);
+            test(`every CONTOUR_IMAGE_DATA should carry one contour set of a requested level`, () => {
+                messages.forEach((message) => {
+                    assertContourImageDataHeader(message, {
+                        fileId: assertItem.setContour.fileId!,
+                        referenceFileId: assertItem.setContour.referenceFileId!,
+                        channel: assertItem.channel,
+                        stokes: assertItem.stokes,
+                    });
+                    expect(levels).toContain(message.contourSets![0].level);
+                });
+            });
+
+            /**
+             * The reason this image is here: each level holds far more vertices than one chunk, so
+             * TraceLevel has to flush partial results rather than answer in a single message. The
+             * levels are traced in parallel, so their messages interleave and only the run belonging
+             * to one level is ordered.
+             */
+            test(`each level should be streamed as more than one chunk`, () => {
+                levels.forEach((level) => {
+                    const forLevel = messagesOfLevel(messages, level);
+                    const vertices = vertexCountOfLevel(messages, level);
+                    expect(vertices).toBeGreaterThan(chunkSize);
+                    expect(forLevel.length).toBeGreaterThan(1);
+                });
+            });
+
+            test(`the progress of each level should increase and reach 1 only in its last chunk`, () => {
+                levels.forEach((level) => assertProgressSequence(messages, level));
+            });
+
+            test(`every chunk should decode to vertices inside the requested image bounds`, () => {
+                messages.forEach((message) => {
+                    const decoded = decodeContourSet(message.contourSets![0]);
+                    expect(decoded.vertices.length).toBeGreaterThan(0);
+                    assertVerticesAreOnGrid(decoded);
+                    assertVerticesWithinBounds(decoded, assertItem.setContour.imageBounds!);
+                    assertPolylineIndices(decoded);
+                });
+            });
+
+            test(`a lower level should enclose more of the image than a higher one`, () => {
+                // Every pixel above 1.09 is also above 0.36, so the lower level traces the longer
+                // boundary. This is what shows the levels were not all traced at the same value.
+                const vertexCounts = levels.map((level) => vertexCountOfLevel(messages, level));
+                expect(vertexCounts).toEqual([...vertexCounts].sort((a, b) => b - a));
+                expect(new Set(vertexCounts).size).toEqual(levels.length);
+            });
+
+            test(`there should be no further message within ${QUIET_TIME} ms`, async () => {
+                const messageCount = msgController.messageReceiving();
+                await new Promise((resolve) => setTimeout(resolve, QUIET_TIME));
+                expect(msgController.messageReceiving()).toEqual(messageCount);
             });
         });
     });

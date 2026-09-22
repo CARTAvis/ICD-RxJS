@@ -1,19 +1,26 @@
 import { CARTA } from 'carta-protobuf';
-import config from './config.json';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
-
-let testServerUrl: string = config.serverURL0;
-let testSubdirectory: string = config.path.QA;
-let connectTimeout: number = config.timeout.connection;
-let openFileTimeout: number = config.timeout.openFile;
-let playImageTimeout: number = config.timeout.playImages;
-let contourTimeout: number = config.timeout.contour;
-
-interface ContourImageData extends CARTA.IContourImageData {
-    rawCoordinatesIndex?: number[];
-    rawCoordinatesArray?: number[];
-}
+import {
+    assertContourImageDataHeader,
+    assertPolylineIndices,
+    assertProgressSequence,
+    assertReportedDecimationFactor,
+    assertVerticesAreOnGrid,
+    assertVerticesWithinBounds,
+    decodeContourSet,
+    streamContourImageData,
+    vertexCountOfLevel,
+} from './ContourHelpers';
+import {
+    CONNECTION_TIMEOUT,
+    CONTOUR_TIMEOUT,
+    OPEN_FILE_TIMEOUT,
+    PLAY_IMAGES_TIMEOUT,
+    TEST_SERVER_URL,
+    TEST_SUBDIRECTORY,
+    assertBasePath,
+} from './CommonHelpers';
 
 interface AssertItem {
     filelist: CARTA.IFileListRequest;
@@ -21,14 +28,22 @@ interface AssertItem {
     addTilesReq: CARTA.IAddRequiredTiles;
     setCursor: CARTA.ISetCursor;
     setSpatialReq: CARTA.ISetSpatialRequirements;
-    setContour: CARTA.ISetContourParameters[];
-    contourImageData: ContourImageData[];
+    level: number;
+    decimationFactors: number[];
+    smoothingFactors: number[];
+    heldDecimationFactor: number;
+    heldSmoothingFactor: number;
+    channel: number;
+    stokes: number;
 }
 
+const imageBounds: CARTA.IImageBounds = { xMin: 0, xMax: 8600, yMin: 0, yMax: 12200 };
+const contourChunkSize = 100000;
+
 let assertItem: AssertItem = {
-    filelist: { directory: testSubdirectory },
+    filelist: { directory: TEST_SUBDIRECTORY },
     openFile: {
-        directory: testSubdirectory,
+        directory: TEST_SUBDIRECTORY,
         file: 'h_m51_b_s05_drz_sci.fits',
         hdu: '0',
         fileId: 0,
@@ -52,225 +67,191 @@ let assertItem: AssertItem = {
             { coordinate: 'y', mip: 1 },
         ],
     },
-    setContour: [
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            levels: [0.6],
-            imageBounds: { xMin: 0, xMax: 8600, yMin: 0, yMax: 12200 },
-            decimationFactor: 2,
-            compressionLevel: 8,
-            contourChunkSize: 100000,
-            smoothingMode: CARTA.SmoothingMode.GaussianBlur,
-            smoothingFactor: 4,
-        },
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            levels: [0.85],
-            imageBounds: { xMin: 0, xMax: 8600, yMin: 0, yMax: 12200 },
-            decimationFactor: 4,
-            compressionLevel: 8,
-            contourChunkSize: 100000,
-            smoothingMode: CARTA.SmoothingMode.GaussianBlur,
-            smoothingFactor: 6,
-        },
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            levels: [0.1],
-            imageBounds: { xMin: 0, xMax: 8600, yMin: 0, yMax: 12200 },
-            decimationFactor: 6,
-            compressionLevel: 8,
-            contourChunkSize: 100000,
-            smoothingMode: CARTA.SmoothingMode.GaussianBlur,
-            smoothingFactor: 2,
-        },
-    ],
-    contourImageData: [
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            contourSets: [
-                {
-                    level: 0.6,
-                    decimationFactor: 2,
-                    uncompressedCoordinatesSize: 417688,
-                },
-            ],
-            progress: 1,
-            // Because the backend returned rawCoordinates values (as well as length) is different to different OS.
-            // I did not check the rawCoordinate values in this test (should move to frontend unit test to check the decode float value)
-            // rawCoordinatesIndex: [1000, 2000, 3000],
-            // rawCoordinatesArray: [247, 173, 102]
-        },
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            contourSets: [
-                {
-                    level: 0.85,
-                    decimationFactor: 4,
-                    uncompressedCoordinatesSize: 486624,
-                },
-            ],
-            progress: 1,
-            // Because the backend returned rawCoordinates values (as well as length) is different to different OS.
-            // I did not check the rawCoordinate values in this test (should move to frontend unit test to check the decode float value)
-            // rawCoordinatesIndex: [1000, 2000, 3000],
-            // rawCoordinatesArray: [53, 37, 220],
-        },
-        {
-            fileId: 0,
-            referenceFileId: 0,
-            contourSets: [
-                {
-                    level: 0.1,
-                    decimationFactor: 6,
-                    uncompressedCoordinatesSize: 724136,
-                },
-            ],
-            progress: 1,
-            // Because the backend returned rawCoordinates values (as well as length) is different to different OS.
-            // I did not check the rawCoordinate values in this test (should move to frontend unit test to check the decode float value)
-            // rawCoordinatesIndex: [1000, 2000, 3000],
-            // rawCoordinatesArray: [211, 58, 171]
-        },
-    ],
+    // One level throughout, so that each group of cases varies one factor and nothing else
+    level: 0.6,
+    decimationFactors: [1, 4, 8],
+    smoothingFactors: [1, 4, 8],
+    heldDecimationFactor: 4,
+    heldSmoothingFactor: 4,
+    channel: 0,
+    stokes: 0,
 };
 
-describe('CONTOUR_CHANGE_SMOOTH_MODE_FACTOR: Testing Contour with different SmoothingFactor & DemicationFactor', () => {
+function setContourParameters(smoothingFactor: number, decimationFactor: number): CARTA.ISetContourParameters {
+    return {
+        fileId: 0,
+        referenceFileId: 0,
+        levels: [assertItem.level],
+        imageBounds: imageBounds,
+        smoothingMode: CARTA.SmoothingMode.GaussianBlur,
+        smoothingFactor: smoothingFactor,
+        decimationFactor: decimationFactor,
+        compressionLevel: 8,
+        contourChunkSize: contourChunkSize,
+    };
+}
+
+describe('CONTOUR_CHANGE_SMOOTH_MODE_FACTOR: Testing Contour with different SmoothingFactor & DecimationFactor', () => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
-        await msgController.connect(testServerUrl);
-    }, connectTimeout);
+        await msgController.connect(TEST_SERVER_URL);
+    }, CONNECTION_TIMEOUT);
 
     checkConnection();
 
-    let basepath: string;
-    test(`Get basepath`, async () => {
-        let fileListResponse = await msgController.getFileList('$BASE', 0);
-        basepath = fileListResponse.directory;
+    test(`Get the base path and prefix the image directory with it |`, async () => {
+        await assertBasePath([assertItem.filelist, assertItem.openFile]);
     });
 
-    describe(`(Step 1) Initialize the open image"`, () => {
-        let OpenFileResponse: CARTA.IOpenFileAck;
-        let regionHistogramData = [];
+    describe(`(Step 1) Initialize the open image`, () => {
         test(
-            `(Step 1)"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
+            `(Step 1)"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${OPEN_FILE_TIMEOUT} ms`,
             async () => {
                 msgController.closeFile(-1);
-                assertItem.openFile.directory = basepath + '/' + assertItem.filelist.directory;
-                let regionHistogramDataPromise = new Promise((resolve) => {
-                    msgController.histogramStream.subscribe({
-                        next: (data) => {
-                            regionHistogramData.push(data);
-                            resolve(regionHistogramData);
-                        },
-                    });
-                });
-                OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await regionHistogramDataPromise;
+                const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+                const OpenFileResponse = await msgController.loadFile(assertItem.openFile);
+                await regionHistogramDataStream;
 
                 expect(OpenFileResponse.success).toBe(true);
                 expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
             },
-            openFileTimeout
+            OPEN_FILE_TIMEOUT
         );
 
         test(
             `Initialised WCS info from frame: ADD_REQUIRED_TILES, SET_CURSOR, and SET_SPATIAL_REQUIREMENTS, then check them are all returned correctly:`,
             async () => {
+                const rasterTileDataStream = Stream(CARTA.RasterTileData, assertItem.addTilesReq.tiles.length + 2);
                 msgController.addRequiredTiles(assertItem.addTilesReq);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addTilesReq.tiles.length + 2
-                );
+                const RasterTileDataResponse = await rasterTileDataStream;
                 expect(RasterTileDataResponse.length).toEqual(assertItem.addTilesReq.tiles.length + 2);
 
+                const cursorProfileStream = Stream(CARTA.SpatialProfileData, 1);
                 msgController.setCursor(
                     assertItem.setCursor.fileId,
                     assertItem.setCursor.point.x,
                     assertItem.setCursor.point.y
                 );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
+                const SpatialProfileDataResponse1 = await cursorProfileStream;
                 expect(SpatialProfileDataResponse1[0].x).toEqual(assertItem.setCursor.point.x);
                 expect(SpatialProfileDataResponse1[0].y).toEqual(assertItem.setCursor.point.y);
 
+                const spatialProfileStream = Stream(CARTA.SpatialProfileData, 1);
                 msgController.setSpatialRequirements(assertItem.setSpatialReq);
-                let SpatialProfileDataResponse2 = await Stream(CARTA.SpatialProfileData, 1);
+                const SpatialProfileDataResponse2 = await spatialProfileStream;
                 expect(SpatialProfileDataResponse2[0].x).toEqual(assertItem.setCursor.point.x);
                 expect(SpatialProfileDataResponse2[0].y).toEqual(assertItem.setCursor.point.y);
             },
-            playImageTimeout
+            PLAY_IMAGES_TIMEOUT
         );
 
-        describe(`(Contour Tests)`, () => {
-            assertItem.setContour.map((contour, index) => {
-                let ContourImageDataArray = [];
-                let ContourImageData: any;
-                let ContourImageDataProgress1: any;
-                test(
-                    `(Case ${index + 1}: Set Smoothing factor of ${contour.smoothingFactor} & Decimation factor of ${contour.decimationFactor}):t`,
-                    async () => {
-                        msgController.setContourParameters(assertItem.setContour[index]);
-                        let ContourImageDataPromise = new Promise((resolve) => {
-                            msgController.contourStream.subscribe({
-                                next: (data) => {
-                                    ContourImageDataArray.push(data);
-                                    if (data.progress === 1) {
-                                        resolve(ContourImageDataArray);
-                                    }
-                                },
+        /**
+         * The decimation factor is the grid the vertices are rounded to, not an input to the
+         * tracing: Session::SendContourData passes it to RoundAndEncodeVertices after ContourImage
+         * has already produced the vertices. So the same level traced at a different decimation has
+         * to return the same number of vertices, on a finer or coarser grid.
+         */
+        describe(`(Decimation factor) level ${assertItem.level}, smoothing factor ${assertItem.heldSmoothingFactor}`, () => {
+            const vertexCounts = new Map<number, number>();
+
+            assertItem.decimationFactors.forEach((decimationFactor) => {
+                describe(`Decimation factor ${decimationFactor}`, () => {
+                    let messages: CARTA.IContourImageData[];
+
+                    test(
+                        `should return CONTOUR_IMAGE_DATA ending with progress = 1 within ${CONTOUR_TIMEOUT} ms`,
+                        async () => {
+                            const contourImageDataStream = streamContourImageData(1);
+                            msgController.setContourParameters(
+                                setContourParameters(assertItem.heldSmoothingFactor, decimationFactor)
+                            );
+                            messages = await contourImageDataStream;
+                            vertexCounts.set(decimationFactor, vertexCountOfLevel(messages, assertItem.level));
+                            assertProgressSequence(messages, assertItem.level);
+                        },
+                        CONTOUR_TIMEOUT
+                    );
+
+                    test(`every chunk should be of file 0, level ${assertItem.level}, inside the image bounds`, () => {
+                        messages.forEach((message) => {
+                            assertContourImageDataHeader(message, {
+                                fileId: 0,
+                                referenceFileId: 0,
+                                channel: assertItem.channel,
+                                stokes: assertItem.stokes,
                             });
+                            const decoded = decodeContourSet(message.contourSets![0]);
+                            expect(decoded.level).toEqual(assertItem.level);
+                            assertVerticesWithinBounds(decoded, imageBounds);
+                            assertPolylineIndices(decoded);
                         });
-                        ContourImageData = await ContourImageDataPromise;
-                        ContourImageDataProgress1 = ContourImageData.filter((data) => data.progress == 1);
-                    },
-                    contourTimeout
-                );
+                    });
 
-                test(`Case ${index + 1}: fileId = ${contour.fileId}`, () => {
-                    expect(ContourImageDataProgress1[0].fileId).toEqual(contour.fileId);
+                    test(`the vertices should be rounded to 1/${decimationFactor} of a pixel`, () => {
+                        messages.forEach((message) => {
+                            const decoded = decodeContourSet(message.contourSets![0]);
+                            assertReportedDecimationFactor(decoded, decimationFactor);
+                            // Only a build which compresses rounds the coordinates; one built with
+                            // DisableContourCompression sends the unrounded floats and reports 0.
+                            assertVerticesAreOnGrid(decoded);
+                        });
+                    });
+
+                    test(`the contour should be long enough to be streamed in chunks of ${contourChunkSize} vertices`, () => {
+                        expect(vertexCounts.get(decimationFactor)).toBeGreaterThan(contourChunkSize);
+                    });
                 });
+            });
 
-                test(`Case ${index + 1}: referenceFileId = ${contour.referenceFileId}`, () => {
-                    expect(ContourImageDataProgress1[0].referenceFileId).toEqual(contour.referenceFileId);
-                });
+            test(`the decimation factor should not change how many vertices the level has`, () => {
+                const counts = assertItem.decimationFactors.map((factor) => vertexCounts.get(factor));
+                expect(counts).toEqual(counts.map(() => counts[0]));
+            });
+        });
 
-                test(`Case ${index + 1}: progress = 1`, () => {
-                    expect(ContourImageDataProgress1[0].progress).toEqual(1);
-                });
+        /**
+         * The smoothing factor, unlike the decimation factor, is an input to the tracing: it is the
+         * width of the Gaussian kernel ContourImage convolves the image with before looking for the
+         * level. A wider kernel flattens the small structure the contour would have followed, so the
+         * same level returns fewer vertices.
+         */
+        describe(`(Smoothing factor) level ${assertItem.level}, decimation factor ${assertItem.heldDecimationFactor}`, () => {
+            const vertexCounts = new Map<number, number>();
 
-                test(`Case ${index + 1}: len(contourSet) = 1`, () => {
-                    expect(ContourImageDataProgress1[0].contourSets.length).toEqual(1);
-                });
+            assertItem.smoothingFactors.forEach((smoothingFactor) => {
+                describe(`Smoothing factor ${smoothingFactor}`, () => {
+                    let messages: CARTA.IContourImageData[];
 
-                test(`Case ${index + 1}: contourSets[0].level = ${assertItem.contourImageData[index].contourSets[0].level}`, () => {
-                    expect(ContourImageDataProgress1[0].contourSets[0].level).toEqual(
-                        assertItem.contourImageData[index].contourSets[0].level
+                    test(
+                        `should return CONTOUR_IMAGE_DATA ending with progress = 1 within ${CONTOUR_TIMEOUT} ms`,
+                        async () => {
+                            const contourImageDataStream = streamContourImageData(1);
+                            msgController.setContourParameters(
+                                setContourParameters(smoothingFactor, assertItem.heldDecimationFactor)
+                            );
+                            messages = await contourImageDataStream;
+                            vertexCounts.set(smoothingFactor, vertexCountOfLevel(messages, assertItem.level));
+                            assertProgressSequence(messages, assertItem.level);
+                        },
+                        CONTOUR_TIMEOUT
                     );
-                });
 
-                test(`Case ${index + 1}: contourSets[0].decimationFactor = ${assertItem.contourImageData[index].contourSets[0].decimationFactor}`, () => {
-                    expect(ContourImageDataProgress1[0].contourSets[0].decimationFactor).toEqual(
-                        assertItem.contourImageData[index].contourSets[0].decimationFactor
-                    );
+                    test(`every chunk should decode to vertices inside the image bounds`, () => {
+                        messages.forEach((message) => {
+                            const decoded = decodeContourSet(message.contourSets![0]);
+                            expect(decoded.level).toEqual(assertItem.level);
+                            expect(decoded.vertices.length).toBeGreaterThan(0);
+                            assertVerticesWithinBounds(decoded, imageBounds);
+                            assertPolylineIndices(decoded);
+                        });
+                    });
                 });
+            });
 
-                test(`Case ${index + 1}: contourSets[0].uncompressedCoordinatesSize = ${assertItem.contourImageData[index].contourSets[0].uncompressedCoordinatesSize}`, () => {
-                    expect(ContourImageDataProgress1[0].contourSets[0].uncompressedCoordinatesSize).toEqual(
-                        assertItem.contourImageData[index].contourSets[0].uncompressedCoordinatesSize
-                    );
-                });
-
-                test(`Case ${index + 1}: Check rawCoordinates length is greater than 1`, () => {
-                    expect(ContourImageDataProgress1[0].contourSets[0].rawCoordinates.length).toBeGreaterThan(1);
-                    // console.log(ContourImageDataProgress1[0].contourSets[0].rawCoordinates.length);
-                    // assertItem.contourImageData[index].rawCoordinatesIndex.map((input, idx) => {
-                    //     expect(ContourImageDataProgress1[0].contourSets[0].rawCoordinates[input]).toEqual(assertItem.contourImageData[index].rawCoordinatesArray[idx]);
-                    // })
-                });
+            test(`a wider smoothing kernel should leave the level with fewer vertices`, () => {
+                const counts = assertItem.smoothingFactors.map((factor) => vertexCounts.get(factor)!);
+                expect(counts).toEqual([...counts].sort((a, b) => b - a));
+                expect(new Set(counts).size).toEqual(counts.length);
             });
         });
     });

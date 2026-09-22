@@ -3,3 +3,7 @@ src/test/ANIMATOR_NAVIGATION.test.ts
 src/test/ANIMATOR_CONTOUR_MATCH.test.ts
 src/test/ANIMATOR_CONTOUR.test.ts
 src/test/CHANNEL_MAP.test.ts
+src/test/CONTOUR_IMAGE_DATA.test.ts
+src/test/CONTOUR_IMAGE_DATA_NAN.test.ts
+src/test/CONTOUR_DATA_STREAM.test.ts
+src/test/CONTOUR_CHANGE_SMOOTH_AND_DEMICATION_FACTOR.test.ts
