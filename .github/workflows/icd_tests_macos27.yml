@@ -1,4 +1,4 @@
-name: ICD tests on ICD-RxJS repo
+name: ICD tests on macOS 27
 on:
   workflow_dispatch:
     inputs:
