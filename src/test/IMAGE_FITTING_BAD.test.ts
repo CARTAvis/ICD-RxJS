@@ -1008,7 +1008,7 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                             assertItem.fittingResponseMacOS14M1[0].resultValues[1].pa,
                             assertItem.precisionDigits
                         );
-                        expect(response.success).toEqual(assertItem.fittingResponseMacOS14M10].success);
+                        expect(response.success).toEqual(assertItem.fittingResponseMacOS14M1[0].success);
 
                         const err = response.resultErrors[0];
                         if (!Number.isNaN(err.center.x)) expect(err.center.x).toBeCloseTo(0);
