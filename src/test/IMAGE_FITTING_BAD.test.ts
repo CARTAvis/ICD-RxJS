@@ -23,8 +23,10 @@ interface AssertItem {
     fittingResponseMacOS13Intel: CARTA.IFittingResponse[];
     fittingResponseMacOS13M1: CARTA.IFittingResponse[];
     fittingResponseMacOS14Intel: CARTA.IFittingResponse[];
+    fittingResponseMacOS14M1: CARTA.IFittingResponse[];
     fittingResponseMacOS15M1: CARTA.IFittingResponse[];
     fittingResponseMacOS26M1: CARTA.IFittingResponse[];
+    fittingResponseMacOS27M1: CARTA.IFittingResponse[];
     fittingResponseLinux: CARTA.IFittingResponse[];
     precisionDigits: number;
 }
@@ -333,6 +335,45 @@ let assertItem: AssertItem = {
             message: 'exceeded max number of iterations',
         },
     ],
+    fittingResponseMacOS14M1: [
+        {
+            resultValues: [
+                {
+                    center: { x: 135.9423511885002, y: 278.6292713728808 },
+                    amp: 0.3680212373566968,
+                    fwhm: { x: 0.010803245040868936, y: -0.37763726849033424 },
+                    pa: 269.90649657333165,
+                },
+                {
+                    center: { x: 324.35585276972546, y: 324.3485131478667 },
+                    amp: 9.996666884701305,
+                    fwhm: { x: 29.40480524645376, y: 117.45148536141379 },
+                    pa: 0.5405291299997996,
+                },
+            ],
+            resultErrors: [
+                {
+                    center: {},
+                    fwhm: {},
+                },
+                {
+                    center: {
+                        x: 1.1713397055023578e-10,
+                        y: 2.9346045426111674e-11,
+                    },
+                    amp: 2.3477692556889646e-11,
+                    fwhm: {
+                        x: 6.90587157933576e-11,
+                        y: 2.758409273280181e-10,
+                    },
+                    pa: 5.0828711706267157e-11,
+                },
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations',
+        },
+    ],
     fittingResponseMacOS15M1: [
         {
             resultValues: [
@@ -404,6 +445,47 @@ let assertItem: AssertItem = {
                         y: 2.759001709565778e-10,
                     },
                     pa: 5.0797230374050426e-11,
+                },
+            ],
+            success: true,
+            log: 'Gaussian fitting with 2 component',
+            message: 'exceeded max number of iterations',
+        },
+    ],
+    fittingResponseMacOS27M1: [
+        {
+            resultValues: [
+                {
+                    center: { x: 137.4501180554062, y: 279.263858487863 },
+                    amp: 0.30248448363132585,
+                    fwhm: { x: 0.1597063455449566, y: 0.3219759225630219 },
+                    pa: 268.8933765940396,
+                },
+                {
+                    center: { x: 324.3519005893456, y: 324.3492941955145 },
+                    amp: 9.996651199522542,
+                    fwhm: { x: 29.40338445092787, y: 117.49731612186703 },
+                    pa: 0.5352513562360796,
+                },
+            ],
+            resultErrors: [
+                {
+                    center: { x: 1.3649930672239534e-9, y: 2.7499356573053035e-9 },
+                    amp: 6.084445948888796e-9,
+                    fwhm: { x: 3.212477597188763e-9, y: 6.476514345992156e-9 },
+                    pa: 0.0000010722680630424556,
+                },
+                {
+                    center: {
+                        x: 1.1715993079076805e-10,
+                        y: 2.9339297722336595e-11,
+                    },
+                    amp: 2.3473680393307304e-11,
+                    fwhm: {
+                        x: 6.904368626121394e-11, 
+                        y: 2.7590183859249105e-10,
+                    },
+                    pa: 5.079485057583894e-11,
                 },
             ],
             success: true,
@@ -560,37 +642,8 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                 `Send Image fitting request and match the result`,
                 async () => {
                     let response = await msgController.requestFitting(assertItem.fittingRequest[0]);
-                    // console.log(MacOSNumber);
-                    // console.log(platformOS);
-
-                    // console.log('response.resultValues[0].center.x', response.resultValues[0].center.x);
-                    // console.log('response.resultValues[0].center.y', response.resultValues[0].center.y);
-                    // console.log('response.resultValues[0].amp', response.resultValues[0].amp);
-                    // console.log('response.resultValues[0].fwhm.x', response.resultValues[0].fwhm.x);
-                    // console.log('response.resultValues[0].fwhm.y', response.resultValues[0].fwhm.y);
-                    // console.log('response.resultValues[0].pa', response.resultValues[0].pa);
-                    // console.log('response.resultValues[1].center.x', response.resultValues[1].center.x);
-                    // console.log('response.resultValues[1].center.y', response.resultValues[1].center.y);
-                    // console.log('response.resultValues[1].amp', response.resultValues[1].amp);
-                    // console.log('response.resultValues[1].fwhm.x', response.resultValues[1].fwhm.x);
-                    // console.log('response.resultValues[1].fwhm.y', response.resultValues[1].fwhm.y);
-                    // console.log('response.resultValues[1].pa', response.resultValues[1].pa);
-                    // console.log('response.success', response.success);
-
-                    // console.log('response.resultErrors[0].center.x', response.resultErrors[0].center.x);
-                    // console.log('response.resultErrors[0].center.y', response.resultErrors[0].center.y);
-                    // console.log('response.resultErrors[0].fwhm.x', response.resultErrors[0].fwhm.x);
-                    // console.log('response.resultErrors[0].fwhm.y', response.resultErrors[0].fwhm.y);
-                    // console.log('response.resultErrors[1].center.x', response.resultErrors[1].center.x);
-                    // console.log('response.resultErrors[1].center.y', response.resultErrors[1].center.y);
-                    // console.log('response.resultErrors[1].amp', response.resultErrors[1].amp);
-                    // console.log('response.resultErrors[1].fwhm.x', response.resultErrors[1].fwhm.x);
-                    // console.log('response.resultErrors[1].fwhm.y', response.resultErrors[1].fwhm.y);
-                    // console.log('response.resultErrors[1].pa', response.resultErrors[1].pa);
-
-                    // console.log('response.log', response.log);
-                    // console.log('response.message', response.message);
-
+                    // console.log('response.resultValues = ', response.resultValues);
+                    // console.log('response.resultErrors = ', response.resultErrors);
                     if (MacOSNumber === '11.6.1' && platformOS === 'macOS') {
                         expect(response.resultValues[0].center.x).toBeCloseTo(
                             assertItem.fittingResponseMacOS110601[0].resultValues[0].center.x,
@@ -919,56 +972,56 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
 
                         expect(response.log).toContain(assertItem.fittingResponseMacOS13Intel[0].log);
                         expect(response.message).toContain(assertItem.fittingResponseMacOS13Intel[0].message);
-                    } else if (Math.floor(MacOSNumber) === 14 && platformOS === 'macOS' && MacChipM1 === false) {
+                    } else if (Math.floor(MacOSNumber) === 14 && platformOS === 'macOS' && MacChipM1 === true) {
                         expect(response.resultValues[0].center.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].center.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[0].center.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].center.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].center.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[0].amp).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].amp,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].amp,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[0].fwhm.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].fwhm.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].fwhm.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[0].fwhm.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].fwhm.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].fwhm.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[0].pa).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[0].pa,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[0].pa,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].center.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].center.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].center.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].center.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].center.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].center.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].amp).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].amp,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].amp,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].fwhm.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].fwhm.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].fwhm.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].fwhm.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].fwhm.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].fwhm.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultValues[1].pa).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultValues[1].pa,
+                            assertItem.fittingResponseMacOS14M1[0].resultValues[1].pa,
                             assertItem.precisionDigits
                         );
-                        expect(response.success).toEqual(assertItem.fittingResponseMacOS14Intel[0].success);
+                        expect(response.success).toEqual(assertItem.fittingResponseMacOS14M1[0].success);
 
                         const err = response.resultErrors[0];
                         if (!Number.isNaN(err.center.x)) expect(err.center.x).toBeCloseTo(0);
@@ -976,32 +1029,32 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
                         if (!Number.isNaN(err.fwhm.x)) expect(err.fwhm.x).toBeCloseTo(0);
                         if (!Number.isNaN(err.fwhm.y)) expect(err.fwhm.y).toBeCloseTo(0);
                         expect(response.resultErrors[1].center.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].center.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].center.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultErrors[1].center.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].center.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].center.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultErrors[1].amp).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].amp,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].amp,
                             assertItem.precisionDigits
                         );
                         expect(response.resultErrors[1].fwhm.x).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].fwhm.x,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].fwhm.x,
                             assertItem.precisionDigits
                         );
                         expect(response.resultErrors[1].fwhm.y).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].fwhm.y,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].fwhm.y,
                             assertItem.precisionDigits
                         );
                         expect(response.resultErrors[1].pa).toBeCloseTo(
-                            assertItem.fittingResponseMacOS14Intel[0].resultErrors[1].pa,
+                            assertItem.fittingResponseMacOS14M1[0].resultErrors[1].pa,
                             assertItem.precisionDigits
                         );
 
-                        expect(response.log).toContain(assertItem.fittingResponseMacOS14Intel[0].log);
-                        expect(response.message).toContain(assertItem.fittingResponseMacOS14Intel[0].message);
+                        expect(response.log).toContain(assertItem.fittingResponseMacOS14M1[0].log);
+                        expect(response.message).toContain(assertItem.fittingResponseMacOS14M1[0].message);
                     } else if (Math.floor(MacOSNumber) === 15 && platformOS === 'macOS' && MacChipM1 === true) {
                         expect(response.resultValues[0].center.x).toBeCloseTo(
                             assertItem.fittingResponseMacOS15M1[0].resultValues[0].center.x,
@@ -1166,6 +1219,100 @@ describe('IMAGE_FITTING_FITS test: Testing Image Fitting (with and without fov) 
 
                         expect(response.log).toContain(assertItem.fittingResponseMacOS26M1[0].log);
                         expect(response.message).toContain(assertItem.fittingResponseMacOS26M1[0].message);
+                    } else if (Math.floor(MacOSNumber) === 27 && platformOS === 'macOS' && MacChipM1 === true) {
+                        expect(response.resultValues[0].center.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].center.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[0].center.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].center.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[0].amp).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].amp,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[0].fwhm.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].fwhm.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[0].fwhm.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].fwhm.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[0].pa).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[0].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].center.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].center.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].center.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].center.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].amp).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].amp,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].fwhm.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].fwhm.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].fwhm.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].fwhm.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultValues[1].pa).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultValues[1].pa,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.success).toEqual(assertItem.fittingResponseMacOS27M1[0].success);
+
+                        expect(response.resultErrors[0].center.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[0].center.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[0].center.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[0].center.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[0].fwhm.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[0].fwhm.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[0].fwhm.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[0].fwhm.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].center.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].center.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].center.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].center.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].amp).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].amp,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].fwhm.x).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].fwhm.x,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].fwhm.y).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].fwhm.y,
+                            assertItem.precisionDigits
+                        );
+                        expect(response.resultErrors[1].pa).toBeCloseTo(
+                            assertItem.fittingResponseMacOS27M1[0].resultErrors[1].pa,
+                            assertItem.precisionDigits
+                        );
+
+                        expect(response.log).toContain(assertItem.fittingResponseMacOS27M1[0].log);
+                        expect(response.message).toContain(assertItem.fittingResponseMacOS27M1[0].message);
                     } else if (platformOS === 'Linux' && isRhel8 === true) {
                         expect(response.resultValues[0].center.x).toBeCloseTo(
                             assertItem.fittingResponseRhel8[0].resultValues[0].center.x,
