@@ -19,10 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -30,6 +26,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -135,10 +135,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -146,6 +142,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -218,10 +218,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -229,6 +225,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -277,10 +277,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -288,6 +284,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -336,10 +336,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -347,6 +343,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -395,10 +395,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -406,6 +402,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -454,10 +454,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -465,6 +461,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -513,10 +513,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -524,6 +520,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -572,10 +572,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -583,6 +579,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -631,10 +631,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -642,6 +638,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -690,10 +690,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -701,6 +697,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -749,10 +749,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -760,6 +756,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -808,10 +808,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -819,6 +815,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -867,10 +867,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -878,6 +874,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -926,10 +926,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -937,6 +933,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
@@ -985,10 +985,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os_version: macOS-14
-            os: macos
-            runner: [macOS-14, ICD]
-            port: 5555
           - os_version: macOS-15
             os: macos
             runner: [macOS-15, ICD]
@@ -996,6 +992,10 @@ jobs:
           - os_version: macOS-26
             os: macos
             runner: [macOS-26, ICD]
+            port: 5555
+          - os_version: macOS-27
+            os: macos
+            runner: [macOS-27, ICD]
             port: 5555
           - os_version: ubuntu-22.04
             os: linux
