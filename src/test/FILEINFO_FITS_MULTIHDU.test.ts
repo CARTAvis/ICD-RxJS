@@ -748,3 +748,111 @@ describe('FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
         afterAll(() => msgController.closeConnection());
     });
 });
+
+// NOTE: requires a backend built from zhenkai/1609_zarr_file_info (adds CARTA.FileType.ZARR support).
+// spire500_ext.zarr is the zarr conversion of spire500_ext.fits above, combining its image/error/coverage
+// HDUs into one store with 3 data groups ('base', 'error', 'coverage', per the store's zarr.json
+// data_groups attribute). Only the fields verifiable from the backend/store source are asserted here;
+// computedEntries/headerEntries are intentionally not compared since their exact wording/count depends
+// on a live zarr-enabled backend response that has not been captured yet - verify/update after running once.
+interface ZarrAssertItem {
+    fileInfoRequest: CARTA.IFileInfoRequest;
+    fileInfo: CARTA.IFileInfo;
+    fileInfoExtended: { [dataGroup: string]: { dimensions: number; width: number; height: number } };
+}
+
+let zarrAssertItem: ZarrAssertItem = {
+    fileInfoRequest: {
+        file: 'spire500_ext.zarr',
+        hdu: '',
+    },
+    fileInfo: {
+        name: 'spire500_ext.zarr',
+        type: CARTA.FileType.ZARR,
+        size: 12812288,
+        HDUList: ['base', 'error', 'coverage'],
+    },
+    fileInfoExtended: {
+        base: { dimensions: 2, width: 830, height: 870 },
+        error: { dimensions: 2, width: 830, height: 870 },
+        coverage: { dimensions: 2, width: 830, height: 870 },
+    },
+};
+
+let zarrBasepath: string;
+describe('FILEINFO_ZARR_MULTIHDU: Testing if info of the zarr conversion of a multi-HDU FITS image is correctly delivered by the backend', () => {
+    const msgController = MessageController.Instance;
+    describe(`Register a session`, () => {
+        beforeAll(async () => {
+            await msgController.connect(testServerUrl);
+        }, connectTimeout);
+
+        checkConnection();
+        describe(`Go to "${testSubdirectory}" folder`, () => {
+            test(
+                'Preparation:',
+                async () => {
+                    let FileListResponse = await msgController.getFileList('$BASE', 0);
+                    zarrBasepath = FileListResponse.directory;
+                },
+                listFileTimeout
+            );
+        });
+
+        describe(`query the info of file : ${zarrAssertItem.fileInfoRequest.file}`, () => {
+            let FileInfoResponse: any;
+            test(
+                `FILE_INFO_RESPONSE should arrive within ${openFileTimeout} ms".`,
+                async () => {
+                    FileInfoResponse = await msgController.getFileInfo(
+                        `${zarrBasepath}/` + testSubdirectory,
+                        zarrAssertItem.fileInfoRequest.file,
+                        zarrAssertItem.fileInfoRequest.hdu
+                    );
+                },
+                openFileTimeout
+            );
+
+            test('FILE_INFO_RESPONSE.success = true', () => {
+                expect(FileInfoResponse.success).toBe(true);
+            });
+
+            test(`FILE_INFO_RESPONSE.file_info.type = ${CARTA.FileType.ZARR}`, () => {
+                expect(FileInfoResponse.fileInfo.type).toBe(zarrAssertItem.fileInfo.type);
+            });
+
+            test(`FILE_INFO_RESPONSE.file_info.name = "${zarrAssertItem.fileInfo.name}"`, () => {
+                expect(FileInfoResponse.fileInfo.name).toEqual(zarrAssertItem.fileInfo.name);
+            });
+
+            test(`FILE_INFO_RESPONSE.file_info.HDU_List contains [${zarrAssertItem.fileInfo.HDUList}]`, () => {
+                zarrAssertItem.fileInfo.HDUList.map((entry) => {
+                    expect(FileInfoResponse.fileInfo.HDUList).toContainEqual(entry);
+                });
+            });
+
+            Object.keys(zarrAssertItem.fileInfoExtended).map((dataGroup) => {
+                describe(`FileInfoExtended of data group '${dataGroup}':`, () => {
+                    test(`FILE_INFO_RESPONSE.file_info_extended.dimensions = ${zarrAssertItem.fileInfoExtended[dataGroup].dimensions}`, () => {
+                        expect(FileInfoResponse.fileInfoExtended[dataGroup].dimensions).toEqual(
+                            zarrAssertItem.fileInfoExtended[dataGroup].dimensions
+                        );
+                    });
+
+                    test(`FILE_INFO_RESPONSE.file_info_extended.width = ${zarrAssertItem.fileInfoExtended[dataGroup].width}`, () => {
+                        expect(FileInfoResponse.fileInfoExtended[dataGroup].width).toEqual(
+                            zarrAssertItem.fileInfoExtended[dataGroup].width
+                        );
+                    });
+
+                    test(`FILE_INFO_RESPONSE.file_info_extended.height = ${zarrAssertItem.fileInfoExtended[dataGroup].height}`, () => {
+                        expect(FileInfoResponse.fileInfoExtended[dataGroup].height).toEqual(
+                            zarrAssertItem.fileInfoExtended[dataGroup].height
+                        );
+                    });
+                });
+            });
+        });
+        afterAll(() => msgController.closeConnection());
+    });
+});
