@@ -776,9 +776,9 @@ let zarrAssertItem: ZarrAssertItem = {
         HDUList: ['SKY', 'SKY_COVERAGE', 'SKY_ERROR'],
     },
     fileInfoExtended: {
-        SKY: { dimensions: 2, width: 830, height: 870 },
-        SKY_ERROR: { dimensions: 2, width: 830, height: 870 },
-        SKY_COVERAGE: { dimensions: 2, width: 830, height: 870 },
+        SKY: { dimensions: 4, width: 830, height: 870 },
+        SKY_ERROR: { dimensions: 4, width: 830, height: 870 },
+        SKY_COVERAGE: { dimensions: 4, width: 830, height: 870 },
     },
 };
 
