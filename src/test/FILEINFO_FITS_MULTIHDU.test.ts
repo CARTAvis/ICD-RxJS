@@ -751,10 +751,13 @@ describe('FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
 
 // NOTE: requires a backend built from zhenkai/1609_zarr_file_info (adds CARTA.FileType.ZARR support).
 // spire500_ext.zarr is the zarr conversion of spire500_ext.fits above, combining its image/error/coverage
-// HDUs into one store with 3 data groups ('base', 'error', 'coverage', per the store's zarr.json
-// data_groups attribute). Only the fields verifiable from the backend/store source are asserted here;
+// HDUs into one store with 3 data groups ('SKY', 'SKY_ERROR', 'SKY_COVERAGE', as reported by the
+// backend in HDU_List). Only the fields verifiable from the backend/store source are asserted here;
 // computedEntries/headerEntries are intentionally not compared since their exact wording/count depends
 // on a live zarr-enabled backend response that has not been captured yet - verify/update after running once.
+// carta-protobuf in use does not define CARTA.FileType.ZARR yet; the backend reports it as 7.
+const ZARR_FILE_TYPE = 7;
+
 interface ZarrAssertItem {
     fileInfoRequest: CARTA.IFileInfoRequest;
     fileInfo: CARTA.IFileInfo;
@@ -768,14 +771,14 @@ let zarrAssertItem: ZarrAssertItem = {
     },
     fileInfo: {
         name: 'spire500_ext.zarr',
-        type: CARTA.FileType.ZARR,
+        type: ZARR_FILE_TYPE,
         size: 12812288,
-        HDUList: ['base', 'error', 'coverage'],
+        HDUList: ['SKY', 'SKY_COVERAGE', 'SKY_ERROR'],
     },
     fileInfoExtended: {
-        base: { dimensions: 2, width: 830, height: 870 },
-        error: { dimensions: 2, width: 830, height: 870 },
-        coverage: { dimensions: 2, width: 830, height: 870 },
+        SKY: { dimensions: 2, width: 830, height: 870 },
+        SKY_ERROR: { dimensions: 2, width: 830, height: 870 },
+        SKY_COVERAGE: { dimensions: 2, width: 830, height: 870 },
     },
 };
 
@@ -817,7 +820,7 @@ describe('FILEINFO_ZARR_MULTIHDU: Testing if info of the zarr conversion of a mu
                 expect(FileInfoResponse.success).toBe(true);
             });
 
-            test(`FILE_INFO_RESPONSE.file_info.type = ${CARTA.FileType.ZARR}`, () => {
+            test(`FILE_INFO_RESPONSE.file_info.type = ${ZARR_FILE_TYPE}`, () => {
                 expect(FileInfoResponse.fileInfo.type).toBe(zarrAssertItem.fileInfo.type);
             });
 
