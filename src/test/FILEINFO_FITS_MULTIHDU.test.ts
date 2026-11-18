@@ -749,113 +749,177 @@ describe('FILEINFO_FITS_MULTIHDU: Testing if info of an FITS image file is corre
     });
 });
 
-// NOTE: requires a backend built from zhenkai/1609_zarr_file_info (adds CARTA.FileType.ZARR support).
-// spire500_ext.zarr is the zarr conversion of spire500_ext.fits above, combining its image/error/coverage
-// HDUs into one store with 3 data groups ('SKY', 'SKY_ERROR', 'SKY_COVERAGE', as reported by the
-// backend in HDU_List). Only the fields verifiable from the backend/store source are asserted here;
-// computedEntries/headerEntries are intentionally not compared since their exact wording/count depends
-// on a live zarr-enabled backend response that has not been captured yet - verify/update after running once.
-// carta-protobuf in use does not define CARTA.FileType.ZARR yet; the backend reports it as 7.
+// Requires the Zarr file info backend. The fixture maps FITS HDUs 1, 6 and 7
+// to the XRADIO sky, sky_error and sky_coverage roles, respectively.
+// The installed carta-protobuf also decodes the backend's ZARR enum value (7).
 const ZARR_FILE_TYPE = 7;
-
-interface ZarrAssertItem {
-    fileInfoRequest: CARTA.IFileInfoRequest;
-    fileInfo: CARTA.IFileInfo;
-    fileInfoExtended: { [dataGroup: string]: { dimensions: number; width: number; height: number } };
-}
-
-let zarrAssertItem: ZarrAssertItem = {
-    fileInfoRequest: {
-        file: 'spire500_ext.zarr',
-        hdu: '',
-    },
-    fileInfo: {
-        name: 'spire500_ext.zarr',
-        type: ZARR_FILE_TYPE,
-        size: 12812288,
-        HDUList: ['SKY', 'SKY_COVERAGE', 'SKY_ERROR'],
-    },
-    fileInfoExtended: {
-        SKY: { dimensions: 4, width: 830, height: 870 },
-        SKY_ERROR: { dimensions: 4, width: 830, height: 870 },
-        SKY_COVERAGE: { dimensions: 4, width: 830, height: 870 },
-    },
+const zarrFile = 'spire500_ext.zarr';
+const zarrPixelUnits = {
+    SKY: 'MJy/sr',
+    SKY_ERROR: 'MJy/sr',
+    SKY_COVERAGE: '1',
 };
 
-let zarrBasepath: string;
+const zarrShape: CARTA.IFileInfoExtended = {
+    dimensions: 4,
+    width: 830,
+    height: 870,
+    depth: 1,
+    stokes: 1,
+    stokesVals: [],
+    axesNumbers: { spatialX: 1, spatialY: 2, spectral: 3, stokes: 4, depth: 3 },
+};
+
+function expectedZarrComputedEntries(pixelUnit: string): Record<string, string> {
+    return {
+        Name: zarrFile,
+        'Data type': 'double',
+        Shape: '[830, 870, 1, 1] (RA, DEC, FREQ, STOKES)',
+        'Chunk shape': '[128, 128, 1, 1] (RA, DEC, FREQ, STOKES)',
+        Compressor: 'blosc',
+        'Number of channels': '1',
+        'Number of polarizations': '1',
+        'Coordinate type': 'Right Ascension, Declination',
+        Projection: 'TAN',
+        'Image reference pixels': '[371, 421]',
+        'Image reference coords': '[07:09:13.1081, -010.36.38.5952]',
+        'Image ref coords (deg)': '[107.305 deg, -10.6107 deg]',
+        'Pixel increment': '-14", 14"',
+        'Pixel unit': pixelUnit,
+        'Celestial frame': 'ICRS',
+        'Spectral frame': 'LSRK',
+        'Velocity definition': 'RADIO',
+        'RA range': '[07:01:55.064, 07:15:06.258]',
+        'DEC range': '[-12.14.22.907, -08.51.38.954]',
+        Frequency: '1.4150 (GHz)',
+        Velocity: '1140.9441 (km/s)',
+        'Stokes coverage': '[I]',
+    };
+}
+
+function expectedZarrHeaderEntries(pixelUnit: string): Record<string, string> {
+    return {
+        XTENSION: 'IMAGE',
+        BITPIX: '-32',
+        NAXIS: '4',
+        NAXIS1: '830',
+        NAXIS2: '870',
+        NAXIS3: '1',
+        NAXIS4: '1',
+        PCOUNT: '0',
+        GCOUNT: '1',
+        BSCALE: '1.000000000000E+00',
+        BZERO: '0.000000000000E+00',
+        BTYPE: 'Intensity',
+        OBJECT: 'Field 224_0',
+        BUNIT: pixelUnit,
+        RADESYS: 'ICRS',
+        LONPOLE: '1.800000000000E+02',
+        LATPOLE: '-1.061072089652E+01',
+        PC1_1: '1.000000000000E+00',
+        PC2_1: '0.000000000000E+00',
+        PC3_1: '0.000000000000E+00',
+        PC4_1: '0.000000000000E+00',
+        PC1_2: '0.000000000000E+00',
+        PC2_2: '1.000000000000E+00',
+        PC3_2: '0.000000000000E+00',
+        PC4_2: '0.000000000000E+00',
+        PC1_3: '0.000000000000E+00',
+        PC2_3: '0.000000000000E+00',
+        PC3_3: '1.000000000000E+00',
+        PC4_3: '0.000000000000E+00',
+        PC1_4: '0.000000000000E+00',
+        PC2_4: '0.000000000000E+00',
+        PC3_4: '0.000000000000E+00',
+        PC4_4: '1.000000000000E+00',
+        CTYPE1: 'RA---TAN',
+        CRVAL1: '1.073046172702E+02',
+        CDELT1: '-3.888888888889E-03',
+        CRPIX1: '371',
+        CUNIT1: 'deg',
+        CTYPE2: 'DEC--TAN',
+        CRVAL2: '-1.061072089652E+01',
+        CDELT2: '3.888888888889E-03',
+        CRPIX2: '421',
+        CUNIT2: 'deg',
+        CTYPE3: 'FREQ',
+        CRVAL3: '1.415000000000E+09',
+        CDELT3: '1.000000000000E+03',
+        CRPIX3: '1',
+        CUNIT3: 'Hz',
+        CTYPE4: 'STOKES',
+        CRVAL4: '1.000000000000E+00',
+        CDELT4: '1.000000000000E+00',
+        CRPIX4: '1',
+        CUNIT4: '',
+        PV2_1: '0.000000000000E+00',
+        PV2_2: '0.000000000000E+00',
+        RESTFRQ: '1.420405751786E+09',
+        SPECSYS: 'LSRK',
+        ALTRVAL: '1.140944137424E+06',
+        ALTRPIX: '1',
+        VELREF: '257',
+        TELESCOP: 'Herschel Space Observatory',
+        OBSERVER: 'smolinar',
+        'DATE-OBS': '2011-05-09T14:45:25.000000',
+        TIMESYS: 'UTC',
+    };
+}
+
+function expectZarrEntryValues(entries: CARTA.IHeaderEntry[], expected: Record<string, string>) {
+    expect(entries).toHaveLength(Object.keys(expected).length);
+    expect(new Map(entries.map((entry) => [entry.name, entry.value ?? '']))).toEqual(new Map(Object.entries(expected)));
+}
+
 describe('FILEINFO_ZARR_MULTIHDU: Testing if info of the zarr conversion of a multi-HDU FITS image is correctly delivered by the backend', () => {
     const msgController = MessageController.Instance;
-    describe(`Register a session`, () => {
+    let fileInfoResponse: CARTA.IFileInfoResponse;
+
+    beforeAll(async () => {
+        await msgController.connect(testServerUrl);
+    }, connectTimeout);
+    afterAll(() => msgController.closeConnection());
+
+    checkConnection();
+
+    describe(`Query the info of file: ${zarrFile}`, () => {
         beforeAll(async () => {
-            await msgController.connect(testServerUrl);
-        }, connectTimeout);
-
-        checkConnection();
-        describe(`Go to "${testSubdirectory}" folder`, () => {
-            test(
-                'Preparation:',
-                async () => {
-                    let FileListResponse = await msgController.getFileList('$BASE', 0);
-                    zarrBasepath = FileListResponse.directory;
-                },
-                listFileTimeout
+            const fileList = await msgController.getFileList('$BASE', 0);
+            fileInfoResponse = await msgController.getFileInfo(
+                `${fileList.directory}/${testSubdirectory}`,
+                zarrFile,
+                ''
             );
+        }, listFileTimeout + openFileTimeout);
+
+        test('reports the Zarr file and all three data groups', () => {
+            expect(fileInfoResponse).toMatchObject({
+                success: true,
+                fileInfo: { name: zarrFile, type: ZARR_FILE_TYPE },
+            });
+            const dataGroups = Object.keys(zarrPixelUnits).sort();
+            expect([...fileInfoResponse.fileInfo.HDUList].sort()).toEqual(dataGroups);
+            expect(Object.keys(fileInfoResponse.fileInfoExtended).sort()).toEqual(dataGroups);
         });
 
-        describe(`query the info of file : ${zarrAssertItem.fileInfoRequest.file}`, () => {
-            let FileInfoResponse: any;
-            test(
-                `FILE_INFO_RESPONSE should arrive within ${openFileTimeout} ms".`,
-                async () => {
-                    FileInfoResponse = await msgController.getFileInfo(
-                        `${zarrBasepath}/` + testSubdirectory,
-                        zarrAssertItem.fileInfoRequest.file,
-                        zarrAssertItem.fileInfoRequest.hdu
-                    );
-                },
-                openFileTimeout
-            );
-
-            test('FILE_INFO_RESPONSE.success = true', () => {
-                expect(FileInfoResponse.success).toBe(true);
+        describe.each(Object.entries(zarrPixelUnits))('FileInfoExtended of data group %s', (dataGroup, pixelUnit) => {
+            test('reports the image dimensions and axis numbers', () => {
+                expect(fileInfoResponse.fileInfoExtended[dataGroup]).toMatchObject(zarrShape);
             });
 
-            test(`FILE_INFO_RESPONSE.file_info.type = ${ZARR_FILE_TYPE}`, () => {
-                expect(FileInfoResponse.fileInfo.type).toBe(zarrAssertItem.fileInfo.type);
+            test('reports all computed entries', () => {
+                expectZarrEntryValues(
+                    fileInfoResponse.fileInfoExtended[dataGroup].computedEntries,
+                    expectedZarrComputedEntries(pixelUnit)
+                );
             });
 
-            test(`FILE_INFO_RESPONSE.file_info.name = "${zarrAssertItem.fileInfo.name}"`, () => {
-                expect(FileInfoResponse.fileInfo.name).toEqual(zarrAssertItem.fileInfo.name);
-            });
-
-            test(`FILE_INFO_RESPONSE.file_info.HDU_List contains [${zarrAssertItem.fileInfo.HDUList}]`, () => {
-                zarrAssertItem.fileInfo.HDUList.map((entry) => {
-                    expect(FileInfoResponse.fileInfo.HDUList).toContainEqual(entry);
-                });
-            });
-
-            Object.keys(zarrAssertItem.fileInfoExtended).map((dataGroup) => {
-                describe(`FileInfoExtended of data group '${dataGroup}':`, () => {
-                    test(`FILE_INFO_RESPONSE.file_info_extended.dimensions = ${zarrAssertItem.fileInfoExtended[dataGroup].dimensions}`, () => {
-                        expect(FileInfoResponse.fileInfoExtended[dataGroup].dimensions).toEqual(
-                            zarrAssertItem.fileInfoExtended[dataGroup].dimensions
-                        );
-                    });
-
-                    test(`FILE_INFO_RESPONSE.file_info_extended.width = ${zarrAssertItem.fileInfoExtended[dataGroup].width}`, () => {
-                        expect(FileInfoResponse.fileInfoExtended[dataGroup].width).toEqual(
-                            zarrAssertItem.fileInfoExtended[dataGroup].width
-                        );
-                    });
-
-                    test(`FILE_INFO_RESPONSE.file_info_extended.height = ${zarrAssertItem.fileInfoExtended[dataGroup].height}`, () => {
-                        expect(FileInfoResponse.fileInfoExtended[dataGroup].height).toEqual(
-                            zarrAssertItem.fileInfoExtended[dataGroup].height
-                        );
-                    });
-                });
+            test('reports all generated header entries', () => {
+                expectZarrEntryValues(
+                    fileInfoResponse.fileInfoExtended[dataGroup].headerEntries,
+                    expectedZarrHeaderEntries(pixelUnit)
+                );
             });
         });
-        afterAll(() => msgController.closeConnection());
     });
 });
