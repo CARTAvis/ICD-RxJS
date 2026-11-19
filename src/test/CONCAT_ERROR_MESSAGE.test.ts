@@ -40,6 +40,7 @@ interface ErrorCase {
 
 interface AssertItem {
     fileList: CARTA.IFileListRequest;
+    missingImage: string;
     errorCases: ErrorCase[];
     validConcat: CARTA.IConcatStokesFiles;
     validConcatName: string;
@@ -50,6 +51,7 @@ interface AssertItem {
 
 let assertItem: AssertItem = {
     fileList: { directory: TEST_SUBDIRECTORY },
+    missingImage,
     errorCases: [
         {
             title: 'Case 1: Q and axis-degeneracy U, image shapes inconsistent',
@@ -122,6 +124,76 @@ let assertItem: AssertItem = {
     },
 };
 
+const zarrStokesCube = {
+    I: 'IRCp10216_sci.spw0.cube.I.manual.pbcor.zarr',
+    Q: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.zarr',
+    U: 'IRCp10216_sci.spw0.cube.U.manual.pbcor.zarr',
+    V: 'IRCp10216_sci.spw0.cube.V.manual.pbcor.zarr',
+};
+const missingZarrImage = 'no_such_stokes_image.zarr';
+
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileList: { directory: TEST_SUBDIRECTORY },
+    missingImage: missingZarrImage,
+    errorCases: [
+        {
+            title: 'Case 1: Q and HH211, image shapes inconsistent',
+            stokesFiles: [
+                stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile('HH211_IQU.zarr', 'U', TEST_SUBDIRECTORY, 'SKY'),
+            ],
+            expectedError: 'Image shapes or axes are not consistent!',
+        },
+        {
+            title: 'Case 2: Q and axis-degeneracy Q, duplicated Stokes type',
+            stokesFiles: [
+                stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile('IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.zarr', 'Q', TEST_SUBDIRECTORY, 'SKY'),
+            ],
+            expectedError: 'Duplicate Stokes type found!',
+        },
+        {
+            title: 'Case 3: a single file, too few to concatenate',
+            stokesFiles: [stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY')],
+            expectedError: 'Need at least two files to concatenate!',
+        },
+        {
+            title: 'Case 4: a Zarr image and a CASA image, mixed file types',
+            stokesFiles: [
+                stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile(casaImage, 'U', TEST_SUBDIRECTORY),
+            ],
+            expectedError: 'Different file types can not be concatenated!',
+        },
+        {
+            title: 'Case 5: I, Q and V, a hypercube with a gap in the Stokes axis',
+            stokesFiles: [
+                stokesFile(zarrStokesCube.I, 'I', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile(zarrStokesCube.V, 'V', TEST_SUBDIRECTORY, 'SKY'),
+            ],
+            expectedError: 'Hypercube IQV is not allowed!',
+        },
+        {
+            title: 'Case 6: a file which is not on disk',
+            stokesFiles: [
+                stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+                stokesFile(missingZarrImage, 'U', TEST_SUBDIRECTORY, 'SKY'),
+            ],
+            expectedError: `${missingZarrImage} does not exist.`,
+        },
+    ],
+    validConcat: {
+        ...assertItem.validConcat,
+        stokesFiles: [
+            stokesFile(zarrStokesCube.Q, 'Q', TEST_SUBDIRECTORY, 'SKY'),
+            stokesFile(zarrStokesCube.U, 'U', TEST_SUBDIRECTORY, 'SKY'),
+        ],
+    },
+    validConcatName: 'IRCp10216_sci.spw0.cube.hypercube_QU.manual.pbcor.zarr',
+};
+
 // The backend must have sent nothing beyond the CONCAT_STOKES_FILES_ACK itself. A concatenation
 // which was refused must not go on to stream REGION_HISTOGRAM_DATA or raster data for an image it
 // never opened. That ack is the only message it is allowed to draw, and QUIET_TIME is how long the
@@ -137,17 +209,20 @@ async function assertOnlyTheAckArrived(messageCountBeforeRequest: number) {
 // is what shows that the file id it asked for was really left free: the frontend keeps its own file
 // counter unchanged on a rejection (AppStore.loadConcatStokes), so a half-opened image on the
 // backend would put the two out of step.
-async function assertFileIdIsFree(fileId: number) {
+async function assertFileIdIsFree(assertItem: AssertItem) {
     const msgController = MessageController.Instance;
     const errorDataStream = Stream(CARTA.ErrorData, 1);
     msgController.setSpatialRequirements(assertItem.setSpatialReq);
     const errorData = await errorDataStream;
     expect(errorData[0].severity).toEqual(assertItem.fileNotFoundError.severity);
     expect(errorData[0].tags).toEqual(assertItem.fileNotFoundError.tags);
-    expect(errorData[0].message).toEqual(`File id ${fileId} not found`);
+    expect(errorData[0].message).toEqual(`File id ${assertItem.validConcat.fileId} not found`);
 }
 
-describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with a message', () => {
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])('CONCAT_ERROR_MESSAGE (%s) test: incompatible Stokes images are refused with a message', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
         await msgController.connect(TEST_SERVER_URL);
@@ -173,7 +248,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
             .flatMap((errorCase) => errorCase.stokesFiles)
             .concat(assertItem.validConcat.stokesFiles!)
             .map((request) => request.file!)
-            .filter((file) => file !== missingImage)
+            .filter((file) => file !== assertItem.missingImage)
             .forEach((file) => expect(fileNames).toContain(file));
     });
 
@@ -205,7 +280,7 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
             });
 
             test(`(Step 3) File id ${assertItem.validConcat.fileId} should have been left free | `, async () => {
-                await assertFileIdIsFree(assertItem.validConcat.fileId!);
+                await assertFileIdIsFree(assertItem);
             });
         });
     });
@@ -241,12 +316,15 @@ describe('CONCAT_ERROR_MESSAGE test: incompatible Stokes images are refused with
 
         // The same request which drew "File id 0 not found" from every refused case now draws a
         // profile instead, which is the other half of what those cases assert. Session only fills a
-        // cursor profile once the cursor has been placed, so the requirements are registered first
-        // and the cursor is what triggers the stream.
+        // cursor profile once the cursor has been placed, so send the requirements with SET_CURSOR.
         test(`(Step 3) SPATIAL_PROFILE_DATA should be streamed for the concatenated image | `, async () => {
-            msgController.setSpatialRequirements(assertItem.setSpatialReq);
             const spatialProfileDataStream = Stream(CARTA.SpatialProfileData, 1);
-            msgController.setCursor(assertItem.validConcat.fileId!, assertItem.setCursor.x, assertItem.setCursor.y);
+            msgController.setCursor(
+                assertItem.validConcat.fileId!,
+                assertItem.setCursor.x,
+                assertItem.setCursor.y,
+                assertItem.setSpatialReq
+            );
             const spatialProfileData = await spatialProfileDataStream;
             expect(spatialProfileData[0].fileId).toEqual(assertItem.validConcat.fileId);
             expect(spatialProfileData[0].regionId).toEqual(assertItem.setSpatialReq.regionId);

@@ -24,6 +24,7 @@ import {
 
 interface AssertItem {
     fileList: CARTA.IFileListRequest;
+    hdu: string;
     stokesImages: Record<StokesLetter, StokesImage>;
     concatCases: ConcatCase[];
     fileId: number;
@@ -33,6 +34,7 @@ interface AssertItem {
 
 let assertItem: AssertItem = {
     fileList: { directory: TEST_SUBDIRECTORY },
+    hdu: '',
     stokesImages: stokesImages({
         I: 'IRCp10216_sci.spw0.cube.I.manual.pbcor.fits',
         Q: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.fits',
@@ -77,7 +79,26 @@ let assertItem: AssertItem = {
     imageShape: { dimensions: 4, width: 256, height: 256, depth: 480 },
 };
 
-describe('CONCAT_STOKES_IMAGES test: concatenate different stokes images into single image', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileList: { directory: TEST_SUBDIRECTORY },
+    hdu: 'SKY',
+    stokesImages: stokesImages({
+        I: 'IRCp10216_sci.spw0.cube.I.manual.pbcor.zarr',
+        Q: 'IRCp10216_sci.spw0.cube.Q.manual.pbcor.zarr',
+        U: 'IRCp10216_sci.spw0.cube.U.manual.pbcor.zarr',
+        V: 'IRCp10216_sci.spw0.cube.V.manual.pbcor.zarr',
+    }),
+    concatCases: assertItem.concatCases.map((concatCase) => ({
+        ...concatCase,
+        hypercubeName: concatCase.hypercubeName.replace(/\.fits$/, '.zarr'),
+    })),
+};
+
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])('CONCAT_STOKES_IMAGES (%s) test: concatenate different stokes images into single image', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
         await msgController.connect(TEST_SERVER_URL);
@@ -110,7 +131,7 @@ describe('CONCAT_STOKES_IMAGES test: concatenate different stokes images into si
                         const fileInfoResponse = await msgController.getFileInfo(
                             assertItem.fileList.directory!,
                             stokesImage.file,
-                            ''
+                            assertItem.hdu
                         );
                         expect(fileInfoResponse.success).toEqual(true);
                         expect(fileInfoResponse.fileInfo!.name).toEqual(stokesImage.file);
@@ -129,7 +150,8 @@ describe('CONCAT_STOKES_IMAGES test: concatenate different stokes images into si
                             stokesFile(
                                 assertItem.stokesImages[stokesLetter].file,
                                 stokesLetter,
-                                assertItem.fileList.directory!
+                                assertItem.fileList.directory!,
+                                assertItem.hdu
                             )
                         ),
                         assertItem.fileId,

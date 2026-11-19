@@ -880,9 +880,9 @@ export class MessageController {
     }
 
     @action('set cursor')
-    setCursor(fileId: number, x: number, y: number): boolean {
+    setCursor(fileId: number, x: number, y: number, spatialRequirements?: CARTA.ISetSpatialRequirements): boolean {
         if (this.connectionStatus === ConnectionStatus.ACTIVE) {
-            const message = CARTA.SetCursor.create({ fileId, point: { x, y } });
+            const message = CARTA.SetCursor.create({ fileId, point: { x, y }, spatialRequirements });
             this.logEvent(CARTA.EventType.SET_CURSOR, this.eventCounter, message, false);
             if (this.sendEvent(CARTA.EventType.SET_CURSOR, CARTA.SetCursor.encode(message).finish())) {
                 return true;

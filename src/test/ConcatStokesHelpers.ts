@@ -110,10 +110,10 @@ export function stokesImages(files: Record<StokesLetter, string>): Record<Stokes
  * Stokes cube it claims to be, or which is not there at all, and CONCAT_ERROR_MESSAGE is built
  * out of exactly those.
  */
-export function stokesFile(file: string, stokesLetter: StokesLetter, directory: string): CARTA.IStokesFile {
+export function stokesFile(file: string, stokesLetter: StokesLetter, directory: string, hdu = ''): CARTA.IStokesFile {
     return {
         directory: directory,
-        hdu: '',
+        hdu,
         file: file,
         polarizationType: POLARIZATION_TYPES[stokesLetter],
     };
@@ -170,6 +170,7 @@ export function assertHypercubeAck(
 export async function assertStokesPlane(fileId: number, stokes: number, stokesLetter: StokesLetter) {
     const msgController = MessageController.Instance;
     const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+    const rasterStream = Stream(CARTA.RasterTileData, 3);
     msgController.setChannels({
         fileId: fileId,
         channel: 0,
@@ -181,7 +182,8 @@ export async function assertStokesPlane(fileId: number, stokes: number, stokesLe
             compressionQuality: 11,
         },
     });
-    const regionHistogramData = await regionHistogramDataStream;
+    const [regionHistogramData, rasterData] = await Promise.all([regionHistogramDataStream, rasterStream]);
+    expect(rasterData[2]).toMatchObject({ fileId, stokes, channel: 0, endSync: true });
     expect(regionHistogramData[0].stokes).toEqual(stokes);
     expect(regionHistogramData[0].channel).toEqual(0);
     assertHistogramMatchesStokesImage(regionHistogramData[0], stokesLetter, fileId);

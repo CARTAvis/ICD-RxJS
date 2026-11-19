@@ -24,6 +24,7 @@ import {
 
 interface AssertItem {
     fileList: CARTA.IFileListRequest;
+    hdu: string;
     stokesImages: Record<StokesLetter, StokesImage>;
     concatCases: ConcatCase[];
     fileId: number;
@@ -36,6 +37,7 @@ interface AssertItem {
 
 let assertItem: AssertItem = {
     fileList: { directory: TEST_SUBDIRECTORY },
+    hdu: '',
     stokesImages: stokesImages({
         I: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.fits',
         Q: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.fits',
@@ -80,110 +82,131 @@ let assertItem: AssertItem = {
     hypercubeShape: { dimensions: 4, width: 256, height: 256, depth: 480 },
 };
 
-describe('CONCAT_STOKES_IMAGES_AXIS_DEGENERACY test: Concatenate different axis-degeneracy stokes images into a single image.', () => {
-    const msgController = MessageController.Instance;
-    beforeAll(async () => {
-        await msgController.connect(TEST_SERVER_URL);
-    }, CONNECTION_TIMEOUT);
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileList: { directory: TEST_SUBDIRECTORY },
+    hdu: 'SKY',
+    stokesImages: stokesImages({
+        I: 'IRCp10216_sci.spw0.cube.I.dropdeg.manual.pbcor.zarr',
+        Q: 'IRCp10216_sci.spw0.cube.Q.dropdeg.manual.pbcor.zarr',
+        U: 'IRCp10216_sci.spw0.cube.U.dropdeg.manual.pbcor.zarr',
+        V: 'IRCp10216_sci.spw0.cube.V.dropdeg.manual.pbcor.zarr',
+    }),
+    concatCases: assertItem.concatCases.map((concatCase) => ({
+        ...concatCase,
+        hypercubeName: concatCase.hypercubeName.replace(/\.fits$/, '.zarr'),
+    })),
+    // XRADIO inserts a singleton polarization axis for the source FITS cubes.
+    inputShape: { ...assertItem.inputShape, dimensions: 4 },
+};
 
-    checkConnection();
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])(
+    'CONCAT_STOKES_IMAGES_AXIS_DEGENERACY (%s) test: Concatenate different axis-degeneracy stokes images into a single image.',
+    (_format, assertItem) => {
+        const msgController = MessageController.Instance;
+        beforeAll(async () => {
+            await msgController.connect(TEST_SERVER_URL);
+        }, CONNECTION_TIMEOUT);
 
-    test(`Get the base path and prefix the image directory with it |`, async () => {
-        await assertBasePath([assertItem.fileList]);
-    });
+        checkConnection();
 
-    assertItem.concatCases.forEach((concatCase) => {
-        describe(`${concatCase.title} |`, () => {
-            let concatStokesResponse: CARTA.IConcatStokesFilesAck;
+        test(`Get the base path and prefix the image directory with it |`, async () => {
+            await assertBasePath([assertItem.fileList]);
+        });
 
-            test(`(Step 1) FILE_LIST_RESPONSE should list the input images |`, async () => {
-                const fileListResponse = await msgController.getFileList(assertItem.fileList.directory!, 0);
-                expect(fileListResponse.success).toEqual(true);
-                const fileNames = fileListResponse.files!.map((file) => file.name);
-                concatCase.requestOrder.forEach((stokesLetter) =>
-                    expect(fileNames).toContain(assertItem.stokesImages[stokesLetter].file)
-                );
-            });
+        assertItem.concatCases.forEach((concatCase) => {
+            describe(`${concatCase.title} |`, () => {
+                let concatStokesResponse: CARTA.IConcatStokesFilesAck;
 
-            concatCase.requestOrder.forEach((stokesLetter, index) => {
+                test(`(Step 1) FILE_LIST_RESPONSE should list the input images |`, async () => {
+                    const fileListResponse = await msgController.getFileList(assertItem.fileList.directory!, 0);
+                    expect(fileListResponse.success).toEqual(true);
+                    const fileNames = fileListResponse.files!.map((file) => file.name);
+                    concatCase.requestOrder.forEach((stokesLetter) =>
+                        expect(fileNames).toContain(assertItem.stokesImages[stokesLetter].file)
+                    );
+                });
+
+                concatCase.requestOrder.forEach((stokesLetter, index) => {
+                    test(
+                        `(Step 2-${index + 1}) FILE_INFO_RESPONSE for the Stokes ${stokesLetter} cube should report the expected input shape within ${OPEN_FILE_TIMEOUT} ms | `,
+                        async () => {
+                            const stokesImage = assertItem.stokesImages[stokesLetter];
+                            const fileInfoResponse = await msgController.getFileInfo(
+                                assertItem.fileList.directory!,
+                                stokesImage.file,
+                                assertItem.hdu
+                            );
+                            expect(fileInfoResponse.success).toEqual(true);
+                            expect(fileInfoResponse.fileInfo!.name).toEqual(stokesImage.file);
+                            const fileInfoExtended = fileInfoResponse.fileInfoExtended![assertItem.hdu || '0'];
+                            expect(fileInfoExtended.dimensions).toEqual(assertItem.inputShape.dimensions);
+                            expect(fileInfoExtended.width).toEqual(assertItem.inputShape.width);
+                            expect(fileInfoExtended.height).toEqual(assertItem.inputShape.height);
+                            expect(fileInfoExtended.depth).toEqual(assertItem.inputShape.depth);
+                            expect(fileInfoExtended.stokes).toEqual(assertItem.inputShape.stokes);
+                        },
+                        OPEN_FILE_TIMEOUT
+                    );
+                });
+
                 test(
-                    `(Step 2-${index + 1}) FILE_INFO_RESPONSE for the Stokes ${stokesLetter} cube should show a dropped Stokes axis within ${OPEN_FILE_TIMEOUT} ms | `,
+                    `(Step 3) CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should arrive within ${CONCAT_STOKES_TIMEOUT} ms | `,
                     async () => {
-                        const stokesImage = assertItem.stokesImages[stokesLetter];
-                        const fileInfoResponse = await msgController.getFileInfo(
-                            assertItem.fileList.directory!,
-                            stokesImage.file,
-                            ''
+                        msgController.closeFile(-1);
+                        const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
+                        concatStokesResponse = await msgController.loadStokeFiles(
+                            concatCase.requestOrder.map((stokesLetter) =>
+                                stokesFile(
+                                    assertItem.stokesImages[stokesLetter].file,
+                                    stokesLetter,
+                                    assertItem.fileList.directory!,
+                                    assertItem.hdu
+                                )
+                            ),
+                            assertItem.fileId,
+                            assertItem.renderMode
                         );
-                        expect(fileInfoResponse.success).toEqual(true);
-                        expect(fileInfoResponse.fileInfo!.name).toEqual(stokesImage.file);
-                        // The inputs have to really be degenerate-axis-dropped, otherwise this test
-                        // would quietly become a copy of CONCAT_STOKES_IMAGES.
-                        const fileInfoExtended = fileInfoResponse.fileInfoExtended!['0'];
-                        expect(fileInfoExtended.dimensions).toEqual(assertItem.inputShape.dimensions);
-                        expect(fileInfoExtended.width).toEqual(assertItem.inputShape.width);
-                        expect(fileInfoExtended.height).toEqual(assertItem.inputShape.height);
-                        expect(fileInfoExtended.depth).toEqual(assertItem.inputShape.depth);
-                        expect(fileInfoExtended.stokes).toEqual(assertItem.inputShape.stokes);
+                        const regionHistogramData = await regionHistogramDataStream;
+                        // The hypercube opens on its first plane, which is the lowest polarization of
+                        // the set rather than the one which happened to be requested first.
+                        expect(regionHistogramData[0].stokes).toEqual(0);
+                        assertHistogramMatchesStokesImage(
+                            regionHistogramData[0],
+                            concatCase.expectedPlanes[0],
+                            assertItem.fileId
+                        );
                     },
-                    OPEN_FILE_TIMEOUT
+                    CONCAT_STOKES_TIMEOUT
                 );
-            });
 
-            test(
-                `(Step 3) CONCAT_STOKES_FILES_ACK and REGION_HISTOGRAM_DATA should arrive within ${CONCAT_STOKES_TIMEOUT} ms | `,
-                async () => {
-                    msgController.closeFile(-1);
-                    const regionHistogramDataStream = Stream(CARTA.RegionHistogramData, 1);
-                    concatStokesResponse = await msgController.loadStokeFiles(
-                        concatCase.requestOrder.map((stokesLetter) =>
-                            stokesFile(
-                                assertItem.stokesImages[stokesLetter].file,
-                                stokesLetter,
-                                assertItem.fileList.directory!
-                            )
-                        ),
-                        assertItem.fileId,
-                        assertItem.renderMode
-                    );
-                    const regionHistogramData = await regionHistogramDataStream;
-                    // The hypercube opens on its first plane, which is the lowest polarization of
-                    // the set rather than the one which happened to be requested first.
-                    expect(regionHistogramData[0].stokes).toEqual(0);
-                    assertHistogramMatchesStokesImage(
-                        regionHistogramData[0],
-                        concatCase.expectedPlanes[0],
-                        assertItem.fileId
-                    );
-                },
-                CONCAT_STOKES_TIMEOUT
-            );
+                test(`(Step 4) CONCAT_STOKES_FILES_ACK should describe the hypercube | `, () => {
+                    assertHypercubeAck(concatStokesResponse, {
+                        fileId: assertItem.fileId,
+                        name: concatCase.hypercubeName,
+                        shape: assertItem.hypercubeShape,
+                        planes: concatCase.expectedPlanes,
+                    });
+                });
 
-            // The inputs were three-dimensional; the Stokes axis of the hypercube is one DoConcat
-            // added.
-            test(`(Step 4) CONCAT_STOKES_FILES_ACK should describe the hypercube | `, () => {
-                assertHypercubeAck(concatStokesResponse, {
-                    fileId: assertItem.fileId,
-                    name: concatCase.hypercubeName,
-                    shape: assertItem.hypercubeShape,
-                    planes: concatCase.expectedPlanes,
+                // Plane 0 was covered by the histogram which came with the ack. The remaining planes are
+                // reached with SET_IMAGE_CHANNELS.
+                concatCase.expectedPlanes.slice(1).forEach((stokesLetter, index) => {
+                    const stokes = index + 1;
+                    test(
+                        `(Step 5-${stokes}) Stokes plane ${stokes} should hold the ${stokesLetter} image within ${CHANGE_CHANNEL_TIMEOUT} ms | `,
+                        async () => {
+                            await assertStokesPlane(assertItem.fileId, stokes, stokesLetter);
+                        },
+                        CHANGE_CHANNEL_TIMEOUT
+                    );
                 });
             });
-
-            // Plane 0 was covered by the histogram which came with the ack. The remaining planes are
-            // reached with SET_IMAGE_CHANNELS.
-            concatCase.expectedPlanes.slice(1).forEach((stokesLetter, index) => {
-                const stokes = index + 1;
-                test(
-                    `(Step 5-${stokes}) Stokes plane ${stokes} should hold the ${stokesLetter} image within ${CHANGE_CHANNEL_TIMEOUT} ms | `,
-                    async () => {
-                        await assertStokesPlane(assertItem.fileId, stokes, stokesLetter);
-                    },
-                    CHANGE_CHANNEL_TIMEOUT
-                );
-            });
         });
-    });
 
-    afterAll(() => msgController.closeConnection());
-});
+        afterAll(() => msgController.closeConnection());
+    }
+);

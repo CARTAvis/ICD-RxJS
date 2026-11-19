@@ -928,3 +928,172 @@ describe('OPEN_SWAPPED_IMAGES test: Testing open swapped images in different axe
         afterAll(() => msgController.closeConnection());
     });
 });
+
+interface ZarrAssertItem {
+    file: string;
+    shape: { width: number; height: number; depth: number; stokes: number };
+    channel: number;
+    stokes: number;
+    tile: number;
+    cursor: { x: number; y: number; value: number };
+    celestialFrame?: string;
+}
+
+// XRADIO normalizes the source images' axes to spatial X, spatial Y, frequency and Stokes.
+let zarrAssertItems: ZarrAssertItem[] = [
+    {
+        file: 'HH211_IQU-swap-rfds.zarr',
+        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
+        channel: 2,
+        stokes: 0,
+        tile: 50335745,
+        cursor: { x: 510, y: 500, value: 0.0015299528604373336 },
+    },
+    {
+        file: 'HH211_IQU-swap-rsdf.zarr',
+        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
+        channel: 2,
+        stokes: 1,
+        tile: 50339842,
+        cursor: { x: 555, y: 586, value: -0.000315091252559796 },
+    },
+    {
+        file: 'HH211_IQU.zarr',
+        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
+        channel: 2,
+        stokes: 1,
+        tile: 50339842,
+        cursor: { x: 555, y: 586, value: -0.000315091252559796 },
+    },
+    {
+        file: 'HH211_IQU-swap-fdsr.zarr',
+        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
+        channel: 4,
+        stokes: 0,
+        tile: 50339842,
+        cursor: { x: 522, y: 521, value: 0.03848038613796234 },
+    },
+    {
+        file: 'supermosaic.10-cutted-stokes-glon-vard-glat.zarr',
+        shape: { width: 483, height: 403, depth: 51, stokes: 1 },
+        channel: 12,
+        stokes: 0,
+        tile: 16777217,
+        cursor: { x: 477, y: 112, value: 20.193593978881836 },
+        celestialFrame: 'GALACTIC',
+    },
+];
+
+describe('OPEN_SWAPPED_IMAGES (Zarr): read images converted from different source axis orders', () => {
+    const msgController = MessageController.Instance;
+    const fileId = 0;
+
+    describe.each(zarrAssertItems)('$file', (assertItem) => {
+        let directory: string;
+
+        beforeAll(async () => {
+            await msgController.connect(testServerUrl);
+            const fileList = await msgController.getFileList('$BASE', 0);
+            directory = `${fileList.directory}/${testSubdirectory}`;
+        }, connectTimeout + config.timeout.listFile);
+        afterAll(() => msgController.closeConnection());
+
+        checkConnection();
+
+        test(
+            'OPEN_FILE_ACK reports the normalized axes and the first plane has a histogram',
+            async () => {
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                const openFileAck = await msgController.loadFile({
+                    directory,
+                    file: assertItem.file,
+                    hdu: 'SKY',
+                    fileId,
+                });
+                expect(openFileAck).toMatchObject({
+                    success: true,
+                    fileId,
+                    fileInfo: { name: assertItem.file, type: 7 },
+                    fileInfoExtended: {
+                        ...assertItem.shape,
+                        dimensions: 4,
+                        axesNumbers: { spatialX: 1, spatialY: 2, spectral: 3, stokes: 4, depth: 3 },
+                    },
+                });
+                if (assertItem.celestialFrame) {
+                    expect(openFileAck.fileInfoExtended!.computedEntries).toContainEqual(
+                        expect.objectContaining({ name: 'Celestial frame', value: assertItem.celestialFrame })
+                    );
+                }
+                const [histogram] = await histogramStream;
+                expect(histogram).toMatchObject({ fileId, channel: 0, stokes: 0 });
+                expect(histogram.histograms.numBins).toBeGreaterThan(1);
+            },
+            openFileTimeout
+        );
+
+        test(
+            'SET_IMAGE_CHANNELS returns the selected plane histogram and raster pixels',
+            async () => {
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                const rasterStream = Stream(CARTA.RasterTileData, 3);
+                const { channel, stokes, cursor } = assertItem;
+                msgController.setChannels({
+                    fileId,
+                    channel,
+                    stokes,
+                    requiredTiles: {
+                        fileId,
+                        tiles: [assertItem.tile],
+                        compressionType: CARTA.CompressionType.NONE,
+                    },
+                });
+                const [[histogram], [start, raster, end]] = await Promise.all([histogramStream, rasterStream]);
+                expect(histogram).toMatchObject({ fileId, channel, stokes });
+                expect(start).toMatchObject({ fileId, channel, stokes, endSync: false });
+                expect(end).toMatchObject({ fileId, channel, stokes, endSync: true });
+                expect(raster).toMatchObject({ fileId, channel, stokes });
+                expect(raster.tiles).toHaveLength(1);
+
+                const tileSize = 256;
+                const [tile] = raster.tiles;
+                expect(tile).toMatchObject({ x: Math.floor(cursor.x / tileSize), y: Math.floor(cursor.y / tileSize) });
+                const pixelIndex = (cursor.y % tileSize) * tile.width + (cursor.x % tileSize);
+                expect(Buffer.from(tile.imageData).readFloatLE(pixelIndex * Float32Array.BYTES_PER_ELEMENT)).toBe(
+                    cursor.value
+                );
+            },
+            openFileTimeout
+        );
+
+        test(
+            'SET_CURSOR returns the same pixel and both profiles at the selected channel and Stokes',
+            async () => {
+                const { x, y, value } = assertItem.cursor;
+                const spatialProfileStream = Stream(CARTA.SpatialProfileData, 1);
+                msgController.setCursor(fileId, x, y, {
+                    fileId,
+                    regionId: 0,
+                    spatialProfiles: [
+                        { coordinate: 'x', mip: 1 },
+                        { coordinate: 'y', mip: 1 },
+                    ],
+                });
+                const [profile] = await spatialProfileStream;
+                expect(profile).toMatchObject({
+                    fileId,
+                    x,
+                    y,
+                    value,
+                    channel: assertItem.channel,
+                    stokes: assertItem.stokes,
+                });
+                expect(profile.profiles).toMatchObject([
+                    { coordinate: 'x', end: assertItem.shape.width },
+                    { coordinate: 'y', end: assertItem.shape.height },
+                ]);
+            },
+            openFileTimeout
+        );
+    });
+});
