@@ -939,7 +939,7 @@ interface ZarrAssertItem {
     celestialFrame?: string;
 }
 
-// XRADIO normalizes the source images' axes to spatial X, spatial Y, frequency and Stokes.
+// CARTA exposes spatial X, spatial Y, frequency and Stokes in this order.
 let zarrAssertItems: ZarrAssertItem[] = [
     {
         file: 'HH211_IQU-swap-rfds.zarr',
@@ -951,6 +951,15 @@ let zarrAssertItems: ZarrAssertItem[] = [
     },
     {
         file: 'HH211_IQU-swap-rsdf.zarr',
+        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
+        channel: 2,
+        stokes: 1,
+        tile: 50339842,
+        cursor: { x: 555, y: 586, value: -0.000315091252559796 },
+    },
+    {
+        // SKY is stored as (time, l, polarization, m, frequency), like the source RSDF axis order.
+        file: 'HH211_IQU-swap-rsdf-permuted.zarr',
         shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
         channel: 2,
         stokes: 1,
@@ -984,7 +993,7 @@ let zarrAssertItems: ZarrAssertItem[] = [
     },
 ];
 
-describe('OPEN_SWAPPED_IMAGES (Zarr): read images converted from different source axis orders', () => {
+describe('OPEN_SWAPPED_IMAGES (Zarr): read images with different source and stored axis orders', () => {
     const msgController = MessageController.Instance;
     const fileId = 0;
 
