@@ -932,6 +932,7 @@ interface ZarrAssertItem {
     celestialFrame?: string;
 }
 
+// Each SKY array stores a singleton time axis followed by the source FITS axes in header order.
 // CARTA exposes spatial X, spatial Y, frequency and Stokes in this order.
 let zarrAssertItems: ZarrAssertItem[] = [
     {
@@ -946,16 +947,6 @@ let zarrAssertItems: ZarrAssertItem[] = [
     {
         caseNumber: 2,
         file: 'HH211_IQU-swap-rsdf.zarr',
-        shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
-        channel: 2,
-        stokes: 1,
-        tile: 50339842,
-        cursor: { x: 555, y: 586, value: -0.000315091252559796 },
-    },
-    {
-        // SKY is stored as (time, l, polarization, m, frequency), like the source RSDF axis order.
-        caseNumber: 2,
-        file: 'HH211_IQU-swap-rsdf-permuted.zarr',
         shape: { width: 1049, height: 1049, depth: 5, stokes: 3 },
         channel: 2,
         stokes: 1,
