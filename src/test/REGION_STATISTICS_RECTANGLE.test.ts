@@ -40,6 +40,20 @@ let assertItem: AssertItem = {
             hdu: '0',
             renderMode: CARTA.RenderMode.RASTER,
         },
+        {
+            directory: testSubdirectory,
+            file: 'M17_SWex-casa.zarr',
+            fileId: 0,
+            hdu: 'SKY',
+            renderMode: CARTA.RenderMode.RASTER,
+        },
+        {
+            directory: testSubdirectory,
+            file: 'M17_SWex.zarr',
+            fileId: 0,
+            hdu: 'SKY',
+            renderMode: CARTA.RenderMode.RASTER,
+        },
     ],
     addRequiredTiles: {
         fileId: 0,
@@ -326,26 +340,32 @@ describe('REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions
         test(`Get basepath`, async () => {
             let fileListResponse = await msgController.getFileList('$BASE', 0);
             basepath = fileListResponse.directory;
-            assertItem.openFile[0].directory = basepath + '/' + assertItem.openFile[0].directory;
-            assertItem.openFile[1].directory = basepath + '/' + assertItem.openFile[1].directory;
+            assertItem.openFile.forEach((openFile) => {
+                openFile.directory = basepath + '/' + openFile.directory;
+            });
         });
 
         assertItem.openFile.map((openFile) => {
             describe(`Open image "${openFile.file}" to set image view`, () => {
                 test(`Preparation: Open image`, async () => {
                     msgController.closeFile(-1);
-                    let OpenFileResponse = await msgController.loadFile(openFile);
-                    expect(OpenFileResponse.success).toEqual(true);
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                    const openFileResponse = await msgController.loadFile(openFile);
+                    expect(openFileResponse.success).toBe(true);
+                    expect(openFileResponse.fileInfo.name).toBe(openFile.file);
+                    await histogramStream;
 
+                    const rasterStream = Stream(CARTA.RasterTileData, assertItem.addRequiredTiles.tiles.length + 2);
                     msgController.addRequiredTiles(assertItem.addRequiredTiles);
-                    let RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
+                    await rasterStream;
+
+                    const spatialStream = Stream(CARTA.SpatialProfileData, 1);
                     msgController.setCursor(
                         assertItem.setCursor.fileId,
                         assertItem.setCursor.point.x,
                         assertItem.setCursor.point.y
                     );
-                    let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData, 1);
+                    await spatialStream;
                 });
 
                 assertItem.setRegion.map((region, index) => {
@@ -381,8 +401,9 @@ describe('REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions
                         test(
                             `REGION_STATS_DATA should return within ${regionTimeout} ms`,
                             async () => {
-                                await msgController.setStatsRequirements(assertItem.setStatsRequirements[index]);
-                                RegionStatsData = await Stream(CARTA.RegionStatsData, 1);
+                                const statsStream = Stream(CARTA.RegionStatsData, 1);
+                                msgController.setStatsRequirements(assertItem.setStatsRequirements[index]);
+                                RegionStatsData = await statsStream;
                             },
                             regionTimeout
                         );
@@ -409,35 +430,38 @@ describe('REGION_STATISTICS_RECTANGLE: Testing statistics with rectangle regions
                         });
                     });
                 });
-            });
-        });
 
-        describe(`SET STATS REQUIREMENTS on region #-1`, () => {
-            let RegionStatsData: any;
-            test(
-                `REGION_STATS_DATA should return within ${regionTimeout} ms`,
-                async () => {
-                    await msgController.setStatsRequirements(assertItem.setStatsRequirements[4]);
-                    RegionStatsData = await Stream(CARTA.RegionStatsData, 1);
-                },
-                regionTimeout
-            );
+                describe(`SET STATS REQUIREMENTS on region #-1`, () => {
+                    let RegionStatsData: any;
+                    test(
+                        `REGION_STATS_DATA should return within ${regionTimeout} ms`,
+                        async () => {
+                            const statsStream = Stream(CARTA.RegionStatsData, 1);
+                            msgController.setStatsRequirements(assertItem.setStatsRequirements[4]);
+                            RegionStatsData = await statsStream;
+                        },
+                        regionTimeout
+                    );
 
-            test(`REGION_STATS_DATA.region_id = ${assertItem.regionStatsData[4].regionId}`, () => {
-                expect(RegionStatsData[0].regionId).toEqual(assertItem.regionStatsData[4].regionId);
-            });
+                    test(`REGION_STATS_DATA.region_id = ${assertItem.regionStatsData[4].regionId}`, () => {
+                        expect(RegionStatsData[0].regionId).toEqual(assertItem.regionStatsData[4].regionId);
+                    });
 
-            test('Assert & Check REGION_STATS_DATA.statistics', () => {
-                assertItem.regionStatsData[4].statistics.map((stats) => {
-                    if (isNaN(stats.value)) {
-                        expect(
-                            isNaN(RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value)
-                        ).toBe(true);
-                    } else {
-                        expect(
-                            RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value
-                        ).toBeCloseTo(stats.value, assertItem.precisionDigits);
-                    }
+                    test('Assert & Check REGION_STATS_DATA.statistics', () => {
+                        assertItem.regionStatsData[4].statistics.map((stats) => {
+                            if (isNaN(stats.value)) {
+                                expect(
+                                    isNaN(
+                                        RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value
+                                    )
+                                ).toBe(true);
+                            } else {
+                                expect(
+                                    RegionStatsData[0].statistics.find((f) => f.statsType === stats.statsType).value
+                                ).toBeCloseTo(stats.value, assertItem.precisionDigits);
+                            }
+                        });
+                    });
                 });
             });
         });
