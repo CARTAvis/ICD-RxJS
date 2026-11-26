@@ -263,7 +263,18 @@ function collectAnimation(activeFileId: number) {
 }
 
 let basepath: string;
-describe('ANIMATOR_CONTOUR_MATCH: Testing animation playback of a spectrally matched image', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileOpen: [
+        { ...assertItem.fileOpen[0], file: 'M17_SWex.zarr', hdu: 'SKY' },
+        { ...assertItem.fileOpen[1], file: 'M17_SWex-casa.zarr', hdu: 'SKY' },
+    ],
+};
+
+describe.each([
+    ['FITS/CASA', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_CONTOUR_MATCH (%s): Testing animation playback of a spectrally matched image', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -283,15 +294,15 @@ describe('ANIMATOR_CONTOUR_MATCH: Testing animation playback of a spectrally mat
                     assertItem.fileOpen[0].directory = basepath + '/' + assertItem.filelist.directory;
                     assertItem.fileOpen[1].directory = basepath + '/' + assertItem.filelist.directory;
 
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                     let OpenFileResponse1 = await msgController.loadFile(assertItem.fileOpen[0]);
                     expect(OpenFileResponse1.success).toEqual(true);
+                    await histogramStream;
 
-                    let RegionHistrogramDataResponse1 = await Stream(CARTA.RegionHistogramData, 1);
-
+                    const matchedHistogramStream = Stream(CARTA.RegionHistogramData, 1);
                     let OpenFileResponse2 = await msgController.loadFile(assertItem.fileOpen[1]);
                     expect(OpenFileResponse2.success).toEqual(true);
-
-                    let RegionHistrogramDataResponse2 = await Stream(CARTA.RegionHistogramData, 1);
+                    await matchedHistogramStream;
                 },
                 openFileTimeout
             );

@@ -284,6 +284,29 @@ const assertItem: AssertItem = {
     ],
 };
 
+// Run the same channel-map requests for the converted FITS, CASA and MIRIAD images.
+['M17_SWex.zarr', 'M17_SWex-casa.zarr', 'M17_SWex-miriad.zarr'].forEach((file, sourceIndex) => {
+    const fileId = assertItem.fileOpenGroup.length;
+    assertItem.fileOpenGroup.push({ ...assertItem.fileOpenGroup[sourceIndex], file, fileId, hdu: 'SKY' });
+    assertItem.fileOpenAckGroup.push({ ...assertItem.fileOpenAckGroup[sourceIndex], fileId });
+
+    const firstRequest = assertItem.setImageChannelGroup[sourceIndex];
+    const secondRequest = assertItem.setImageChannelGroup2[sourceIndex];
+    assertItem.setImageChannelGroup.push({
+        ...firstRequest,
+        fileId,
+        requiredTiles: { ...firstRequest.requiredTiles, fileId },
+    });
+    assertItem.setImageChannelGroup2.push({
+        ...secondRequest,
+        fileId,
+        requiredTiles: { ...secondRequest.requiredTiles, fileId },
+    });
+    assertItem.addRequiredTilesGroup.push({ ...assertItem.addRequiredTilesGroup[sourceIndex], fileId });
+    assertItem.rasterTileDataGroup.push({ ...assertItem.rasterTileDataGroup[sourceIndex], fileId });
+    assertItem.tileDataGroup.push(assertItem.tileDataGroup[sourceIndex]);
+});
+
 describe('CHANNEL_MAP: Test loading multiple images and generating their channel maps', () => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {

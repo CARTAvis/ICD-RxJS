@@ -97,7 +97,15 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('ANIMATOR_NAVIGATION: Testing using animator to see different frames/channels/stokes', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'M17_SWex-casa.zarr', hdu: 'SKY' },
+};
+
+describe.each([
+    ['CASA', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_DATA_STREAM (%s): Testing data streams after changing channels', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -114,9 +122,10 @@ describe('ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
         describe(`Go to "${testSubdirectory}" folder and open images`, () => {
             test(`Preparation`, async () => {
                 msgController.closeFile(-1);
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                 let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
                 expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                await histogramStream;
                 msgController.setCursor(assertItem.cursor.fileId, assertItem.cursor.point.x, assertItem.cursor.point.y);
                 let SpatialProfileDataResponse = await Stream(CARTA.SpatialProfileData, 1);
                 msgController.setChannels(assertItem.imageChannels[0]);

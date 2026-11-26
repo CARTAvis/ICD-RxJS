@@ -185,7 +185,18 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('ANIMATOR_NAVIGATION: Testing using animator to see different frames/channels/stokes', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileOpens: [
+        { ...assertItem.fileOpens[0], file: 'HH211_IQU.zarr', hdu: 'SKY' },
+        { ...assertItem.fileOpens[1], file: 'M17_SWex.zarr', hdu: 'SKY' },
+    ],
+};
+
+describe.each([
+    ['HDF5', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_NAVIGATION (%s): Change channels and Stokes', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -204,9 +215,10 @@ describe('ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
             test(`Preparation`, async () => {
                 msgController.closeFile(-1);
                 for (let i = 0; i < assertItem.fileOpens.length; i++) {
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                     let OpenFileResponse = await msgController.loadFile(assertItem.fileOpens[i]);
                     expect(OpenFileResponse.success).toEqual(true);
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                    await histogramStream;
                     msgController.setChannels(assertItem.setImageChannels[i]);
                     let RasterTileData = await Stream(CARTA.RasterTileData, 3);
                 }
@@ -237,9 +249,9 @@ describe('ANIMATOR_NAVIGATION: Testing using animator to see different frames/ch
                             RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);
                         });
 
-                        test(`REGION_HISTOGRAM_DATA.file_id = ${assertItem.regionHistogramDatas[index].regionId}`, () => {
-                            expect(lastRegionHistogramData[0].regionId).toEqual(
-                                assertItem.regionHistogramDatas[index].regionId
+                        test(`REGION_HISTOGRAM_DATA.file_id = ${assertItem.regionHistogramDatas[index].fileId}`, () => {
+                            expect(lastRegionHistogramData[0].fileId).toEqual(
+                                assertItem.regionHistogramDatas[index].fileId
                             );
                         });
 

@@ -139,7 +139,15 @@ let assertItem: AssertItem = {
     ],
 };
 
-describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'M17_SWex.zarr', hdu: 'SKY' },
+};
+
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_CONTOUR (%s): Testing animation playback with contour lines', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -159,10 +167,10 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
                 `"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
                 async () => {
                     assertItem.openFile.directory = basepath + '/' + assertItem.filelist.directory;
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                     OpenFileResponse = await msgController.loadFile(assertItem.openFile);
                     expect(OpenFileResponse.success).toEqual(true);
-
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                    const RegionHistrogramDataResponse = await histogramStream;
                     expect(RegionHistrogramDataResponse.length).toEqual(1);
                 },
                 openFileTimeout
@@ -306,7 +314,10 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
     });
 });
 
-describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () => {
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_CONTOUR (%s): Testing animation playback with contour lines', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -326,10 +337,10 @@ describe('ANIMATOR_CONTOUR: Testing animation playback with contour lines', () =
                 `"${assertItem.openFile.file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
                 async () => {
                     assertItem.openFile.directory = basepath + '/' + assertItem.filelist.directory;
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                     OpenFileResponse = await msgController.loadFile(assertItem.openFile);
                     expect(OpenFileResponse.success).toEqual(true);
-
-                    let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                    const RegionHistrogramDataResponse = await histogramStream;
                     expect(RegionHistrogramDataResponse.length).toEqual(1);
                 },
                 openFileTimeout
