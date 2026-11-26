@@ -121,7 +121,17 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('CASA_REGION_INFO: Testing CASA region list and info', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'M17_SWex-casa.zarr', hdu: 'SKY' },
+    regionListRequest: { ...assertItem.regionListRequest },
+    regionFileInfoRequest: assertItem.regionFileInfoRequest.map((request) => ({ ...request })),
+};
+
+describe.each([
+    ['CASA image', assertItem],
+    ['Zarr image', zarrAssertItem],
+])('CASA_REGION_INFO (%s)', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -143,9 +153,11 @@ describe('CASA_REGION_INFO: Testing CASA region list and info', () => {
         describe(`Go to "${testSubdirectory}" folder and open image "${assertItem.openFile.file}"`, () => {
             test(`Preparation: Open image`, async () => {
                 msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                const openFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(openFileResponse.success).toBe(true);
+                expect(openFileResponse.fileInfo.name).toBe(assertItem.openFile.file);
+                await histogramStream;
             });
 
             describe(`Go to "${regionSubdirectory}" and send REGION_LIST_REQUEST`, () => {

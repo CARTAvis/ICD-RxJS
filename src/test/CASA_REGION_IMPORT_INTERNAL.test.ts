@@ -313,7 +313,15 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('CASA_REGION_IMPORT_INTERNAL: Testing import of CASA region files made with CARTA', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'M17_SWex-casa.zarr', hdu: 'SKY' },
+};
+
+describe.each([
+    ['CASA image', assertItem],
+    ['Zarr image', zarrAssertItem],
+])('CASA_REGION_IMPORT_INTERNAL (%s)', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -330,9 +338,11 @@ describe('CASA_REGION_IMPORT_INTERNAL: Testing import of CASA region files made 
         describe(`Go to "${testSubdirectory}" folder and open image "${assertItem.openFile.file}"`, () => {
             test(`Preparation: Open image`, async () => {
                 msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                const openFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(openFileResponse.success).toBe(true);
+                expect(openFileResponse.fileInfo.name).toBe(assertItem.openFile.file);
+                await histogramStream;
             });
 
             assertItem.importRegionAck.map((regionAck, idxRegion) => {

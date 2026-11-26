@@ -248,7 +248,24 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'M17_SWex-casa.zarr', hdu: 'SKY' },
+    exportRegion: assertItem.exportRegion.map((request) => ({
+        ...request,
+        file: request.file.replace('M17_SWex_', 'M17_SWex-casa-zarr_'),
+    })),
+    importRegion2: assertItem.importRegion2.map((request) => ({
+        ...request,
+        file: request.file.replace('M17_SWex_', 'M17_SWex-casa-zarr_'),
+    })),
+    importRegion: { ...assertItem.importRegion },
+};
+
+describe.each([
+    ['CASA image', assertItem],
+    ['Zarr image', zarrAssertItem],
+])('DS9_REGION_IMPORT_EXPORT (%s)', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -265,9 +282,11 @@ describe('CASA_REGION_IMPORT_EXPORT: Testing import/export of CASA region format
         describe(`Go to "${testSubdirectory}" folder and open image "${assertItem.openFile.file}"`, () => {
             test(`Preparation: Open image`, async () => {
                 msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                expect(OpenFileResponse.success).toEqual(true);
-                let RegionHistrogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
+                const openFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(openFileResponse.success).toBe(true);
+                expect(openFileResponse.fileInfo.name).toBe(assertItem.openFile.file);
+                await histogramStream;
 
                 msgController.addRequiredTiles(assertItem.addTilesRequire);
                 let RasterTileDataResponse = await Stream(CARTA.RasterTileData, 3);

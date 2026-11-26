@@ -215,7 +215,7 @@ CASA_REGION_IMPORT_EXCEPTION
 
 See the `source code <https://github.com/CARTAvis/ICD-RxJS/blob/dev/src/test/CASA_REGION_IMPORT_EXCEPTION.test.ts>`__.
 
-This test verifies that importing invalid CASA region files produces appropriate error messages.
+This test verifies partial import of CASA region files that contain a valid point and a symbol with mixed coordinate units.
 
 1. Frontend sends: **CLOSE_FILE** (``CloseFile``) and **OPEN_FILE** (``OpenFile``)
 
@@ -246,7 +246,7 @@ This test verifies that importing invalid CASA region files produces appropriate
 
 :red-text:`Check 2:` the IMPORT_REGION_ACK should satisfy:
 
-   - The import should fail with error message: "Mixed world and pixel coordinates not supported"
+   - The import returns the valid pixel-coordinate point and reports "symbol import failed." for the invalid symbol.
 
 **Case 2: Import region file with mixed coordinates (world)**
 
@@ -261,7 +261,7 @@ This test verifies that importing invalid CASA region files produces appropriate
 
 :red-text:`Check 3:` the IMPORT_REGION_ACK should satisfy:
 
-   - The import should fail with error message: "Mixed world and pixel coordinates not supported"
+   - The import returns the valid world-coordinate point converted to pixels and reports "symbol import failed." for the invalid symbol.
 
 CASA_REGION_IMPORT_EXPORT
 ~~~~~~~~~~~~~~~~~~~~~~~~~
