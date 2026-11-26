@@ -300,7 +300,15 @@ let assertItem: AssertItem = {
     numArray7: [3, 10, 3, 10, 3, 10, 3, 10, 3, 10, 3, 10],
 };
 
-describe('PERF_ANIMATION_PLAYBACK', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    fileOpen: [{ ...assertItem.fileOpen[0], file: 'M17_SWex-casa.zarr', hdu: 'SKY' }],
+};
+
+describe.each([
+    ['CASA', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_PLAYBACK (%s)', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     beforeAll(async () => {
         await msgController.connect(testServerUrl);
@@ -325,15 +333,15 @@ describe('PERF_ANIMATION_PLAYBACK', () => {
             `(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms`,
             async () => {
                 assertItem.fileOpen[0].directory = basepath + '/' + assertItem.filelist.directory;
+                const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                 OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
-                let RegionHistogramData: CARTA.RegionHistogramData[] = [];
-                let resRegionHistogramData = msgController.histogramStream.pipe(take(1));
-                resRegionHistogramData.subscribe((data) => {
-                    RegionHistogramData.push(data);
-                });
+                expect(OpenFileResponse.success).toEqual(true);
+                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.fileOpen[0].file);
+                await histogramStream;
 
+                const rasterStream = Stream(CARTA.RasterTileData, assertItem.initTilesReq.tiles.length + 2);
                 msgController.addRequiredTiles(assertItem.initTilesReq);
-                let RasterTileData = await Stream(CARTA.RasterTileData, 14); //RasterTileData * 12 + RasterTileSync * 2
+                await rasterStream;
             },
             openFileTimeout
         );

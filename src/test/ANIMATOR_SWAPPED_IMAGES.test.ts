@@ -202,7 +202,26 @@ function sleep(ms) {
 }
 
 let basepath: string;
-describe('ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation for swapped image', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    // The SKY array keeps the source order on disk. CARTA exposes its logical axes in standard order.
+    fileOpen: [{ ...assertItem.fileOpen[0], file: 'HH211_IQU-swap-dsrf.zarr', hdu: 'SKY' }],
+    openFileAckResponse: [
+        {
+            ...assertItem.openFileAckResponse[0],
+            fileInfo: { name: 'HH211_IQU-swap-dsrf.zarr' },
+            fileInfoExtended: {
+                ...assertItem.openFileAckResponse[0].fileInfoExtended,
+                axesNumbers: { depth: 3, spatialX: 1, spatialY: 2, spectral: 3, stokes: 4 },
+            },
+        },
+    ],
+};
+
+describe.each([
+    ['CASA', assertItem],
+    ['Zarr', zarrAssertItem],
+])('ANIMATOR_SWAPPED_IMAGES (%s): Animate channels and Stokes on swapped axes', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -222,10 +241,10 @@ describe('ANIMATOR_SWAPPED_IMAGES test: Testing the channel and stokes animation
             test(
                 `(Step 1)"${assertItem.fileOpen[0].file}" OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms and check correctness`,
                 async () => {
+                    const histogramStream = Stream(CARTA.RegionHistogramData, 1);
                     let OpenFileResponse = await msgController.loadFile(assertItem.fileOpen[0]);
-                    let RegionHistogramDataResponse = await Stream(CARTA.RegionHistogramData, 1);
-
                     expect(OpenFileResponse.success).toEqual(true);
+                    await histogramStream;
                     expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFileAckResponse[0].fileInfo.name);
                     expect(OpenFileResponse.fileInfoExtended.axesNumbers.depth).toEqual(
                         assertItem.openFileAckResponse[0].fileInfoExtended.axesNumbers.depth

@@ -3,3 +3,5 @@ src/test/ANIMATOR_NAVIGATION.test.ts
 src/test/ANIMATOR_CONTOUR_MATCH.test.ts
 src/test/ANIMATOR_CONTOUR.test.ts
 src/test/CHANNEL_MAP.test.ts
+src/test/ANIMATOR_PLAYBACK.test.ts
+src/test/ANIMATOR_SWAPPED_IMAGES.test.ts
