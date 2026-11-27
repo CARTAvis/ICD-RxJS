@@ -1,3 +1,4 @@
+import { filter, firstValueFrom } from 'rxjs';
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
@@ -90,11 +91,11 @@ describe('PER_CUBE_HISTOGRAM_HDF5: Testing calculations of the per-cube histogra
             `OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `,
             async () => {
                 msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                const imageHistogram = Stream(CARTA.RegionHistogramData, 1);
+                const openFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(openFileResponse.success).toBe(true);
+                expect(openFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                await imageHistogram;
             },
             openFileTimeout
         );
@@ -122,25 +123,22 @@ describe('PER_CUBE_HISTOGRAM_HDF5: Testing calculations of the per-cube histogra
 
         let ReceiveProgress: number;
         let RegionHistogramData: CARTA.RegionHistogramData;
-        let RegionHistogramDataTemp1 = [];
         describe(`Set histogram requirements:`, () => {
             test(
                 `REGION_HISTOGRAM_DATA should arrive completely within ${cubeHistogramTimeout} ms:`,
                 async () => {
-                    msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
-                    let regionHistogramDataPromise = new Promise((resolve) => {
-                        msgController.histogramStream.subscribe({
-                            next: (data) => {
-                                RegionHistogramDataTemp1.push(data);
-                                if (data.progress === 1) {
-                                    resolve(RegionHistogramDataTemp1);
-                                }
-                            },
-                        });
-                    });
-
-                    let regionHistogramDataResponse = await regionHistogramDataPromise;
-                    RegionHistogramData = regionHistogramDataResponse.slice(-1)[0];
+                    const completedHistogram = firstValueFrom(
+                        msgController.histogramStream.pipe(
+                            filter(
+                                (data) =>
+                                    data.fileId === assertItem.openFile.fileId &&
+                                    data.regionId === assertItem.regionHistogramData.regionId &&
+                                    data.progress === 1
+                            )
+                        )
+                    );
+                    expect(msgController.setHistogramRequirements(assertItem.setHistogramRequirements)).toBe(true);
+                    RegionHistogramData = await completedHistogram;
                     ReceiveProgress = RegionHistogramData.progress;
                 },
                 cubeHistogramTimeout

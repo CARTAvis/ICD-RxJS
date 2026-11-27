@@ -1,3 +1,4 @@
+import { filter, firstValueFrom, ReplaySubject, Subscription } from 'rxjs';
 import { CARTA } from 'carta-protobuf';
 import { checkConnection, Stream } from './MyClient';
 import { MessageController } from './MessageController';
@@ -72,7 +73,15 @@ let assertItem: AssertItem = {
 };
 
 let basepath: string;
-describe('PER_CUBE_HISTOGRAM: Testing calculations of the per-cube histogram', () => {
+let zarrAssertItem: AssertItem = {
+    ...assertItem,
+    openFile: { ...assertItem.openFile, file: 'supermosaic.10.zarr', hdu: 'SKY' },
+};
+
+describe.each([
+    ['FITS', assertItem],
+    ['Zarr', zarrAssertItem],
+])('PER_CUBE_HISTOGRAM (%s): Calculate the per-cube histogram', (_format, assertItem) => {
     const msgController = MessageController.Instance;
     describe(`Register a session`, () => {
         beforeAll(async () => {
@@ -90,11 +99,11 @@ describe('PER_CUBE_HISTOGRAM: Testing calculations of the per-cube histogram', (
             `OPEN_FILE_ACK and REGION_HISTOGRAM_DATA should arrive within ${openFileTimeout} ms | `,
             async () => {
                 msgController.closeFile(-1);
-                let OpenFileResponse = await msgController.loadFile(assertItem.openFile);
-                let RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-
-                expect(OpenFileResponse.success).toBe(true);
-                expect(OpenFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                const imageHistogram = Stream(CARTA.RegionHistogramData, 1);
+                const openFileResponse = await msgController.loadFile(assertItem.openFile);
+                expect(openFileResponse.success).toBe(true);
+                expect(openFileResponse.fileInfo.name).toEqual(assertItem.openFile.file);
+                await imageHistogram;
             },
             openFileTimeout
         );
@@ -102,122 +111,87 @@ describe('PER_CUBE_HISTOGRAM: Testing calculations of the per-cube histogram', (
         test(
             `return RASTER_TILE_DATA(Stream) and check total length | `,
             async () => {
+                const rasterStream = Stream(CARTA.RasterTileData, assertItem.addTilesReq.tiles.length + 2);
                 msgController.addRequiredTiles(assertItem.addTilesReq);
-                let RasterTileDataResponse = await Stream(
-                    CARTA.RasterTileData,
-                    assertItem.addTilesReq.tiles.length + 2
-                );
+                const rasterTileData = await rasterStream;
 
+                const spatialStream = Stream(CARTA.SpatialProfileData, 1);
                 msgController.setCursor(
                     assertItem.setCursor.fileId,
                     assertItem.setCursor.point.x,
                     assertItem.setCursor.point.y
                 );
-                let SpatialProfileDataResponse1 = await Stream(CARTA.SpatialProfileData, 1);
+                await spatialStream;
 
-                expect(RasterTileDataResponse.length).toEqual(3); //RasterTileSync: start & end + 1 Tile returned
+                expect(rasterTileData).toHaveLength(assertItem.addTilesReq.tiles.length + 2);
             },
             readFileTimeout
         );
 
-        let ReceiveProgress: number;
-        let RegionHistogramData: CARTA.RegionHistogramData;
-        let RegionHistogramDataTemp1 = [];
-        describe(`Set histogram requirements:`, () => {
-            test(`(Step1) "${assertItem.openFile.file}" REGION_HISTOGRAM_DATA should arrive completely within 3000 ms:`, async () => {
-                msgController.setHistogramRequirements(assertItem.setHistogramRequirements);
-                RegionHistogramData = await Stream(CARTA.RegionHistogramData, 1);
-                ReceiveProgress = RegionHistogramData.progress;
+        describe('Set cube histogram requirements', () => {
+            const cubeUpdates = new ReplaySubject<CARTA.RegionHistogramData>(1);
+            const expected = assertItem.regionHistogramData;
+            let subscription: Subscription;
+
+            afterAll(() => subscription?.unsubscribe());
+
+            test('REGION_HISTOGRAM_DATA reports progress for the full cube', async () => {
+                // Subscribe once so updates arriving between Jest tests remain available.
+                subscription = msgController.histogramStream
+                    .pipe(
+                        filter(
+                            (data) => data.fileId === assertItem.openFile.fileId && data.regionId === expected.regionId
+                        )
+                    )
+                    .subscribe(cubeUpdates);
+
+                expect(msgController.setHistogramRequirements(assertItem.setHistogramRequirements)).toBe(true);
+                const update = await firstValueFrom(cubeUpdates.pipe(filter((data) => data.progress > 0)));
+                expect(update.regionId).toEqual(expected.regionId);
+                expect(update.channel).toEqual(expected.channel);
+                expect(update.progress).toBeGreaterThan(0);
             }, 3000);
 
-            test(`(Step2) REGION_HISTOGRAM_DATA.progress > 0 and REGION_HISTOGRAM_DATA.region_id = ${assertItem.regionHistogramData.regionId}`, () => {
-                expect(RegionHistogramData[0].progress).toBeGreaterThan(0);
-                expect(RegionHistogramData[0].regionId).toEqual(assertItem.regionHistogramData.regionId);
-            });
-
             test(
-                '(Step3 & Step4) Assert and check REGION_HISTOGRAM_DATA as the progress be just greater than 0.5',
+                'REGION_HISTOGRAM_DATA has valid bins after the statistics pass',
                 async () => {
-                    let regionHistogramDataPromise = new Promise((resolve) => {
-                        msgController.histogramStream.subscribe({
-                            next: (data) => {
-                                RegionHistogramDataTemp1.push(data);
-                                if (data.progress > 0.5) {
-                                    resolve(RegionHistogramDataTemp1);
-                                }
-                            },
-                        });
-                    });
-
-                    let regionHistogramDataResponse = await regionHistogramDataPromise;
-                    RegionHistogramData = regionHistogramDataResponse.slice(-1)[0];
-                    ReceiveProgress = RegionHistogramData.progress;
-                    expect(ReceiveProgress).toBeGreaterThanOrEqual(0.5);
-                    expect(RegionHistogramData.histograms.binWidth).toBeCloseTo(
-                        assertItem.regionHistogramData.histograms.binWidth,
+                    const update = await firstValueFrom(cubeUpdates.pipe(filter((data) => data.progress > 0.5)));
+                    expect(update.channel).toEqual(expected.channel);
+                    expect(update.histograms.bins).toHaveLength(expected.lengthOfHistogramBins);
+                    expect(update.histograms.numBins).toEqual(expected.histograms.numBins);
+                    expect(update.histograms.binWidth).toBeCloseTo(
+                        expected.histograms.binWidth,
                         assertItem.precisionDigits
                     );
-                    expect(RegionHistogramData.histograms.bins.length).toEqual(
-                        assertItem.regionHistogramData.lengthOfHistogramBins
-                    );
-                    expect(RegionHistogramData.channel).toEqual(assertItem.regionHistogramData.channel);
-                    expect(RegionHistogramData.histograms.firstBinCenter).toBeCloseTo(
-                        assertItem.regionHistogramData.histograms.firstBinCenter,
+                    expect(update.histograms.firstBinCenter).toBeCloseTo(
+                        expected.histograms.firstBinCenter,
                         assertItem.precisionDigits
                     );
-                    expect(RegionHistogramData.histograms.numBins).toEqual(
-                        assertItem.regionHistogramData.histograms.numBins
-                    );
-                    expect(RegionHistogramData.regionId).toEqual(assertItem.regionHistogramData.regionId);
                 },
                 cubeHistogramTimeout
             );
 
             test(
-                '(Step5) Assert and check REGION_HISTOGRAM_DATA as the progress be just greater than 1',
+                'The completed cube histogram has the expected bins and statistics',
                 async () => {
-                    let regionHistogramDataPromise = new Promise((resolve) => {
-                        msgController.histogramStream.subscribe({
-                            next: (data) => {
-                                RegionHistogramDataTemp1.push(data);
-                                if (data.progress === 1) {
-                                    resolve(RegionHistogramDataTemp1);
-                                }
-                            },
-                        });
+                    const update = await firstValueFrom(cubeUpdates.pipe(filter((data) => data.progress === 1)));
+                    expect(update.regionId).toEqual(expected.regionId);
+                    expect(update.channel).toEqual(expected.channel);
+                    expect(update.histograms.bins).toHaveLength(expected.lengthOfHistogramBins);
+                    expect(update.histograms.numBins).toEqual(expected.histograms.numBins);
+                    expect(update.histograms.binWidth).toBeCloseTo(
+                        expected.histograms.binWidth,
+                        assertItem.precisionDigits
+                    );
+                    expect(update.histograms.firstBinCenter).toBeCloseTo(
+                        expected.histograms.firstBinCenter,
+                        assertItem.precisionDigits
+                    );
+                    expected.binValues.forEach(({ index, value }) => {
+                        expect(update.histograms.bins[index]).toEqual(value);
                     });
-
-                    let regionHistogramDataResponse = await regionHistogramDataPromise;
-                    RegionHistogramData = regionHistogramDataResponse.slice(-1)[0];
-                    ReceiveProgress = RegionHistogramData.progress;
-                    expect(ReceiveProgress).toEqual(1);
-                    expect(RegionHistogramData.histograms.binWidth).toBeCloseTo(
-                        assertItem.regionHistogramData.histograms.binWidth,
-                        assertItem.precisionDigits
-                    );
-                    expect(RegionHistogramData.histograms.bins.length).toEqual(
-                        assertItem.regionHistogramData.lengthOfHistogramBins
-                    );
-                    expect(RegionHistogramData.histograms.bins[2500]).toEqual(
-                        assertItem.regionHistogramData.binValues[0].value
-                    );
-                    expect(RegionHistogramData.channel).toEqual(assertItem.regionHistogramData.channel);
-                    expect(RegionHistogramData.histograms.firstBinCenter).toBeCloseTo(
-                        assertItem.regionHistogramData.histograms.firstBinCenter,
-                        assertItem.precisionDigits
-                    );
-                    expect(RegionHistogramData.histograms.numBins).toEqual(
-                        assertItem.regionHistogramData.histograms.numBins
-                    );
-                    expect(RegionHistogramData.histograms.mean).toBeCloseTo(
-                        assertItem.regionHistogramData.mean,
-                        assertItem.precisionDigits
-                    );
-                    expect(RegionHistogramData.histograms.stdDev).toBeCloseTo(
-                        assertItem.regionHistogramData.stdDev,
-                        assertItem.precisionDigits
-                    );
-                    expect(RegionHistogramData.regionId).toEqual(assertItem.regionHistogramData.regionId);
+                    expect(update.histograms.mean).toBeCloseTo(expected.mean, assertItem.precisionDigits);
+                    expect(update.histograms.stdDev).toBeCloseTo(expected.stdDev, assertItem.precisionDigits);
                 },
                 cubeHistogramTimeout
             );
